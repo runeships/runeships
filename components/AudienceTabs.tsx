@@ -158,7 +158,7 @@ function TabTrigger({
         font-display text-[26px] sm:text-[32px] leading-[1.1] tracking-[-0.014em]
         transition-colors duration-200 ease-out
         focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ink
-        ${active ? "text-ink" : "text-muted hover:text-ink"}
+        ${active ? "text-ink" : "text-muted hover:text-oxblood"}
       `}
     >
       {label}

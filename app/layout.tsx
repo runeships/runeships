@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Fraunces, Instrument_Sans } from "next/font/google";
+import { Fraunces, Instrument_Sans, Noto_Sans_Runic } from "next/font/google";
 import "./globals.css";
 import { StickyNav } from "@/components/StickyNav";
 
@@ -16,6 +16,14 @@ const fraunces = Fraunces({
 const instrumentSans = Instrument_Sans({
   subsets: ["latin"],
   variable: "--font-instrument",
+  display: "swap",
+});
+
+// Elder Futhark runes — crisp rendering instead of system fallback.
+const notoSansRunic = Noto_Sans_Runic({
+  subsets: ["runic"],
+  weight: "400",
+  variable: "--font-noto-rune",
   display: "swap",
 });
 
@@ -40,7 +48,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${fraunces.variable} ${instrumentSans.variable}`}
+      className={`${fraunces.variable} ${instrumentSans.variable} ${notoSansRunic.variable}`}
     >
       <body className="min-h-dvh bg-cream text-ink font-body antialiased selection:bg-oxblood selection:text-cream">
         <StickyNav />

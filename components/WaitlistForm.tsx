@@ -10,19 +10,28 @@ type WaitlistFormProps = {
   source?: string;
   /** Suffix for the input id so multiple instances don't collide. */
   id?: string;
+  /** Light = cream-on-cream (default). Dark = inverted for the closing section. */
+  variant?: "light" | "dark";
 };
 
-export function WaitlistForm({ source = "landing_hero", id = "hero" }: WaitlistFormProps) {
+export function WaitlistForm({
+  source = "landing_hero",
+  id = "hero",
+  variant = "light",
+}: WaitlistFormProps) {
   const [state, formAction, pending] = useActionState(joinWaitlist, initial);
   const inputId = `waitlist-email-${id}`;
   const errorId = `waitlist-email-${id}-error`;
+  const dark = variant === "dark";
 
   if (state.status === "success") {
     return (
       <p
         role="status"
         aria-live="polite"
-        className="max-w-[34rem] text-[16px] leading-[1.55] text-ink/85"
+        className={`max-w-[34rem] text-[16px] leading-[1.55] ${
+          dark ? "text-cream/85" : "text-ink/85"
+        }`}
       >
         On the list. We&rsquo;ll write as soon as access opens — keep an eye on your inbox.
       </p>
@@ -30,6 +39,10 @@ export function WaitlistForm({ source = "landing_hero", id = "hero" }: WaitlistF
   }
 
   const hasError = state.status === "error";
+
+  const inputClass = dark
+    ? "border border-cream/40 bg-transparent text-cream placeholder:text-cream/55 focus:border-cream focus:ring-cream/60"
+    : "border border-ink/25 bg-cream text-ink placeholder:text-muted focus:border-oxblood focus:ring-oxblood";
 
   return (
     <form action={formAction} noValidate className="max-w-[34rem]">
@@ -49,16 +62,14 @@ export function WaitlistForm({ source = "landing_hero", id = "hero" }: WaitlistF
           disabled={pending}
           aria-invalid={hasError}
           aria-describedby={hasError ? errorId : undefined}
-          className="
+          className={`
             flex-1 min-h-[56px] px-5
-            bg-cream text-ink placeholder:text-muted
-            border border-ink/25
             text-[16px] tracking-[-0.005em]
             outline-none
-            focus:border-oxblood focus:ring-1 focus:ring-oxblood
             disabled:opacity-60
             sm:border-r-0
-          "
+            ${inputClass}
+          `}
         />
         <button
           type="submit"
@@ -82,7 +93,9 @@ export function WaitlistForm({ source = "landing_hero", id = "hero" }: WaitlistF
         <p
           id={errorId}
           role="alert"
-          className="mt-3 text-[14px] leading-snug text-oxblood"
+          className={`mt-3 text-[14px] leading-snug ${
+            dark ? "text-cream" : "text-oxblood"
+          }`}
         >
           {state.message}
         </p>

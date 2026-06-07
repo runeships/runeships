@@ -2,10 +2,11 @@
 
 /*
  * RuneShips — Editorial Minimal
- * Cream + ink, single oxblood accent. No gradients, no shadows.
+ * Cream + parchment + ink, single oxblood accent. No gradients, no shadows.
  */
 @theme {
   --color-cream: #fafaf7;
+  --color-parchment: #f4efe5;
   --color-ink: #171514;
   --color-muted: #8a847f;
   --color-rule: #e7e2dc;
@@ -15,11 +16,15 @@
   --font-display: var(--font-fraunces), Georgia, "Times New Roman", serif;
   --font-body: var(--font-instrument), -apple-system, BlinkMacSystemFont,
     "Segoe UI", system-ui, sans-serif;
+  --font-rune: var(--font-noto-rune), "Noto Sans Runic", "Apple Symbols",
+    serif;
 
   /* Type scale anchored on editorial sizes. clamp() so we don't ship breakpoints. */
   --text-display: clamp(2.4rem, 5.6vw + 0.5rem, 4.5rem);   /* ~72px max */
   --text-section: clamp(1.85rem, 1.8vw + 1rem, 2.5rem);    /* ~40px max */
-  --text-closing: clamp(2.2rem, 4.2vw + 1rem, 4rem);       /* ~64px max */
+  --text-pull: clamp(2rem, 3.4vw + 1rem, 3.25rem);         /* ~52px max */
+  --text-closing: clamp(2.5rem, 4.8vw + 1.5rem, 5rem);     /* ~80px max */
+  --text-stat: clamp(3.5rem, 5vw + 1rem, 4.5rem);          /* ~72px max */
 }
 
 html {
@@ -43,7 +48,10 @@ body {
   font-feature-settings: "kern", "liga", "ss01";
 }
 
-/* Editorial reading column: gentle paragraph spacing without margin-collapsing weirdness */
+/* Editorial reading column: 1.65 line-height, gentle paragraph spacing. */
+.prose-editorial {
+  line-height: 1.65;
+}
 .prose-editorial > p + p {
   margin-top: 1.05em;
 }
@@ -53,6 +61,44 @@ dialog::backdrop {
   background-color: rgb(23 21 20 / 0.55);
 }
 
+/*
+ * Animated underline for text links — draws in left → right on hover.
+ * Use: <a className="link-anim">…</a>. Uses currentColor so it inherits
+ * link color (whether ink or cream on dark sections).
+ */
+.link-anim {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+.link-anim::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -3px;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 250ms cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+.link-anim:hover::after,
+.link-anim:focus-visible::after {
+  transform: scaleX(1);
+}
+
+/*
+ * Live indicator pulse — slow, ambient. 1500ms ease in-out, opacity 0.4 → 1.
+ */
+@keyframes live-pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
+.live-dot {
+  animation: live-pulse 1500ms cubic-bezier(0.4, 0, 0.4, 1) infinite;
+}
+
 /* Respect motion preferences */
 @media (prefers-reduced-motion: reduce) {
   *,
@@ -60,5 +106,11 @@ dialog::backdrop {
   *::after {
     transition-duration: 0.001ms !important;
     animation-duration: 0.001ms !important;
+  }
+  .link-anim::after {
+    transform: scaleX(1);
+  }
+  .live-dot {
+    opacity: 1;
   }
 }
