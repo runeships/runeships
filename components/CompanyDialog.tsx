@@ -39,7 +39,7 @@ export function CompanyDialog() {
           bg-cream text-ink
           border border-ink
           text-[15px] tracking-[0.01em] font-medium
-          transition-colors duration-150
+          transition-colors duration-200 ease-out
           hover:bg-ink hover:text-cream
           focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink
         "
@@ -158,7 +158,7 @@ export function CompanyDialog() {
                     bg-oxblood text-cream
                     border border-oxblood
                     text-[15px] tracking-[0.01em] font-medium
-                    transition-colors duration-150
+                    transition-colors duration-200 ease-out
                     hover:bg-oxblood-hover
                     focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-oxblood
                     disabled:opacity-60 disabled:cursor-not-allowed
@@ -172,7 +172,7 @@ export function CompanyDialog() {
                   disabled={pending}
                   className="
                     text-[14px] tracking-wide text-muted
-                    hover:text-ink transition-colors
+                    hover:text-ink transition-colors duration-200 ease-out
                     focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink
                   "
                 >

@@ -1,5 +1,6 @@
 import { Wordmark } from "@/components/Wordmark";
 import { RuneMark } from "@/components/RuneMark";
+import { Reveal } from "@/components/Reveal";
 import { WaitlistForm } from "@/components/WaitlistForm";
 import { CompanyDialog } from "@/components/CompanyDialog";
 
@@ -15,7 +16,7 @@ export default function Home() {
           <Wordmark />
           <a
             href="#companies"
-            className="text-[14px] tracking-[0.01em] text-muted hover:text-ink transition-colors duration-150"
+            className="text-[14px] tracking-[0.01em] text-muted hover:text-ink transition-colors duration-200 ease-out"
           >
             For companies <span aria-hidden>→</span>
           </a>
@@ -29,32 +30,44 @@ export default function Home() {
           className="mx-auto max-w-[1240px] pt-24 sm:pt-32 md:pt-40 pb-28 sm:pb-40"
         >
           <div className="grid grid-cols-12 gap-x-6 gap-y-10 md:gap-y-14">
-            <h1
-              id="hero-headline"
-              className="col-span-12 lg:col-span-11 font-display font-light tracking-[-0.022em] leading-[0.98] text-ink"
-              style={{
-                fontSize: "var(--text-display)",
-                fontVariationSettings: '"opsz" 144',
-              }}
+            <Reveal mode="load" delay={0.05} className="col-span-12 lg:col-span-11">
+              <h1
+                id="hero-headline"
+                className="font-display font-light tracking-[-0.022em] leading-[0.98] text-ink"
+                style={{
+                  fontSize: "var(--text-display)",
+                  fontVariationSettings: '"opsz" 144',
+                }}
+              >
+                You need experience to get experience.
+                <span className="block mt-2 sm:mt-3 text-oxblood italic font-normal">
+                  We broke the loop.
+                </span>
+              </h1>
+            </Reveal>
+
+            <Reveal
+              mode="load"
+              delay={0.22}
+              className="col-span-12 md:col-span-9 lg:col-span-7 lg:col-start-5"
             >
-              You need experience to get experience.
-              <span className="block mt-2 sm:mt-3 text-oxblood italic font-normal">
-                We broke the loop.
-              </span>
-            </h1>
+              <p className="text-[18px] sm:text-[20px] md:text-[22px] leading-[1.45] text-ink/80 max-w-[36ch]">
+                RuneShips is where freshmen and sophomores prove they can do
+                real business work — by actually doing it, for real companies.
+                Build a reputation before anyone gives you the chance.
+              </p>
+            </Reveal>
 
-            <p className="col-span-12 md:col-span-9 lg:col-span-7 lg:col-start-5 text-[18px] sm:text-[20px] md:text-[22px] leading-[1.45] text-ink/80 max-w-[36ch]">
-              RuneShips is where freshmen and sophomores prove they can do real
-              business work — by actually doing it, for real companies. Build a
-              reputation before anyone gives you the chance.
-            </p>
-
-            <div className="col-span-12 lg:col-span-9 mt-2">
+            <Reveal
+              mode="load"
+              delay={0.38}
+              className="col-span-12 lg:col-span-9 mt-2"
+            >
               <WaitlistForm source="landing_hero" id="hero" />
               <p className="mt-5 text-[13px] tracking-[0.02em] text-muted">
                 Free for students. Always.
               </p>
-            </div>
+            </Reveal>
           </div>
         </section>
 
@@ -259,31 +272,33 @@ export default function Home() {
           aria-labelledby="closing-tag"
           className="mx-auto max-w-[1240px] border-t border-rule pt-28 sm:pt-36 pb-20 sm:pb-28"
         >
-          <div className="grid grid-cols-12 gap-x-6">
-            <div className="col-span-12 md:col-span-10">
-              <RuneMark
-                rune="ᛒ"
-                label="Berkano — growth, the visible outcome"
-                className="!text-[22px]"
-              />
-              <p
-                id="closing-tag"
-                className="mt-7 font-display font-light tracking-[-0.022em] leading-[0.98] text-ink"
-                style={{
-                  fontSize: "var(--text-closing)",
-                  fontVariationSettings: '"opsz" 144',
-                }}
-              >
-                Show your work.
-                <span className="block text-oxblood italic font-normal">
-                  Earn your ships.
-                </span>
-              </p>
-              <div className="mt-14 sm:mt-20">
-                <Wordmark size="md" asLink={false} />
+          <Reveal mode="scroll">
+            <div className="grid grid-cols-12 gap-x-6">
+              <div className="col-span-12 md:col-span-10">
+                <RuneMark
+                  rune="ᛒ"
+                  label="Berkano — growth, the visible outcome"
+                  className="!text-[22px]"
+                />
+                <p
+                  id="closing-tag"
+                  className="mt-7 font-display font-light tracking-[-0.022em] leading-[0.98] text-ink"
+                  style={{
+                    fontSize: "var(--text-closing)",
+                    fontVariationSettings: '"opsz" 144',
+                  }}
+                >
+                  Show your work.
+                  <span className="block text-oxblood italic font-normal">
+                    Earn your ships.
+                  </span>
+                </p>
+                <div className="mt-14 sm:mt-20">
+                  <Wordmark size="md" asLink={false} />
+                </div>
               </div>
             </div>
-          </div>
+          </Reveal>
         </section>
       </main>
 
@@ -295,14 +310,14 @@ export default function Home() {
             <span aria-hidden className="mx-2.5 text-muted/60">·</span>
             <a
               href="mailto:hello@runeships.com"
-              className="hover:text-ink transition-colors duration-150"
+              className="hover:text-ink transition-colors duration-200 ease-out"
             >
               hello@runeships.com
             </a>
             <span aria-hidden className="mx-2.5 text-muted/60">·</span>
             <a
               href="/privacy"
-              className="hover:text-ink transition-colors duration-150"
+              className="hover:text-ink transition-colors duration-200 ease-out"
             >
               Privacy
             </a>
@@ -328,7 +343,7 @@ type SectionProps = {
 /**
  * Editorial section frame: hairline rule on top, a single rune kicker,
  * generous vertical air. No card, no shadow — the whitespace is the
- * separator.
+ * separator. Content fades in on scroll as one unit.
  */
 function Section({ id, runeChar, runeLabel, children }: SectionProps) {
   return (
@@ -336,10 +351,12 @@ function Section({ id, runeChar, runeLabel, children }: SectionProps) {
       id={id}
       className="mx-auto max-w-[1240px] border-t border-rule pt-20 sm:pt-28 pb-24 sm:pb-32"
     >
-      <div className="mb-12 sm:mb-16">
-        <RuneMark rune={runeChar} label={runeLabel} />
-      </div>
-      {children}
+      <Reveal mode="scroll">
+        <div className="mb-12 sm:mb-16">
+          <RuneMark rune={runeChar} label={runeLabel} />
+        </div>
+        {children}
+      </Reveal>
     </section>
   );
 }

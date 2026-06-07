@@ -68,7 +68,7 @@ export function WaitlistForm({ source = "landing_hero", id = "hero" }: WaitlistF
             bg-oxblood text-cream
             border border-oxblood
             text-[15px] tracking-[0.01em] font-medium
-            transition-colors duration-150
+            transition-colors duration-200 ease-out
             hover:bg-oxblood-hover focus-visible:bg-oxblood-hover
             focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-oxblood
             disabled:opacity-60 disabled:cursor-not-allowed
