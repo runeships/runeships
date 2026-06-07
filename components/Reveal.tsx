@@ -21,6 +21,8 @@ type RevealProps = {
   /** Initial translateY offset, in px. Defaults to 18. */
   y?: number;
   className?: string;
+  /** Forwarded to the wrapping element so anchor links can target it. */
+  id?: string;
 };
 
 // Smooth, decelerating ease. No overshoot.
@@ -32,11 +34,16 @@ export function Reveal({
   delay = 0,
   y = 18,
   className,
+  id,
 }: RevealProps) {
   const reducedMotion = useReducedMotion();
 
   if (reducedMotion) {
-    return <div className={className}>{children}</div>;
+    return (
+      <div id={id} className={className}>
+        {children}
+      </div>
+    );
   }
 
   const transition = {
@@ -48,6 +55,7 @@ export function Reveal({
   if (mode === "load") {
     return (
       <motion.div
+        id={id}
         initial={{ opacity: 0, y }}
         animate={{ opacity: 1, y: 0 }}
         transition={transition}
@@ -60,6 +68,7 @@ export function Reveal({
 
   return (
     <motion.div
+      id={id}
       initial={{ opacity: 0, y }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "0px 0px -10% 0px" }}

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Fraunces, Instrument_Sans } from "next/font/google";
 import "./globals.css";
+import { StickyNav } from "@/components/StickyNav";
 
 // Editorial display serif. The opsz axis lets us scale optical sizing for
 // the very large hero headline vs. smaller section titles.
@@ -19,14 +20,16 @@ const instrumentSans = Instrument_Sans({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
+  ),
   title: "RuneShips — Show your work. Earn your ships.",
   description:
-    "RuneShips is where freshmen and sophomores prove they can do real business work — by actually doing it, for real companies. Build a reputation before anyone gives you the chance.",
+    "RuneShips lets students complete real company tasks, get AI feedback in minutes, and build a public skill rank recruiters can trust.",
   openGraph: {
     title: "RuneShips — Show your work. Earn your ships.",
     description:
-      "Where freshmen and sophomores prove they can do real business work, for real companies.",
+      "Real company tasks. AI feedback in minutes. A portable skill rank recruiters can trust.",
     type: "website",
   },
 };
@@ -40,6 +43,7 @@ export default function RootLayout({
       className={`${fraunces.variable} ${instrumentSans.variable}`}
     >
       <body className="min-h-dvh bg-cream text-ink font-body antialiased selection:bg-oxblood selection:text-cream">
+        <StickyNav />
         {children}
       </body>
     </html>

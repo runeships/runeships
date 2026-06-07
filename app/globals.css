@@ -17,14 +17,21 @@
     "Segoe UI", system-ui, sans-serif;
 
   /* Type scale anchored on editorial sizes. clamp() so we don't ship breakpoints. */
-  --text-display: clamp(2.6rem, 6.4vw + 0.5rem, 6rem);
-  --text-section: clamp(1.85rem, 1.8vw + 1rem, 2.75rem);
-  --text-closing: clamp(2.4rem, 4.8vw + 1rem, 4.75rem);
+  --text-display: clamp(2.4rem, 5.6vw + 0.5rem, 4.5rem);   /* ~72px max */
+  --text-section: clamp(1.85rem, 1.8vw + 1rem, 2.5rem);    /* ~40px max */
+  --text-closing: clamp(2.2rem, 4.2vw + 1rem, 4rem);       /* ~64px max */
 }
 
 html {
   -webkit-text-size-adjust: 100%;
   font-feature-settings: "kern", "liga";
+  scroll-padding-top: 88px; /* clear the sticky nav on anchor jumps */
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
 }
 
 body {
