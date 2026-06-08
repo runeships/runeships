@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useReducedMotion } from "motion/react";
+import { useEffect, useRef, useState } from "react";
+import { useReducedMotion, useInView } from "motion/react";
 
 const SKILLS = [
   { name: "Strategy", top: 4 },
@@ -11,15 +11,23 @@ const SKILLS = [
 ] as const;
 
 /**
- * Sample student profile, rendered as an editorial paper panel — thin
- * border, cream-on-cream, hairline shadow on hover. Percentile numbers
- * are big (Financial Times pullout energy), with "Top" set as a small
- * caps kicker above each. Numbers count up on mount (1000ms ease-out
- * cubic, staggered).
+ * Sample student profile, rendered as an editorial paper panel.
+ *
+ * Initial state (and the SSR HTML) renders the FINAL percentile values —
+ * so visitors with slow JS or no JS see correct numbers. Once the panel
+ * enters the viewport on the client, the values reset to 0 and animate
+ * up to their targets over 1000ms (ease-out cubic, staggered).
  */
 export function ProfileMockup() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const inView = useInView(containerRef, {
+    once: true,
+    margin: "0px 0px -5% 0px",
+  });
+
   return (
     <div
+      ref={containerRef}
       role="img"
       aria-label="Sample student skill profile: S. Patel — Strategy Top 4%, Finance Top 11%, Product Top 18%, Marketing Top 27%, 7 tasks completed, 3 recruiter views."
       className="
@@ -44,7 +52,7 @@ export function ProfileMockup() {
             key={skill.name}
             className="
               flex items-end justify-between gap-6 py-4
-              -mx-2 px-2 rounded-none
+              -mx-2 px-2
               transition-colors duration-150 ease-out
               hover:bg-parchment
             "
@@ -61,7 +69,11 @@ export function ProfileMockup() {
                   fontVariationSettings: '"opsz" 144',
                 }}
               >
-                <CountUp target={skill.top} delayMs={200 + i * 70} />
+                <CountUp
+                  target={skill.top}
+                  delayMs={200 + i * 70}
+                  inView={inView}
+                />
                 <span className="text-[18px] sm:text-[20px] ml-0.5 text-ink/80">
                   %
                 </span>
@@ -108,32 +120,45 @@ export function ProfileMockup() {
 }
 
 /**
- * Animates a counter from 0 to `target` over `durationMs` with ease-out
- * cubic. Honors prefers-reduced-motion by jumping to the final value.
- * Uses raw requestAnimationFrame so we don't pull in motion's runtime
- * for a single integer counter.
+ * Count-up display. SSR-safe: initial state is the target value, so the
+ * server-rendered HTML shows the final percentile. Once `inView` flips
+ * true on the client, we reset to 0 and animate up over `durationMs`
+ * using ease-out cubic via requestAnimationFrame.
+ *
+ * Skipping motion library here on purpose — RAF + Math.pow is plenty for
+ * a four-number counter and avoids motion runtime per CountUp instance.
  */
 function CountUp({
   target,
   delayMs = 0,
   durationMs = 1000,
+  inView,
 }: {
   target: number;
   delayMs?: number;
   durationMs?: number;
+  inView: boolean;
 }) {
   const reducedMotion = useReducedMotion();
-  const [value, setValue] = useState(0);
+  // SSR + initial client render: target. No hydration mismatch.
+  const [value, setValue] = useState(target);
+  const startedRef = useRef(false);
 
   useEffect(() => {
     if (reducedMotion) {
+      // Force-keep target in case it was previously animated.
       setValue(target);
       return;
     }
+    if (!inView) return;
+    if (startedRef.current) return;
+    startedRef.current = true;
+
+    // Reset to 0 to start the animation.
+    setValue(0);
 
     let raf = 0;
     let startTime = 0;
-
     const tick = (now: number) => {
       if (!startTime) startTime = now + delayMs;
       const elapsed = now - startTime;
@@ -146,10 +171,9 @@ function CountUp({
       setValue(Math.round(eased * target));
       if (progress < 1) raf = requestAnimationFrame(tick);
     };
-
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [target, delayMs, durationMs, reducedMotion]);
+  }, [inView, target, delayMs, durationMs, reducedMotion]);
 
   return <span className="tabular-nums">{value}</span>;
 }

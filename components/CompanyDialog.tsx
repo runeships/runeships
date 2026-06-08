@@ -1,24 +1,39 @@
 "use client";
 
 import { useActionState, useRef, useEffect } from "react";
-import { submitCompanyLead, type CompanyLeadState } from "@/app/actions";
+import {
+  submitCompanyLead,
+  type CompanyLeadState,
+} from "@/app/actions/submitCompanyLead";
 
 const initial: CompanyLeadState = { status: "idle" };
 
 /**
  * Outline CTA + native <dialog> with a single form. Uses the platform
- * dialog element for focus trap, ESC-to-close, and inert background —
- * no extra dependencies, no shadow, no rounded card aesthetic.
+ * dialog element for focus trap, ESC-to-close, click-outside-to-close,
+ * and inert background — no extra dependencies, no shadow.
+ *
+ * On success: dispatches a `runeships:toast` event so the global Toast
+ * component can show the confirmation at the bottom of the screen, then
+ * closes the modal after 2s.
  */
 export function CompanyDialog() {
   const dialogRef = useRef<HTMLDialogElement>(null);
-  const [state, formAction, pending] = useActionState(submitCompanyLead, initial);
+  const [state, formAction, pending] = useActionState(
+    submitCompanyLead,
+    initial,
+  );
 
-  // Auto-close on success after a short beat so the user sees the confirmation.
+  // On success: fire the global toast and close after 2s.
   useEffect(() => {
     if (state.status !== "success") return;
-    const t = setTimeout(() => dialogRef.current?.close(), 2200);
-    return () => clearTimeout(t);
+    window.dispatchEvent(
+      new CustomEvent("runeships:toast", {
+        detail: { text: "Thanks — we'll be in touch within 48 hours." },
+      }),
+    );
+    const t = window.setTimeout(() => dialogRef.current?.close(), 2000);
+    return () => window.clearTimeout(t);
   }, [state.status]);
 
   function open() {
@@ -26,6 +41,13 @@ export function CompanyDialog() {
   }
   function close() {
     dialogRef.current?.close();
+  }
+
+  // Click-outside-to-close: native <dialog> supports this with a
+  // backdrop click. We detect it by checking that the click target is
+  // the dialog element itself (not a descendant).
+  function onDialogClick(e: React.MouseEvent<HTMLDialogElement>) {
+    if (e.target === dialogRef.current) close();
   }
 
   return (
@@ -36,12 +58,12 @@ export function CompanyDialog() {
         className="
           inline-flex items-center
           min-h-[56px] px-7
-          bg-cream text-ink
-          border border-ink
+          bg-oxblood text-cream
+          border border-oxblood
           text-[15px] tracking-[0.01em] font-medium
           transition-colors duration-200 ease-out
-          hover:bg-ink hover:text-cream
-          focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink
+          hover:bg-oxblood-hover
+          focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-oxblood
         "
       >
         Talk to us
@@ -49,6 +71,7 @@ export function CompanyDialog() {
 
       <dialog
         ref={dialogRef}
+        onClick={onDialogClick}
         aria-labelledby="company-dialog-title"
         className="
           bg-cream text-ink
@@ -74,6 +97,7 @@ export function CompanyDialog() {
                 shrink-0 -mr-1 -mt-1 min-h-[44px] min-w-[44px]
                 inline-flex items-center justify-center
                 text-ink hover:text-oxblood
+                transition-colors duration-200 ease-out
                 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-oxblood
               "
             >
@@ -83,12 +107,16 @@ export function CompanyDialog() {
 
           {state.status === "success" ? (
             <div className="px-6 sm:px-9 pb-9 pt-2">
-              <p className="text-[16px] leading-[1.55] text-ink/85 max-w-[40ch]">
-                Got it. We&rsquo;ll be in touch shortly to set up your tasks.
+              <p className="text-[16px] leading-[1.55] text-ink/85 max-w-[42ch]">
+                Thanks — we&rsquo;ll be in touch within 48 hours.
               </p>
             </div>
           ) : (
-            <form action={formAction} noValidate className="px-6 sm:px-9 pb-9 pt-2">
+            <form
+              action={formAction}
+              noValidate
+              className="px-6 sm:px-9 pb-9 pt-2"
+            >
               <Field
                 id="cd-name"
                 name="name"
@@ -153,7 +181,8 @@ export function CompanyDialog() {
                 <button
                   type="submit"
                   disabled={pending}
-                  className="
+                  aria-busy={pending}
+                  className={`
                     min-h-[52px] px-7
                     bg-oxblood text-cream
                     border border-oxblood
@@ -161,8 +190,9 @@ export function CompanyDialog() {
                     transition-colors duration-200 ease-out
                     hover:bg-oxblood-hover
                     focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-oxblood
-                    disabled:opacity-60 disabled:cursor-not-allowed
-                  "
+                    disabled:cursor-not-allowed
+                    ${pending ? "btn-pulse" : ""}
+                  `}
                 >
                   {pending ? "Sending…" : "Send"}
                 </button>

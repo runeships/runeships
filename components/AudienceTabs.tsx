@@ -12,25 +12,61 @@ import { CompanyDialog } from "./CompanyDialog";
 type Tab = "students" | "companies";
 
 const STUDENT_POINTS = [
-  "Get real feedback before your first internship",
-  "Build a skill rank by category",
-  "Share verified task credentials on LinkedIn",
-  "Prove ability without needing connections",
+  {
+    title: "Get real feedback before your first internship",
+    detail:
+      "Written, specific, within minutes — not the polite no-thanks of an application portal.",
+  },
+  {
+    title: "Build a skill rank by category",
+    detail:
+      "Strategy, finance, marketing, product. Each scored independently.",
+  },
+  {
+    title: "Share verified task credentials on LinkedIn",
+    detail:
+      "Embed a public profile or task badge straight into your career stack.",
+  },
+  {
+    title: "Prove ability without needing connections",
+    detail:
+      "The work travels with you. No introduction required.",
+  },
 ] as const;
 
 const COMPANY_POINTS = [
-  "Post pilot tasks for free",
-  "Reach motivated early-career talent",
-  "See how students frame ambiguous problems",
-  "Recruit from ranked, work-tested candidates",
+  {
+    title: "Post pilot tasks for free",
+    detail:
+      "No platform fee while we're building. Free forever for posting.",
+  },
+  {
+    title: "Reach motivated early-career talent",
+    detail:
+      "Students who opted in voluntarily, beyond the same five target schools.",
+  },
+  {
+    title: "See how students frame ambiguous problems",
+    detail:
+      "Read submissions before a single interview is scheduled.",
+  },
+  {
+    title: "Recruit from ranked, work-tested candidates",
+    detail:
+      "Filter by skill rank, not by résumé proxy.",
+  },
 ] as const;
+
+type Point = { title: string; detail: string };
 
 /**
  * Two-tab section: students vs. companies. Active tab indicated by an
  * oxblood underline. Panels crossfade at 200ms when switched.
  *
- * Listens for the URL hash so navigating to /#students or /#companies
- * from the sticky nav also flips the tab state.
+ * Hash sync: Next.js Link to `/#companies` uses pushState which does NOT
+ * fire `hashchange`, so we additionally intercept anchor clicks at the
+ * document level. That catches same-page navigation from the sticky nav,
+ * the hero secondary CTA, the closing "Talk to us" link, etc.
  */
 export function AudienceTabs() {
   const [active, setActive] = useState<Tab>("students");
@@ -44,8 +80,29 @@ export function AudienceTabs() {
       else if (hash === "#students") setActive("students");
     };
     sync();
+
+    // Native hashchange — fires for browser hash changes
     window.addEventListener("hashchange", sync);
-    return () => window.removeEventListener("hashchange", sync);
+    window.addEventListener("popstate", sync);
+
+    // Anchor click interceptor — catches Next Link clicks that use
+    // pushState (which silently skips the hashchange event).
+    const onClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement | null;
+      const anchor = target?.closest?.("a") as HTMLAnchorElement | null;
+      if (!anchor) return;
+      const href = anchor.getAttribute("href");
+      if (!href) return;
+      if (href.endsWith("#companies")) setActive("companies");
+      else if (href.endsWith("#students")) setActive("students");
+    };
+    document.addEventListener("click", onClick);
+
+    return () => {
+      window.removeEventListener("hashchange", sync);
+      window.removeEventListener("popstate", sync);
+      document.removeEventListener("click", onClick);
+    };
   }, []);
 
   return (
@@ -87,8 +144,8 @@ export function AudienceTabs() {
                 ease: [0.22, 0.61, 0.36, 1],
               }}
             >
-              <DashedList items={STUDENT_POINTS} />
-              <div className="mt-10">
+              <NumberedList items={STUDENT_POINTS} />
+              <div className="mt-12">
                 <Link
                   href="#waitlist"
                   className="
@@ -120,8 +177,8 @@ export function AudienceTabs() {
                 ease: [0.22, 0.61, 0.36, 1],
               }}
             >
-              <DashedList items={COMPANY_POINTS} />
-              <div className="mt-10">
+              <NumberedList items={COMPANY_POINTS} />
+              <div className="mt-12">
                 <CompanyDialog />
               </div>
             </motion.div>
@@ -174,16 +231,31 @@ function TabTrigger({
   );
 }
 
-function DashedList({ items }: { items: readonly string[] }) {
+function NumberedList({ items }: { items: readonly Point[] }) {
   return (
-    <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-5 max-w-[60ch]">
-      {items.map((item) => (
+    <ul className="grid grid-cols-1 lg:grid-cols-2 gap-x-12 gap-y-9 max-w-[80ch]">
+      {items.map((item, i) => (
         <li
-          key={item}
-          className="flex gap-3 text-[16px] sm:text-[17px] leading-[1.55] text-ink/85"
+          key={item.title}
+          className="grid grid-cols-[auto_1fr] gap-x-4 sm:gap-x-5"
         >
-          <span aria-hidden className="text-oxblood pt-[2px]">—</span>
-          <span>{item}</span>
+          <span
+            className="
+              font-display text-[14px] tracking-[0.06em] uppercase text-oxblood
+              pt-[3px] tabular-nums
+            "
+            aria-hidden
+          >
+            {String(i + 1).padStart(2, "0")}.
+          </span>
+          <div>
+            <p className="text-[16px] sm:text-[17px] leading-[1.4] text-ink/90 font-medium">
+              {item.title}.
+            </p>
+            <p className="mt-1.5 text-[14px] leading-[1.5] text-ink/60">
+              {item.detail}
+            </p>
+          </div>
         </li>
       ))}
     </ul>

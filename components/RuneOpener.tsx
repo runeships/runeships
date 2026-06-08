@@ -9,43 +9,60 @@ type RuneOpenerProps = {
 };
 
 /**
- * Editorial section opener: a single rune in the oxblood accent, centered
- * between two hairline rules (~100px each side, ink/20). On hover or
- * keyboard focus a small italic tooltip reveals the rune's name and
- * meaning. No theatrical animation — fades in 200ms.
+ * Editorial section opener: a single oxblood rune centered between two
+ * hairline rules (~100–140px each side, ink/20). The rune drifts gently
+ * (±2px y, 4s loop) so it doesn't read as orphan punctuation, and
+ * scales 1.08× on hover/focus. The meaning tooltip below the rune
+ * intensifies from ink/60 → ink/90 on hover (no theatrical animation —
+ * just a calm 250ms color + opacity fade).
+ *
+ * The outer wrapper carries the float animation; the inner span carries
+ * the hover scale, so the two transforms compose cleanly.
  */
-export function RuneOpener({ rune, name, meaning, className = "" }: RuneOpenerProps) {
+export function RuneOpener({
+  rune,
+  name,
+  meaning,
+  className = "",
+}: RuneOpenerProps) {
   return (
-    <div className={`flex items-center justify-center gap-5 sm:gap-7 ${className}`}>
-      <span aria-hidden className="h-px w-[72px] sm:w-[100px] bg-ink/20" />
-      <span
-        tabIndex={0}
-        role="img"
-        aria-label={`${name} — ${meaning}`}
-        title={`${name} — ${meaning}`}
-        className="
-          relative group cursor-help outline-none
-          font-rune text-oxblood
-          text-[28px] sm:text-[32px] leading-none
-          focus-visible:ring-2 focus-visible:ring-oxblood/40 focus-visible:ring-offset-4
-          focus-visible:ring-offset-cream
-        "
-      >
-        {rune}
+    <div className={`flex items-center justify-center gap-6 sm:gap-8 ${className}`}>
+      <span aria-hidden className="h-px w-[88px] sm:w-[140px] bg-ink/20" />
+      <span className="rune-float">
         <span
-          aria-hidden
+          tabIndex={0}
+          role="img"
+          aria-label={`${name} — ${meaning}`}
+          title={`${name} — ${meaning}`}
           className="
-            absolute left-1/2 -translate-x-1/2 top-full mt-3.5
-            whitespace-nowrap pointer-events-none
-            text-[12px] tracking-[0.02em] italic text-muted
-            opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100
-            transition-opacity duration-200 ease-out
+            relative group inline-block cursor-help outline-none
+            font-rune text-oxblood
+            text-[36px] sm:text-[48px] md:text-[56px] leading-none
+            transition-transform duration-250 ease-out
+            hover:scale-[1.08] focus-visible:scale-[1.08]
+            focus-visible:ring-2 focus-visible:ring-oxblood/40 focus-visible:ring-offset-4
+            focus-visible:ring-offset-cream
           "
         >
-          {name} — {meaning}
+          {rune}
+          <span
+            aria-hidden
+            className="
+              absolute left-1/2 -translate-x-1/2 top-full mt-4 sm:mt-5
+              whitespace-nowrap pointer-events-none
+              font-display italic text-[13px] sm:text-[14px] tracking-[0.04em]
+              text-ink/60
+              opacity-0
+              group-hover:opacity-100 group-focus-visible:opacity-100
+              group-hover:text-ink/90 group-focus-visible:text-ink/90
+              transition-[opacity,color] duration-250 ease-out
+            "
+          >
+            {name} — {meaning}
+          </span>
         </span>
       </span>
-      <span aria-hidden className="h-px w-[72px] sm:w-[100px] bg-ink/20" />
+      <span aria-hidden className="h-px w-[88px] sm:w-[140px] bg-ink/20" />
     </div>
   );
 }

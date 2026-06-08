@@ -89,7 +89,7 @@ dialog::backdrop {
 }
 
 /*
- * Live indicator pulse — slow, ambient. 1500ms ease in-out, opacity 0.4 → 1.
+ * Live indicator pulse — slow ambient. 1500ms ease in-out, opacity 0.4 → 1.
  */
 @keyframes live-pulse {
   0%, 100% { opacity: 0.4; }
@@ -97,6 +97,32 @@ dialog::backdrop {
 }
 .live-dot {
   animation: live-pulse 1500ms cubic-bezier(0.4, 0, 0.4, 1) infinite;
+}
+
+/*
+ * Rune float — barely perceptible idle motion on section opener runes.
+ * y: -2px → +2px → -2px over 4000ms, ease in-out, infinite.
+ * Applied to an outer wrapper so an inner element can still hover-scale.
+ */
+@keyframes rune-float {
+  0%, 100% { transform: translateY(-2px); }
+  50% { transform: translateY(2px); }
+}
+.rune-float {
+  animation: rune-float 4000ms cubic-bezier(0.4, 0, 0.4, 1) infinite;
+  display: inline-block;
+}
+
+/*
+ * Submit-button submitting state — gentle opacity pulse so the user
+ * knows something is happening without a spinner. 1200ms ease in-out.
+ */
+@keyframes btn-pulse {
+  0%, 100% { opacity: 0.85; }
+  50% { opacity: 1; }
+}
+.btn-pulse {
+  animation: btn-pulse 1200ms cubic-bezier(0.4, 0, 0.4, 1) infinite;
 }
 
 /* Respect motion preferences */
@@ -110,7 +136,9 @@ dialog::backdrop {
   .link-anim::after {
     transform: scaleX(1);
   }
-  .live-dot {
-    opacity: 1;
+  .live-dot,
+  .rune-float,
+  .btn-pulse {
+    animation: none;
   }
 }

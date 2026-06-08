@@ -1,7 +1,10 @@
 "use client";
 
 import { useActionState } from "react";
-import { joinWaitlist, type WaitlistState } from "@/app/actions";
+import {
+  joinWaitlist,
+  type WaitlistState,
+} from "@/app/actions/joinWaitlist";
 
 const initial: WaitlistState = { status: "idle" };
 
@@ -30,10 +33,12 @@ export function WaitlistForm({
         role="status"
         aria-live="polite"
         className={`max-w-[34rem] text-[16px] leading-[1.55] ${
-          dark ? "text-cream/85" : "text-ink/85"
+          dark ? "text-cream/90" : "text-ink/85"
         }`}
       >
-        On the list. We&rsquo;ll write as soon as access opens — keep an eye on your inbox.
+        {state.alreadyOnList
+          ? "You're already on the list — we'll email when early access opens."
+          : "You're on the list. We'll email when early access opens."}
       </p>
     );
   }
@@ -74,7 +79,8 @@ export function WaitlistForm({
         <button
           type="submit"
           disabled={pending}
-          className="
+          aria-busy={pending}
+          className={`
             min-h-[56px] px-7
             bg-oxblood text-cream
             border border-oxblood
@@ -82,9 +88,10 @@ export function WaitlistForm({
             transition-colors duration-200 ease-out
             hover:bg-oxblood-hover focus-visible:bg-oxblood-hover
             focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-oxblood
-            disabled:opacity-60 disabled:cursor-not-allowed
+            disabled:cursor-not-allowed
             mt-3 sm:mt-0
-          "
+            ${pending ? "btn-pulse" : ""}
+          `}
         >
           {pending ? "Adding…" : "Get early access"}
         </button>
