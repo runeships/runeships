@@ -41,6 +41,11 @@ export const metadata: Metadata = {
       "Real company tasks. AI feedback in minutes. A portable skill rank recruiters can trust.",
     type: "website",
   },
+  icons: {
+    icon: "/brand/runeships-glyph.png",
+    shortcut: "/brand/runeships-glyph.png",
+    apple: "/brand/runeships-glyph.png",
+  },
 };
 
 export default function RootLayout({

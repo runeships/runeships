@@ -2,12 +2,17 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import {
   AnimatePresence,
   motion,
   useReducedMotion,
 } from "motion/react";
-import { Wordmark } from "./Wordmark";
+
+// Source artwork intrinsic dimensions — display size is controlled by
+// CSS (h-7 w-auto). Next/Image still needs width+height for layout.
+const LOGO_W = 802;
+const LOGO_H = 264;
 
 const SCROLL_THRESHOLD = 80;
 
@@ -87,8 +92,9 @@ export function StickyNav() {
           aria-label="Primary"
           className="mx-auto max-w-[1240px] px-6 sm:px-10 md:px-16 h-[60px] sm:h-[68px] flex items-center justify-between"
         >
-          {/* Wordmark with optional masthead rune when scrolled */}
-          <div className="flex items-baseline gap-2.5">
+          {/* Brand: horizontal logo image. Tiny ᛟ masthead glyph fades in
+              before it on scroll, like a publication's nameplate. */}
+          <div className="flex items-center gap-2.5">
             <AnimatePresence initial={false}>
               {scrolled && (
                 <motion.span
@@ -107,7 +113,20 @@ export function StickyNav() {
                 </motion.span>
               )}
             </AnimatePresence>
-            <Wordmark size="sm" />
+            <Link
+              href="/"
+              aria-label="RuneShips — home"
+              className="inline-flex items-center"
+            >
+              <Image
+                src="/brand/runeships-horizontal.png"
+                alt="RuneShips"
+                width={LOGO_W}
+                height={LOGO_H}
+                priority
+                className="h-7 sm:h-8 w-auto object-contain"
+              />
+            </Link>
           </div>
 
           {/* Desktop links + CTA */}
@@ -168,11 +187,17 @@ export function StickyNav() {
             className="fixed inset-0 z-50 bg-cream lg:hidden"
           >
             <div className="px-6 sm:px-10 h-[60px] sm:h-[68px] flex items-center justify-between border-b border-rule">
-              <div className="flex items-baseline gap-2.5">
+              <div className="flex items-center gap-2.5">
                 <span aria-hidden className="font-rune text-oxblood text-[14px] leading-none">
                   ᛟ
                 </span>
-                <Wordmark size="sm" asLink={false} />
+                <Image
+                  src="/brand/runeships-horizontal.png"
+                  alt="RuneShips"
+                  width={LOGO_W}
+                  height={LOGO_H}
+                  className="h-7 sm:h-8 w-auto object-contain"
+                />
               </div>
               <button
                 type="button"
