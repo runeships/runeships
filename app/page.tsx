@@ -340,6 +340,7 @@ export default function Home() {
               rune="ᛞ"
               name="Dagaz"
               meaning="daybreak, a new beginning"
+              variant="dark"
             />
             <p
               id="closing-tag"
