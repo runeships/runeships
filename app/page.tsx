@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Wordmark } from "@/components/Wordmark";
 import { RuneOpener } from "@/components/RuneOpener";
 import { Reveal } from "@/components/Reveal";
@@ -297,6 +298,32 @@ export default function Home() {
                   </Link>
                 </div>
               </div>
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* ─── COLOPHON — quiet brand interlude on cream ──────────── */}
+      <section
+        aria-label="RuneShips"
+        className="bg-cream border-t border-oxblood/40"
+      >
+        <div className="mx-auto max-w-[1240px] px-6 sm:px-10 md:px-16 py-24 sm:py-32 md:py-40">
+          <Reveal mode="scroll">
+            <div className="flex flex-col items-center gap-6 sm:gap-8">
+              <span aria-hidden className="block h-px w-[64px] sm:w-[88px] bg-oxblood/40" />
+              <Image
+                src="/brand/runeships-stacked.png"
+                alt="RuneShips"
+                width={828}
+                height={702}
+                className="h-auto w-[200px] sm:w-[260px] md:w-[300px] object-contain"
+              />
+              <p className="mt-2 text-[11px] tracking-[0.24em] uppercase text-muted">
+                Est. 2026
+                <span aria-hidden className="mx-3 text-muted/50">·</span>
+                The work is the credential
+              </p>
             </div>
           </Reveal>
         </div>

@@ -92,42 +92,21 @@ export function StickyNav() {
           aria-label="Primary"
           className="mx-auto max-w-[1240px] px-6 sm:px-10 md:px-16 h-[60px] sm:h-[68px] flex items-center justify-between"
         >
-          {/* Brand: horizontal logo image. Tiny ᛟ masthead glyph fades in
-              before it on scroll, like a publication's nameplate. */}
-          <div className="flex items-center gap-2.5">
-            <AnimatePresence initial={false}>
-              {scrolled && (
-                <motion.span
-                  key="masthead-rune"
-                  initial={{ opacity: 0, x: -4 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -4 }}
-                  transition={{
-                    duration: transitionDuration,
-                    ease: [0.22, 0.61, 0.36, 1],
-                  }}
-                  className="font-rune text-oxblood text-[14px] leading-none"
-                  aria-hidden
-                >
-                  ᛟ
-                </motion.span>
-              )}
-            </AnimatePresence>
-            <Link
-              href="/"
-              aria-label="RuneShips — home"
-              className="inline-flex items-center"
-            >
-              <Image
-                src="/brand/runeships-horizontal.png"
-                alt="RuneShips"
-                width={LOGO_W}
-                height={LOGO_H}
-                priority
-                className="h-7 sm:h-8 w-auto object-contain"
-              />
-            </Link>
-          </div>
+          {/* Brand: horizontal logo image. */}
+          <Link
+            href="/"
+            aria-label="RuneShips — home"
+            className="inline-flex items-center"
+          >
+            <Image
+              src="/brand/runeships-horizontal.png"
+              alt="RuneShips"
+              width={LOGO_W}
+              height={LOGO_H}
+              priority
+              className="h-7 sm:h-8 w-auto object-contain"
+            />
+          </Link>
 
           {/* Desktop links + CTA */}
           <div className="hidden lg:flex items-center gap-9">
@@ -187,18 +166,13 @@ export function StickyNav() {
             className="fixed inset-0 z-50 bg-cream lg:hidden"
           >
             <div className="px-6 sm:px-10 h-[60px] sm:h-[68px] flex items-center justify-between border-b border-rule">
-              <div className="flex items-center gap-2.5">
-                <span aria-hidden className="font-rune text-oxblood text-[14px] leading-none">
-                  ᛟ
-                </span>
-                <Image
-                  src="/brand/runeships-horizontal.png"
-                  alt="RuneShips"
-                  width={LOGO_W}
-                  height={LOGO_H}
-                  className="h-7 sm:h-8 w-auto object-contain"
-                />
-              </div>
+              <Image
+                src="/brand/runeships-horizontal.png"
+                alt="RuneShips"
+                width={LOGO_W}
+                height={LOGO_H}
+                className="h-7 sm:h-8 w-auto object-contain"
+              />
               <button
                 type="button"
                 aria-label="Close menu"
