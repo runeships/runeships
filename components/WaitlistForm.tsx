@@ -63,7 +63,7 @@ export function WaitlistForm({
           required
           autoComplete="email"
           inputMode="email"
-          placeholder="you@school.edu"
+          placeholder="you@email.com"
           disabled={pending}
           aria-invalid={hasError}
           aria-describedby={hasError ? errorId : undefined}
