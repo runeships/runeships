@@ -9,13 +9,15 @@ import {
 const initial: CompanyLeadState = { status: "idle" };
 
 /**
- * Outline CTA + native <dialog> with a single form. Uses the platform
- * dialog element for focus trap, ESC-to-close, click-outside-to-close,
- * and inert background — no extra dependencies, no shadow.
+ * "Talk to us" trigger + native <dialog> with a server-action form.
  *
- * On success: dispatches a `runeships:toast` event so the global Toast
- * component can show the confirmation at the bottom of the screen, then
- * closes the modal after 2s.
+ * The native <dialog> gives us focus trap, ESC-to-close, and inert
+ * backdrop for free. We add: explicit center positioning (Tailwind's
+ * preflight kills the user-agent margin:auto default), click-outside-
+ * to-close, auto-focus on the first field on open, and a subtle
+ * fade+lift entrance animation defined in globals.css.
+ *
+ * On submission success we fire a toast and auto-close after 2s.
  */
 export function CompanyDialog() {
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -24,7 +26,7 @@ export function CompanyDialog() {
     initial,
   );
 
-  // On success: fire the global toast and close after 2s.
+  // Success → toast + auto-close
   useEffect(() => {
     if (state.status !== "success") return;
     window.dispatchEvent(
@@ -37,15 +39,24 @@ export function CompanyDialog() {
   }, [state.status]);
 
   function open() {
-    dialogRef.current?.showModal();
+    const dlg = dialogRef.current;
+    if (!dlg) return;
+    dlg.showModal();
+    // Focus the first non-hidden input after the dialog enters the DOM.
+    requestAnimationFrame(() => {
+      const firstInput = dlg.querySelector<HTMLInputElement>(
+        "input:not([type='hidden'])",
+      );
+      firstInput?.focus();
+    });
   }
+
   function close() {
     dialogRef.current?.close();
   }
 
-  // Click-outside-to-close: native <dialog> supports this with a
-  // backdrop click. We detect it by checking that the click target is
-  // the dialog element itself (not a descendant).
+  // Click-outside-to-close: the click target is the <dialog> itself
+  // (its backdrop area) only when the user clicks outside the panel.
   function onDialogClick(e: React.MouseEvent<HTMLDialogElement>) {
     if (e.target === dialogRef.current) close();
   }
@@ -74,116 +85,157 @@ export function CompanyDialog() {
         onClick={onDialogClick}
         aria-labelledby="company-dialog-title"
         className="
-          bg-cream text-ink
+          company-dialog
+          fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
           w-[min(560px,calc(100vw-2rem))]
-          p-0
-          border-0
-          backdrop:bg-ink/55
+          max-h-[min(calc(100dvh-2rem),760px)]
+          overflow-y-auto
+          p-0 m-0 border-0
+          bg-cream text-ink
+          backdrop:bg-ink/60
         "
       >
-        <div className="border-t-4 border-oxblood">
-          <div className="flex items-start justify-between px-6 sm:px-9 pt-7 pb-2">
-            <h2
-              id="company-dialog-title"
-              className="font-display text-[28px] sm:text-[32px] leading-[1.1] tracking-[-0.015em] max-w-[22ch]"
-            >
-              Tell us what tasks you&rsquo;d post.
-            </h2>
+        {/* The panel — top oxblood accent rule and rounded scroll surface */}
+        <div className="border-t-[3px] border-oxblood">
+          {/* ─── Header ─────────────────────────────────────────────── */}
+          <header className="px-8 sm:px-10 pt-9 sm:pt-10 pb-7 flex items-start justify-between gap-6">
+            <div>
+              <p className="text-[11px] tracking-[0.2em] uppercase text-muted mb-3">
+                For companies
+              </p>
+              <h2
+                id="company-dialog-title"
+                className="font-display font-normal text-[26px] sm:text-[30px] leading-[1.1] tracking-[-0.016em] max-w-[22ch] text-ink"
+              >
+                Tell us what tasks you&rsquo;d post.
+              </h2>
+            </div>
             <button
               type="button"
               onClick={close}
               aria-label="Close dialog"
               className="
-                shrink-0 -mr-1 -mt-1 min-h-[44px] min-w-[44px]
+                shrink-0 -mr-2 -mt-2
+                w-9 h-9 rounded-full
                 inline-flex items-center justify-center
-                text-ink hover:text-oxblood
+                text-muted
                 transition-colors duration-200 ease-out
-                focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-oxblood
+                hover:text-ink hover:bg-ink/[0.04]
+                focus-visible:outline-none focus-visible:text-ink focus-visible:bg-ink/[0.04]
               "
             >
-              <span aria-hidden className="text-[22px] leading-none">×</span>
+              <svg
+                aria-hidden
+                width="14"
+                height="14"
+                viewBox="0 0 14 14"
+                fill="none"
+              >
+                <path
+                  d="M3 3 L11 11 M11 3 L3 11"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                />
+              </svg>
             </button>
-          </div>
+          </header>
 
+          {/* ─── Body ───────────────────────────────────────────────── */}
           {state.status === "success" ? (
-            <div className="px-6 sm:px-9 pb-9 pt-2">
-              <p className="text-[16px] leading-[1.55] text-ink/85 max-w-[42ch]">
+            <div className="px-8 sm:px-10 pb-10">
+              <p className="text-[16px] leading-[1.55] text-ink/85 max-w-[44ch]">
                 Thanks — we&rsquo;ll be in touch within 48 hours.
               </p>
             </div>
           ) : (
-            <form
-              action={formAction}
-              noValidate
-              className="px-6 sm:px-9 pb-9 pt-2"
-            >
-              <Field
-                id="cd-name"
-                name="name"
-                label="Your name"
-                type="text"
-                autoComplete="name"
-                disabled={pending}
-                required
-              />
-              <Field
-                id="cd-email"
-                name="email"
-                label="Work email"
-                type="email"
-                autoComplete="email"
-                inputMode="email"
-                disabled={pending}
-                required
-              />
-              <Field
-                id="cd-company"
-                name="company_name"
-                label="Company"
-                type="text"
-                autoComplete="organization"
-                disabled={pending}
-                required
-              />
-
-              <div className="mt-5">
-                <label
-                  htmlFor="cd-tasks"
-                  className="block text-[13px] tracking-[0.04em] uppercase text-muted mb-2"
-                >
-                  What tasks would you post?
-                </label>
-                <textarea
-                  id="cd-tasks"
-                  name="task_description"
-                  rows={4}
+            <form action={formAction} noValidate>
+              <div className="px-8 sm:px-10 pb-2 space-y-6">
+                <Field
+                  id="cd-name"
+                  name="name"
+                  label="Your name"
+                  type="text"
+                  autoComplete="name"
                   disabled={pending}
-                  placeholder="A short sketch — what work, what skills, what you'd want to see."
-                  className="
-                    w-full px-4 py-3
-                    bg-cream text-ink placeholder:text-muted
-                    border border-ink/25
-                    text-[15px] leading-[1.5]
-                    outline-none resize-y
-                    focus:border-oxblood focus:ring-1 focus:ring-oxblood
-                    disabled:opacity-60
-                  "
+                  required
                 />
+                <Field
+                  id="cd-email"
+                  name="email"
+                  label="Work email"
+                  type="email"
+                  autoComplete="email"
+                  inputMode="email"
+                  disabled={pending}
+                  required
+                />
+                <Field
+                  id="cd-company"
+                  name="company_name"
+                  label="Company"
+                  type="text"
+                  autoComplete="organization"
+                  disabled={pending}
+                  required
+                />
+
+                <div>
+                  <label
+                    htmlFor="cd-tasks"
+                    className="block text-[11px] tracking-[0.18em] uppercase text-muted mb-2.5"
+                  >
+                    What tasks would you post?
+                  </label>
+                  <textarea
+                    id="cd-tasks"
+                    name="task_description"
+                    rows={4}
+                    disabled={pending}
+                    placeholder="A short sketch — what work, what skills, what you'd want to see."
+                    className="
+                      w-full px-4 py-3
+                      bg-cream text-ink placeholder:text-muted/80
+                      border border-ink/20
+                      text-[15px] leading-[1.55]
+                      outline-none resize-y
+                      transition-colors duration-150 ease-out
+                      focus:border-oxblood focus:ring-1 focus:ring-oxblood
+                      disabled:opacity-60
+                    "
+                  />
+                </div>
+
+                {state.status === "error" && (
+                  <p
+                    role="alert"
+                    className="text-[14px] leading-snug text-oxblood"
+                  >
+                    {state.message}
+                  </p>
+                )}
               </div>
 
-              {state.status === "error" && (
-                <p role="alert" className="mt-4 text-[14px] text-oxblood">
-                  {state.message}
-                </p>
-              )}
-
-              <div className="mt-7 flex items-center gap-5">
+              {/* ─── Footer ─────────────────────────────────────────── */}
+              <div className="mt-8 px-8 sm:px-10 py-5 border-t border-rule flex items-center justify-between gap-5">
+                <button
+                  type="button"
+                  onClick={close}
+                  disabled={pending}
+                  className="
+                    link-anim text-[14px] tracking-[0.005em] text-muted
+                    hover:text-ink transition-colors duration-200 ease-out
+                    focus-visible:outline-none focus-visible:text-ink
+                  "
+                >
+                  Cancel
+                </button>
                 <button
                   type="submit"
                   disabled={pending}
                   aria-busy={pending}
                   className={`
-                    min-h-[52px] px-7
+                    min-h-[48px] px-8
                     bg-oxblood text-cream
                     border border-oxblood
                     text-[15px] tracking-[0.01em] font-medium
@@ -195,18 +247,6 @@ export function CompanyDialog() {
                   `}
                 >
                   {pending ? "Sending…" : "Send"}
-                </button>
-                <button
-                  type="button"
-                  onClick={close}
-                  disabled={pending}
-                  className="
-                    text-[14px] tracking-wide text-muted
-                    hover:text-ink transition-colors duration-200 ease-out
-                    focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink
-                  "
-                >
-                  Cancel
                 </button>
               </div>
             </form>
@@ -239,10 +279,10 @@ function Field({
   disabled,
 }: FieldProps) {
   return (
-    <div className="mt-5 first:mt-0">
+    <div>
       <label
         htmlFor={id}
-        className="block text-[13px] tracking-[0.04em] uppercase text-muted mb-2"
+        className="block text-[11px] tracking-[0.18em] uppercase text-muted mb-2.5"
       >
         {label}
       </label>
@@ -256,10 +296,11 @@ function Field({
         disabled={disabled}
         className="
           w-full min-h-[48px] px-4
-          bg-cream text-ink placeholder:text-muted
-          border border-ink/25
+          bg-cream text-ink placeholder:text-muted/80
+          border border-ink/20
           text-[15px]
           outline-none
+          transition-colors duration-150 ease-out
           focus:border-oxblood focus:ring-1 focus:ring-oxblood
           disabled:opacity-60
         "

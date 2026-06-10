@@ -62,6 +62,38 @@ dialog::backdrop {
 }
 
 /*
+ * CompanyDialog entrance: subtle fade + lift + scale. Centered via
+ * translate(-50%, -50%) in the component className, so the keyframes
+ * preserve that centering and animate scale separately.
+ */
+@keyframes company-dialog-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, calc(-50% + 10px)) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+@keyframes company-dialog-backdrop-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+dialog.company-dialog[open] {
+  animation: company-dialog-in 240ms cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+dialog.company-dialog[open]::backdrop {
+  animation: company-dialog-backdrop-in 240ms cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+@media (prefers-reduced-motion: reduce) {
+  dialog.company-dialog[open],
+  dialog.company-dialog[open]::backdrop {
+    animation: none;
+  }
+}
+
+/*
  * Animated underline for text links — draws in left → right on hover.
  * Use: <a className="link-anim">…</a>. Uses currentColor so it inherits
  * link color (whether ink or cream on dark sections).
