@@ -86,7 +86,6 @@ export function CompanyDialog() {
         aria-labelledby="company-dialog-title"
         className="
           company-dialog
-          fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
           w-[min(560px,calc(100vw-2rem))]
           max-h-[min(calc(100dvh-2rem),760px)]
           overflow-y-auto

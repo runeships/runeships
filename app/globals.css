@@ -62,10 +62,20 @@ dialog::backdrop {
 }
 
 /*
- * CompanyDialog entrance: subtle fade + lift + scale. Centered via
- * translate(-50%, -50%) in the component className, so the keyframes
- * preserve that centering and animate scale separately.
+ * CompanyDialog positioning + entrance animation.
+ *
+ * Centering lives entirely on the `transform` property so the keyframes
+ * can override it during the entrance without competing with Tailwind's
+ * `translate` property (v4 emits its translate utilities as `translate:`,
+ * which composes with `transform:` and double-shifts the element —
+ * causing a flash off-screen before the animation lands).
  */
+dialog.company-dialog {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
 @keyframes company-dialog-in {
   from {
     opacity: 0;
