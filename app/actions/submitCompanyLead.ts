@@ -42,13 +42,10 @@ export async function submitCompanyLead(
   });
 
   if (error) {
-    // Temporary diagnostic: surface the Supabase error code + message so
-    // failures are debuggable from the user's screen. Revert to a
-    // generic message once we've identified the root cause.
     console.error("[company_leads insert]", error);
     return {
       status: "error",
-      message: `Couldn't save (code ${error.code ?? "?"}): ${error.message}`,
+      message: "Something went wrong on our side. Try again in a moment.",
     };
   }
 

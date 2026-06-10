@@ -32,13 +32,10 @@ export async function joinWaitlist(
     if (error.code === "23505") {
       return { status: "success", alreadyOnList: true };
     }
-    // Surface the error code + message temporarily so we can diagnose
-    // submission failures from the user's screen. Once we know the root
-    // cause this drops back to the generic "something went wrong".
     console.error("[waitlist insert]", error);
     return {
       status: "error",
-      message: `Couldn't save (code ${error.code ?? "?"}): ${error.message}`,
+      message: "Something went wrong on our side. Try again in a moment.",
     };
   }
 

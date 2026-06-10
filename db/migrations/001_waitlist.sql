@@ -12,6 +12,13 @@ create table if not exists public.waitlist (
 create unique index if not exists waitlist_email_unique
   on public.waitlist (lower(email));
 
+-- GRANT must come before / alongside the RLS policy. On newer Supabase
+-- projects the default public-schema GRANTs to anon are no longer
+-- applied, so without this an INSERT fails at the table-permission
+-- check with code 42501 ("permission denied for table") before RLS
+-- even runs.
+grant insert on public.waitlist to anon;
+
 alter table public.waitlist enable row level security;
 
 -- Anyone (anon role, used by the server action with the publishable key)

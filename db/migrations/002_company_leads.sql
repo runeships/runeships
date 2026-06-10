@@ -10,6 +10,10 @@ create table if not exists public.company_leads (
   created_at timestamptz not null default now()
 );
 
+-- Table-level GRANT required so the publishable-key insert isn't
+-- blocked with 42501 before the RLS policy below gets a chance to run.
+grant insert on public.company_leads to anon;
+
 alter table public.company_leads enable row level security;
 
 -- Same posture as waitlist: anon inserts only, no reads.
