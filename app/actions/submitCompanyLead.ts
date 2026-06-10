@@ -49,11 +49,21 @@ export async function submitCompanyLead(
     };
   }
 
-  // Fire-and-forget confirmation. Failures don't block submission.
+  // Fire-and-forget: confirmation to the submitter, notification to us.
+  // Failures don't block submission.
   void sendCompanyConfirmation({ name, email, companyName });
+  void sendCompanyNotification({ name, email, companyName, taskDescription });
 
   return { status: "success" };
 }
+
+/**
+ * Where new company-lead notifications get sent. Override per env if
+ * you want them routed elsewhere (a Slack-by-email address, a personal
+ * inbox, etc.) without touching the action.
+ */
+const TEAM_NOTIFICATION_TO =
+  process.env.TEAM_NOTIFICATION_EMAIL ?? "hello@runeships.com";
 
 async function sendCompanyConfirmation({
   name,
@@ -82,6 +92,48 @@ async function sendCompanyConfirmation({
       ].join("\n"),
     });
   } catch (err) {
-    console.error("[resend company]", err);
+    console.error("[resend company confirmation]", err);
+  }
+}
+
+/**
+ * Internal notification: when a new company lead lands, ping the team
+ * inbox with the form contents so we don't have to poll the DB. Sets
+ * `reply_to` to the submitter's address so replying-to-this-email
+ * goes straight to them.
+ */
+async function sendCompanyNotification({
+  name,
+  email,
+  companyName,
+  taskDescription,
+}: {
+  name: string;
+  email: string;
+  companyName: string;
+  taskDescription: string;
+}) {
+  if (!resend) return;
+  try {
+    await resend.emails.send({
+      from: RESEND_FROM,
+      to: TEAM_NOTIFICATION_TO,
+      replyTo: email,
+      subject: `New company lead — ${companyName} (${name})`,
+      text: [
+        `New "Talk to us" submission from the landing page.`,
+        "",
+        `Name:    ${name}`,
+        `Email:   ${email}`,
+        `Company: ${companyName}`,
+        "",
+        "Tasks they'd post:",
+        taskDescription || "(not provided)",
+        "",
+        "Reply to this email and it will go straight to the submitter.",
+      ].join("\n"),
+    });
+  } catch (err) {
+    console.error("[resend company notification]", err);
   }
 }
