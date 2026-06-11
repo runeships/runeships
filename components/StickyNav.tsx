@@ -3,11 +3,27 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 import {
   AnimatePresence,
   motion,
   useReducedMotion,
 } from "motion/react";
+import { UserMenu } from "./UserMenu";
+
+// App routes that should render the minimal "in-app" nav (no marketing
+// links). Authenticated routes additionally render <UserMenu />.
+const APP_MINIMAL_ROUTES = ["/login"] as const;
+const APP_AUTHED_ROUTES = [
+  "/onboarding",
+  "/dashboard",
+  "/tasks",
+  "/profile",
+] as const;
+
+function matchesPrefix(pathname: string, routes: readonly string[]): boolean {
+  return routes.some((r) => pathname === r || pathname.startsWith(r + "/"));
+}
 
 // Source artwork intrinsic dimensions — display size is controlled by
 // CSS (h-7 w-auto). Next/Image still needs width+height for layout.
@@ -31,6 +47,11 @@ export function StickyNav() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const reducedMotion = useReducedMotion();
+  const pathname = usePathname() ?? "/";
+
+  const isAppMinimal = matchesPrefix(pathname, APP_MINIMAL_ROUTES);
+  const isAppAuthed = matchesPrefix(pathname, APP_AUTHED_ROUTES);
+  const isAppMode = isAppMinimal || isAppAuthed;
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > SCROLL_THRESHOLD);
@@ -75,12 +96,14 @@ export function StickyNav() {
       <motion.header
         initial={false}
         animate={{
-          backgroundColor: scrolled
-            ? "rgba(250, 250, 247, 0.96)"
-            : "rgba(250, 250, 247, 0)",
-          borderBottomColor: scrolled
-            ? "rgba(231, 226, 220, 1)"
-            : "rgba(231, 226, 220, 0)",
+          backgroundColor:
+            scrolled || isAppMode
+              ? "rgba(250, 250, 247, 0.96)"
+              : "rgba(250, 250, 247, 0)",
+          borderBottomColor:
+            scrolled || isAppMode
+              ? "rgba(231, 226, 220, 1)"
+              : "rgba(231, 226, 220, 0)",
         }}
         transition={{
           duration: transitionDuration,
@@ -108,28 +131,33 @@ export function StickyNav() {
             />
           </Link>
 
-          {/* Desktop links + CTA */}
-          <div className="hidden lg:flex items-center gap-9">
-            <NavLink href="/#how-it-works">How it works</NavLink>
-            <NavLink href="/#students">For students</NavLink>
-            <NavLink href="/#companies">For companies</NavLink>
-            <Link
-              href="/#waitlist"
-              className="
-                text-[13px] font-medium tracking-[0.01em]
-                bg-oxblood text-cream
-                px-4 py-2.5
-                transition-colors duration-200 ease-out
-                hover:bg-oxblood-hover
-                focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-oxblood
-              "
-            >
-              Get early access
-            </Link>
-          </div>
+          {/* Desktop marketing links + CTA — hidden on app routes */}
+          {!isAppMode && (
+            <div className="hidden lg:flex items-center gap-9">
+              <NavLink href="/#how-it-works">How it works</NavLink>
+              <NavLink href="/#students">For students</NavLink>
+              <NavLink href="/#companies">For companies</NavLink>
+              <Link
+                href="/#waitlist"
+                className="
+                  text-[13px] font-medium tracking-[0.01em]
+                  bg-oxblood text-cream
+                  px-4 py-2.5
+                  transition-colors duration-200 ease-out
+                  hover:bg-oxblood-hover
+                  focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-oxblood
+                "
+              >
+                Get early access
+              </Link>
+            </div>
+          )}
 
-          {/* Mobile: hamburger trigger */}
-          <button
+          {/* Authenticated app routes: user name + sign-out link */}
+          {isAppAuthed && <UserMenu />}
+
+          {/* Mobile: hamburger trigger — only on marketing routes */}
+          {!isAppMode && <button
             type="button"
             aria-label="Open menu"
             aria-expanded={mobileOpen}
@@ -143,7 +171,7 @@ export function StickyNav() {
           >
             <span aria-hidden className="block w-6 h-px bg-ink" />
             <span aria-hidden className="block w-6 h-px bg-ink" />
-          </button>
+          </button>}
         </nav>
       </motion.header>
 
