@@ -103,3 +103,72 @@ or lock a new design decision, append it here. Outdated CLAUDE.md
 is worse than no CLAUDE.md. Treat it as living project memory — 
 end of every session, ask: "Is there anything I learned this 
 session that should go in CLAUDE.md?"
+
+## Phase 2A — Platform MVP (Student-facing)
+
+### Scope
+- Student-facing limited platform that demonstrates the core loop: 
+  sign up → see tasks → submit → AI feedback → submission history
+- Tasks are hardcoded for now (no admin interface)
+- Companies are owned: Godly, myOrbit, Veganuño, plus practice tasks
+- Validates load-bearing assumption #1: AI grading reliability
+
+### Auth
+- Method: Supabase magic-link only (no password)
+- Onboarding collects: name, school, graduation year, intended 
+  career track (multi-select), self-rated initial skills (5 sliders 
+  0–100)
+
+### Skill dimensions (the 5 axes — used for radar charts, AI scoring, 
+ranking, onboarding sliders)
+1. Strategy — analytical thinking, problem framing
+2. Execution — quality, completeness, attention to detail
+3. Communication — clarity, structure, writing/presentation
+4. Technical — appropriate use of tools, code, data, calculations
+5. Creativity — original insight, novel framing
+
+Every task scores submissions across all 5 dimensions. Tasks weight 
+dimensions differently. User profiles aggregate scores per dimension. 
+Display as pentagon/radar charts (like FIFA player cards).
+
+### Submission system
+- Three submission modes per task:
+  - text_only
+  - link_only
+  - text_and_link
+- Form dynamically renders fields based on the task's mode:
+  - submission_title (always)
+  - submission_body textarea (when text required)
+  - supporting_link URL input (when link required)
+  - "I confirm this link is viewable by anyone with the link" 
+    checkbox (when link required)
+- NO file uploads yet
+- Use link_only or text_and_link for: spreadsheet models, slide 
+  decks, dashboards, design mockups, code repos
+- Use text_only or text_and_link for: written analysis tasks
+
+### Submissions table schema (canonical)
+- id, user_id, task_id, submission_title, submission_body, 
+  supporting_link, link_access_confirmed, created_at
+- Multiple submissions per task allowed, but 24-hour cooldown 
+  between submissions on the same task (anti-spam, encourages 
+  iteration not gaming)
+- Profile shows ALL submissions; ranking uses BEST scored 
+  submission per task
+
+### AI feedback
+- Sync generation (student waits with loading state)
+- Anthropic API, Haiku 4.5, max_tokens 800 (per existing CLAUDE.md 
+  Anthropic conventions)
+- Output: per-dimension scores (0–100) + qualitative written 
+  feedback
+- Stored in a separate feedback table linked to submission
+
+### Initial tasks (7 total)
+- Practice 1: written recommendation
+- Practice 2: pitch deck presentation
+- Practice 3: small code project / GitHub link
+- Practice 4: organized spreadsheet with values
+- Company 1: Godly (brief drafted in Prompt 1)
+- Company 2: myOrbit (brief drafted in Prompt 1)
+- Company 3: Veganuño (brief drafted in Prompt 1)
