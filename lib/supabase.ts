@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import type { Database } from "./database.types";
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -16,6 +17,6 @@ if (!url || !anonKey) {
  * Use this from server actions for INSERT-only landing-page traffic.
  * For admin reads or maintenance, swap to a service-role client.
  */
-export const supabase = createClient(url, anonKey, {
+export const supabase = createClient<Database>(url, anonKey, {
   auth: { persistSession: false, autoRefreshToken: false },
 });

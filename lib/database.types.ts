@@ -1,0 +1,334 @@
+/**
+ * Hand-written analogue of `npx supabase gen types typescript --linked`.
+ *
+ * Regenerate from the live schema once the Supabase CLI is linked
+ * (`supabase link --project-ref kbokzwvnqeuxkcxigkdh`). Until then,
+ * keep this file in sync manually with `db/migrations/*.sql`.
+ *
+ * Schemas covered:
+ * - 001_waitlist                       → public.waitlist
+ * - 002_company_leads                  → public.company_leads
+ * - 003_create_profiles                → public.profiles
+ * - 004_create_companies               → public.companies
+ * - 005_create_tasks                   → public.tasks
+ * - 006_create_submissions             → public.submissions
+ * - 007_create_feedback                → public.feedback
+ */
+
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[];
+
+/** Submission modes a task can require. */
+export type SubmissionMode = "text_only" | "link_only" | "text_and_link";
+
+export interface Database {
+  public: {
+    Tables: {
+      // ─── 001 ────────────────────────────────────────────────────────
+      waitlist: {
+        Row: {
+          id: string;
+          email: string;
+          source: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          email: string;
+          source?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+        Update: {
+          id?: string;
+          email?: string;
+          source?: string;
+          created_at?: string;
+        };
+      };
+
+      // ─── 002 ────────────────────────────────────────────────────────
+      company_leads: {
+        Row: {
+          id: string;
+          name: string;
+          email: string;
+          company_name: string;
+          task_description: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          email: string;
+          company_name: string;
+          task_description?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+        Update: {
+          id?: string;
+          name?: string;
+          email?: string;
+          company_name?: string;
+          task_description?: string | null;
+          created_at?: string;
+        };
+      };
+
+      // ─── 003 ────────────────────────────────────────────────────────
+      profiles: {
+        Row: {
+          id: string;
+          email: string;
+          full_name: string | null;
+          school: string | null;
+          graduation_year: number | null;
+          career_tracks: string[];
+          self_rated_strategy: number;
+          self_rated_execution: number;
+          self_rated_communication: number;
+          self_rated_technical: number;
+          self_rated_creativity: number;
+          onboarding_completed: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id: string;
+          email: string;
+          full_name?: string | null;
+          school?: string | null;
+          graduation_year?: number | null;
+          career_tracks?: string[];
+          self_rated_strategy?: number;
+          self_rated_execution?: number;
+          self_rated_communication?: number;
+          self_rated_technical?: number;
+          self_rated_creativity?: number;
+          onboarding_completed?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+        Update: {
+          id?: string;
+          email?: string;
+          full_name?: string | null;
+          school?: string | null;
+          graduation_year?: number | null;
+          career_tracks?: string[];
+          self_rated_strategy?: number;
+          self_rated_execution?: number;
+          self_rated_communication?: number;
+          self_rated_technical?: number;
+          self_rated_creativity?: number;
+          onboarding_completed?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+
+      // ─── 004 ────────────────────────────────────────────────────────
+      companies: {
+        Row: {
+          id: string;
+          slug: string;
+          name: string;
+          description: string | null;
+          industry: string | null;
+          logo_url: string | null;
+          website_url: string | null;
+          is_practice: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          slug: string;
+          name: string;
+          description?: string | null;
+          industry?: string | null;
+          logo_url?: string | null;
+          website_url?: string | null;
+          is_practice?: boolean;
+          created_at?: string;
+        };
+        Relationships: [];
+        Update: {
+          id?: string;
+          slug?: string;
+          name?: string;
+          description?: string | null;
+          industry?: string | null;
+          logo_url?: string | null;
+          website_url?: string | null;
+          is_practice?: boolean;
+          created_at?: string;
+        };
+      };
+
+      // ─── 005 ────────────────────────────────────────────────────────
+      tasks: {
+        Row: {
+          id: string;
+          company_id: string;
+          slug: string;
+          title: string;
+          brief: string;
+          submission_mode: SubmissionMode;
+          estimated_time: string | null;
+          weight_strategy: number;
+          weight_execution: number;
+          weight_communication: number;
+          weight_technical: number;
+          weight_creativity: number;
+          order_index: number;
+          is_published: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          company_id: string;
+          slug: string;
+          title: string;
+          brief: string;
+          submission_mode: SubmissionMode;
+          estimated_time?: string | null;
+          weight_strategy?: number;
+          weight_execution?: number;
+          weight_communication?: number;
+          weight_technical?: number;
+          weight_creativity?: number;
+          order_index?: number;
+          is_published?: boolean;
+          created_at?: string;
+        };
+        Relationships: [];
+        Update: {
+          id?: string;
+          company_id?: string;
+          slug?: string;
+          title?: string;
+          brief?: string;
+          submission_mode?: SubmissionMode;
+          estimated_time?: string | null;
+          weight_strategy?: number;
+          weight_execution?: number;
+          weight_communication?: number;
+          weight_technical?: number;
+          weight_creativity?: number;
+          order_index?: number;
+          is_published?: boolean;
+          created_at?: string;
+        };
+      };
+
+      // ─── 006 ────────────────────────────────────────────────────────
+      submissions: {
+        Row: {
+          id: string;
+          user_id: string;
+          task_id: string;
+          submission_title: string;
+          submission_body: string | null;
+          supporting_link: string | null;
+          link_access_confirmed: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          task_id: string;
+          submission_title: string;
+          submission_body?: string | null;
+          supporting_link?: string | null;
+          link_access_confirmed?: boolean;
+          created_at?: string;
+        };
+        Relationships: [];
+        Update: {
+          id?: string;
+          user_id?: string;
+          task_id?: string;
+          submission_title?: string;
+          submission_body?: string | null;
+          supporting_link?: string | null;
+          link_access_confirmed?: boolean;
+          created_at?: string;
+        };
+      };
+
+      // ─── 007 ────────────────────────────────────────────────────────
+      feedback: {
+        Row: {
+          id: string;
+          submission_id: string;
+          score_strategy: number;
+          score_execution: number;
+          score_communication: number;
+          score_technical: number;
+          score_creativity: number;
+          total_score: number;
+          qualitative_feedback: string;
+          model_used: string;
+          generated_at: string;
+        };
+        Insert: {
+          id?: string;
+          submission_id: string;
+          score_strategy: number;
+          score_execution: number;
+          score_communication: number;
+          score_technical: number;
+          score_creativity: number;
+          total_score: number;
+          qualitative_feedback: string;
+          model_used?: string;
+          generated_at?: string;
+        };
+        Relationships: [];
+        Update: {
+          id?: string;
+          submission_id?: string;
+          score_strategy?: number;
+          score_execution?: number;
+          score_communication?: number;
+          score_technical?: number;
+          score_creativity?: number;
+          total_score?: number;
+          qualitative_feedback?: string;
+          model_used?: string;
+          generated_at?: string;
+        };
+      };
+    };
+    Views: {
+      [_ in never]: never;
+    };
+    Functions: {
+      [_ in never]: never;
+    };
+    Enums: {
+      [_ in never]: never;
+    };
+    CompositeTypes: {
+      [_ in never]: never;
+    };
+  };
+}
+
+/* ─── Helper aliases for common access patterns ───────────────────────── */
+
+export type Tables<T extends keyof Database["public"]["Tables"]> =
+  Database["public"]["Tables"][T]["Row"];
+
+export type InsertableRow<T extends keyof Database["public"]["Tables"]> =
+  Database["public"]["Tables"][T]["Insert"];
+
+export type UpdatableRow<T extends keyof Database["public"]["Tables"]> =
+  Database["public"]["Tables"][T]["Update"];
