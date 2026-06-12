@@ -2,13 +2,22 @@
 
 import { createClient } from "@/lib/supabase-server";
 import { COOLDOWN_MS } from "@/lib/format";
+import { generateFeedback } from "./generateFeedback";
 import type { SubmissionMode } from "@/lib/database.types";
+
+// Note: `maxDuration` cannot live in a "use server" file. The 60s
+// timeout for the submit + generate chain is set on the page that
+// invokes this action — /tasks/[companySlug]/[taskSlug]/page.tsx.
 
 const URL_RE = /^https?:\/\/.+/i;
 
 export type SubmitTaskState =
   | { status: "idle" }
-  | { status: "success"; submissionId: string }
+  | {
+      status: "success";
+      submissionId: string;
+      feedbackGenerated: boolean;
+    }
   | {
       status: "error";
       message: string;
@@ -153,5 +162,18 @@ export async function submitTask(
     };
   }
 
-  return { status: "success", submissionId: inserted.id };
+  // Submission saved — now generate feedback synchronously so the
+  // student lands on /submissions/[id] with scores already rendered.
+  // If generation fails, the submission stays put; the detail page
+  // surfaces a retry button.
+  const feedback = await generateFeedback(inserted.id);
+  if (!feedback.success) {
+    console.error("[submitTask generateFeedback]", feedback.error);
+  }
+
+  return {
+    status: "success",
+    submissionId: inserted.id,
+    feedbackGenerated: feedback.success,
+  };
 }

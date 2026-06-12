@@ -24,6 +24,18 @@ type RadarChartProps = {
   size?: number;
   /** Hide axis labels (e.g. for a small thumbnail). */
   hideLabels?: boolean;
+  /**
+   * Optional second polygon — rendered BEHIND the primary, dashed
+   * stroke + no fill. Used on the dashboard to overlay self-rated
+   * scores under the earned scores.
+   */
+  compareValues?: RadarValues | null;
+  /**
+   * When true, the rounded value of each axis is rendered as a small
+   * number beneath its label. Use on the submission detail page to
+   * show "Strategy 78" at each vertex.
+   */
+  showScoreLabels?: boolean;
 };
 
 /**
@@ -38,6 +50,8 @@ export function RadarChart({
   values,
   size = 280,
   hideLabels = false,
+  compareValues = null,
+  showScoreLabels = false,
 }: RadarChartProps) {
   // Internal padding reserved for the axis labels. Bigger when labels
   // are shown so "CREATIVITY" / "COMMUNICATION" don't kiss the edge of
@@ -78,6 +92,35 @@ export function RadarChart({
         .join(" ") + " Z"
     );
   }, [angles, orderedValues, cx, cy, radius]);
+
+  // Optional comparison polygon (dashed, no fill).
+  const compareOrdered = useMemo(
+    () =>
+      compareValues
+        ? [
+            compareValues.strategy,
+            compareValues.execution,
+            compareValues.communication,
+            compareValues.technical,
+            compareValues.creativity,
+          ]
+        : null,
+    [compareValues],
+  );
+
+  const comparePath = useMemo(() => {
+    if (!compareOrdered) return null;
+    return (
+      angles
+        .map((angle, i) => {
+          const v = Math.min(100, Math.max(0, compareOrdered[i])) / 100;
+          const x = cx + radius * v * Math.cos(angle);
+          const y = cy + radius * v * Math.sin(angle);
+          return `${i === 0 ? "M" : "L"} ${x.toFixed(2)} ${y.toFixed(2)}`;
+        })
+        .join(" ") + " Z"
+    );
+  }, [angles, compareOrdered, cx, cy, radius]);
 
   // Background grid: 4 concentric pentagons at 25/50/75/100% radius
   const gridPaths = useMemo(
@@ -154,10 +197,23 @@ export function RadarChart({
         />
       ))}
 
+      {/* Comparison polygon — drawn first so it sits BEHIND. Dashed,
+          no fill. */}
+      {comparePath && (
+        <path
+          d={comparePath}
+          fill="none"
+          stroke="rgb(23 21 20 / 0.45)"
+          strokeWidth={1}
+          strokeDasharray="4 4"
+          strokeLinejoin="round"
+        />
+      )}
+
       {/* Filled value polygon */}
       <path
         d={valuePath}
-        fill="rgb(107 22 32 / 0.18)"
+        fill="rgb(107 22 32 / 0.22)"
         stroke="rgb(107 22 32)"
         strokeWidth={1.5}
         strokeLinejoin="round"
@@ -182,23 +238,41 @@ export function RadarChart({
       {/* Labels */}
       {!hideLabels &&
         labels.map((label, i) => (
-          <text
-            key={`label-${i}`}
-            x={label.x}
-            y={label.y}
-            textAnchor={label.textAnchor}
-            dominantBaseline="middle"
-            fontSize={11}
-            fill="rgb(138 132 127)"
-            style={{
-              letterSpacing: "0.11em",
-              textTransform: "uppercase",
-              fontFamily:
-                "var(--font-instrument, ui-sans-serif, system-ui, sans-serif)",
-            }}
-          >
-            {label.text}
-          </text>
+          <g key={`label-${i}`}>
+            <text
+              x={label.x}
+              y={label.y}
+              textAnchor={label.textAnchor}
+              dominantBaseline="middle"
+              fontSize={11}
+              fill="rgb(138 132 127)"
+              style={{
+                letterSpacing: "0.11em",
+                textTransform: "uppercase",
+                fontFamily:
+                  "var(--font-instrument, ui-sans-serif, system-ui, sans-serif)",
+              }}
+            >
+              {label.text}
+            </text>
+            {showScoreLabels && (
+              <text
+                x={label.x}
+                y={label.y + 16}
+                textAnchor={label.textAnchor}
+                dominantBaseline="middle"
+                fontSize={13}
+                fill="rgb(107 22 32)"
+                style={{
+                  fontFamily:
+                    "var(--font-fraunces, Georgia, serif)",
+                  fontVariationSettings: '"opsz" 144',
+                }}
+              >
+                {Math.round(orderedValues[i])}
+              </text>
+            )}
+          </g>
         ))}
     </svg>
   );

@@ -12,6 +12,11 @@ import {
 
 export const dynamic = "force-dynamic";
 
+// Submission insert + AI feedback generation can take up to ~60s.
+// This config lifts the serverless function timeout so the student's
+// form submission can complete end-to-end with feedback in hand.
+export const maxDuration = 60;
+
 type Params = { companySlug: string; taskSlug: string };
 
 export default async function TaskDetailPage({

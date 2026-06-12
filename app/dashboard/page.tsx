@@ -51,6 +51,10 @@ type SubmissionRowRaw = {
       }
     | { title: string; company: { name: string } | { name: string }[] | null }[]
     | null;
+  feedback:
+    | { total_score: number }
+    | { total_score: number }[]
+    | null;
 };
 
 type SubmissionRowData = {
@@ -58,6 +62,7 @@ type SubmissionRowData = {
   submission_title: string;
   created_at: string;
   task: { title: string; company: { name: string } | null } | null;
+  totalScore: number | null;
 };
 
 function normalizeRelation<T>(value: T | T[] | null | undefined): T | null {
@@ -202,7 +207,8 @@ export default async function DashboardPage() {
           task:tasks (
             title,
             company:companies (name)
-          )
+          ),
+          feedback (total_score)
         `,
       )
       .order("created_at", { ascending: false });
@@ -214,6 +220,7 @@ export default async function DashboardPage() {
       const raw = (result.data ?? []) as unknown as SubmissionRowRaw[];
       submissions = raw.map((s) => {
         const task = normalizeRelation(s.task);
+        const fb = normalizeRelation(s.feedback);
         return {
           id: s.id,
           submission_title: s.submission_title,
@@ -221,12 +228,41 @@ export default async function DashboardPage() {
           task: task
             ? { title: task.title, company: normalizeRelation(task.company) }
             : null,
+          totalScore: fb ? fb.total_score : null,
         };
       });
     }
   } catch (err) {
     submissionsError = err instanceof Error ? err.message : "Unknown error";
     console.error("[dashboard submissions throw]", err);
+  }
+
+  // ─── Earned-score averages for the profile radar overlay ─────────
+  let earnedAverages: RadarValues | null = null;
+  try {
+    const { data: allFeedback } = await supabase
+      .from("feedback")
+      .select(
+        "score_strategy, score_execution, score_communication, score_technical, score_creativity",
+      );
+
+    if (allFeedback && allFeedback.length > 0) {
+      const n = allFeedback.length;
+      earnedAverages = {
+        strategy:
+          allFeedback.reduce((s, f) => s + f.score_strategy, 0) / n,
+        execution:
+          allFeedback.reduce((s, f) => s + f.score_execution, 0) / n,
+        communication:
+          allFeedback.reduce((s, f) => s + f.score_communication, 0) / n,
+        technical:
+          allFeedback.reduce((s, f) => s + f.score_technical, 0) / n,
+        creativity:
+          allFeedback.reduce((s, f) => s + f.score_creativity, 0) / n,
+      };
+    }
+  } catch (err) {
+    console.error("[dashboard feedback aggregate]", err);
   }
 
   const firstName =
@@ -332,7 +368,7 @@ export default async function DashboardPage() {
           )}
         </section>
 
-        {/* ─── Section 3: Your starting profile ───────────────────── */}
+        {/* ─── Section 3: Your skill profile ──────────────────────── */}
         {radarValues && (
           <section className="mt-20 sm:mt-24">
             <div>
@@ -340,19 +376,50 @@ export default async function DashboardPage() {
                 className="font-display font-light tracking-[-0.018em] leading-[1.1] text-ink"
                 style={{ fontSize: "clamp(1.4rem, 0.6vw + 1rem, 1.5rem)" }}
               >
-                Your starting profile
+                Your skill profile
               </h2>
               <hr className="mt-4 border-0 border-t border-ink/10" />
             </div>
 
             <div className="mt-10 flex flex-col items-center sm:items-start">
               <div className="border border-ink/15 bg-cream p-6 sm:p-7">
-                <RadarChart values={radarValues} size={300} />
+                <RadarChart
+                  values={earnedAverages ?? radarValues}
+                  compareValues={earnedAverages ? radarValues : null}
+                  size={300}
+                />
               </div>
-              <p className="mt-5 text-[13px] leading-[1.6] text-muted max-w-[52ch] text-center sm:text-left">
-                These are your initial self-ratings. Real scores from
-                completed tasks will build alongside them.
-              </p>
+
+              {earnedAverages ? (
+                <>
+                  <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 text-[12px]">
+                    <span className="inline-flex items-center gap-2 text-oxblood">
+                      <span
+                        aria-hidden
+                        className="inline-block w-3 h-1 bg-oxblood"
+                      />
+                      Earned
+                    </span>
+                    <span className="inline-flex items-center gap-2 text-ink/55">
+                      <span
+                        aria-hidden
+                        className="inline-block w-3 h-px border-t border-dashed border-ink/45"
+                      />
+                      Self-rated
+                    </span>
+                  </div>
+                  <p className="mt-3 text-[13px] leading-[1.6] text-muted max-w-[58ch] text-center sm:text-left">
+                    Earned scores are averages across your submissions.
+                    Self-rated values are your initial baseline from
+                    onboarding.
+                  </p>
+                </>
+              ) : (
+                <p className="mt-5 text-[13px] leading-[1.6] text-muted max-w-[52ch] text-center sm:text-left">
+                  Your initial self-ratings. Earned scores will appear as you
+                  complete tasks.
+                </p>
+              )}
             </div>
           </section>
         )}
@@ -414,9 +481,23 @@ function SubmissionRow({
       </div>
 
       <div className="text-right shrink-0">
-        <span className="inline-flex items-center px-2.5 py-1 border border-ink/20 text-[11px] tracking-[0.06em] uppercase text-muted">
-          Feedback pending
-        </span>
+        {submission.totalScore !== null ? (
+          <div>
+            <p className="text-[10px] tracking-[0.18em] uppercase text-oxblood">
+              Score
+            </p>
+            <p
+              className="mt-0.5 font-display font-light text-[24px] sm:text-[26px] leading-[1] text-oxblood tabular-nums tracking-[-0.018em]"
+              style={{ fontVariationSettings: '"opsz" 144' }}
+            >
+              {Math.round(submission.totalScore)}
+            </p>
+          </div>
+        ) : (
+          <span className="inline-flex items-center text-[11px] tracking-[0.06em] uppercase text-muted">
+            Retry feedback
+          </span>
+        )}
         <p className="mt-1.5 text-[12px] tracking-[0.005em] text-muted">
           Submitted {timeAgo(submission.created_at)}
         </p>

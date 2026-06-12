@@ -43,17 +43,21 @@ export function SubmissionForm({
     !pending;
 
   if (state.status === "success") {
+    const ready = state.feedbackGenerated;
     return (
       <div className="pl-6 sm:pl-8 border-l-2 border-oxblood max-w-[60ch]">
         <p className="text-[11px] tracking-[0.18em] uppercase text-oxblood">
-          Submission received
+          {ready ? "Feedback ready" : "Submission received"}
         </p>
         <p className="mt-4 font-display font-light text-[26px] sm:text-[30px] leading-[1.15] tracking-[-0.014em] text-ink">
-          Your work has been saved.
+          {ready
+            ? "Your scores are in."
+            : "Your work has been saved."}
         </p>
         <p className="mt-4 text-[16px] leading-[1.6] text-ink/85">
-          AI feedback will appear on the submission page over the next few
-          minutes.
+          {ready
+            ? "Per-dimension scores and written feedback are on the submission page."
+            : "Feedback generation hit a snag — you can retry from the submission page."}
         </p>
         <Link
           href={`/submissions/${state.submissionId}`}
@@ -64,7 +68,8 @@ export function SubmissionForm({
             text-[15px] tracking-[0.005em]
           "
         >
-          View your submission <span aria-hidden>→</span>
+          {ready ? "View it" : "View your submission"}{" "}
+          <span aria-hidden>→</span>
         </Link>
       </div>
     );
@@ -191,8 +196,14 @@ export function SubmissionForm({
             ${pending ? "btn-pulse" : ""}
           `}
         >
-          {pending ? "Submitting…" : "Submit your work"}
+          {pending ? "Generating feedback…" : "Submit your work"}
         </button>
+        {pending && (
+          <p className="mt-3 text-[13px] leading-[1.5] text-muted max-w-[58ch]">
+            We&rsquo;re scoring your work across five dimensions. This usually
+            takes 30–60 seconds — hang on.
+          </p>
+        )}
       </div>
     </form>
   );
