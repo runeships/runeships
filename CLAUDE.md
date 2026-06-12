@@ -52,11 +52,20 @@ RPG/fantasy aesthetic.
 
 **Layout:**
 - Generous whitespace, asymmetric grid
-- NO card-based layouts
+- NO card-based layouts on MARKETING pages (/, /proof, /story, 
+  /privacy). APP pages (/dashboard, /tasks/*, /submissions/*, 
+  /onboarding) may use editorial-style cards where they serve 
+  scannability — but cards must use hairline borders only, no shadows, 
+  no aggressive rounded corners (4px max), restrained iconography.
 - NO emoji icons
 - NO numbered "How it works" steps
 - Small abstract Elder Futhark runic marks as section dividers only
 - Mobile-first: 375px min, 1280px+ desktop
+
+**Task conventions:**
+- Task categories (used for icons + filtering): writing, deck, code, 
+  spreadsheet, strategy, design. Each has a fixed Lucide icon mapping 
+  defined in components/TaskCard.tsx.
 
 **Motion:**
 - Subtle fade-in on scroll for sections

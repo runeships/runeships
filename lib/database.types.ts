@@ -14,6 +14,7 @@
  * - 006_create_submissions             → public.submissions
  * - 007_create_feedback                → public.feedback
  * - 009_add_specific_skills             → public.profiles.specific_skills
+ * - 010_add_task_category               → public.tasks.category
  */
 
 export type Json =
@@ -26,6 +27,15 @@ export type Json =
 
 /** Submission modes a task can require. */
 export type SubmissionMode = "text_only" | "link_only" | "text_and_link";
+
+/** Fixed task categories — used for icon mapping + dashboard filtering. */
+export type TaskCategory =
+  | "writing"
+  | "deck"
+  | "code"
+  | "spreadsheet"
+  | "strategy"
+  | "design";
 
 export interface Database {
   public: {
@@ -193,6 +203,7 @@ export interface Database {
           weight_creativity: number;
           order_index: number;
           is_published: boolean;
+          category: TaskCategory;
           created_at: string;
         };
         Insert: {
@@ -210,6 +221,7 @@ export interface Database {
           weight_creativity?: number;
           order_index?: number;
           is_published?: boolean;
+          category?: TaskCategory;
           created_at?: string;
         };
         Relationships: [];
@@ -228,6 +240,7 @@ export interface Database {
           weight_creativity?: number;
           order_index?: number;
           is_published?: boolean;
+          category?: TaskCategory;
           created_at?: string;
         };
       };

@@ -1,83 +1,144 @@
+import Link from "next/link";
+import {
+  PenTool,
+  Presentation,
+  Code,
+  Table,
+  Target,
+  Palette,
+  type LucideIcon,
+} from "lucide-react";
+import type { TaskCategory } from "@/lib/database.types";
+
+const ICONS: Record<TaskCategory, LucideIcon> = {
+  writing: PenTool,
+  deck: Presentation,
+  code: Code,
+  spreadsheet: Table,
+  strategy: Target,
+  design: Palette,
+};
+
+export const CATEGORY_LABELS: Record<TaskCategory, string> = {
+  writing: "Writing",
+  deck: "Pitch deck",
+  code: "Code",
+  spreadsheet: "Spreadsheet",
+  strategy: "Strategy",
+  design: "Design",
+};
+
+type TaskCardProps = {
+  companySlug: string;
+  companyName: string;
+  isPractice: boolean;
+  taskSlug: string;
+  title: string;
+  category: TaskCategory;
+  submissionMode: string;
+  estimatedTime: string | null;
+  topDimensions: string[];
+};
+
 /**
- * Sample task as a "premium editorial panel" — thin ink/15 border on
- * cream, generous interior padding, no shadows, no rounded corners.
+ * Editorial task card for the dashboard grid. Hairline border, no
+ * shadows, restrained 2px radius — explicitly an editorial card per
+ * the updated CLAUDE.md app-vs-marketing rule, NOT a SaaS card.
  *
- * The "+120 XP" reward sits in its own inset on the right of the
- * metadata row, big serif numeral, so the reward reads as a real
- * scoreboard entry rather than a footnote.
+ * Whole card is a Link. Hover swaps cream→parchment, darkens the
+ * border, and slides the trailing arrow 4px right.
  */
-export function TaskCard() {
+export function TaskCard({
+  companySlug,
+  companyName,
+  isPractice,
+  taskSlug,
+  title,
+  category,
+  submissionMode,
+  estimatedTime,
+  topDimensions,
+}: TaskCardProps) {
+  const Icon = ICONS[category];
+  const kicker = isPractice ? "PRACTICE" : companyName.toUpperCase();
+
   return (
-    <article className="border border-ink/15 bg-cream">
-      <div className="px-7 py-8 sm:px-12 sm:py-12">
-        <p className="text-[12px] tracking-[0.18em] uppercase text-muted">
-          Assignment 001 · Strategy
-        </p>
-
-        <h3
-          className="mt-5 font-display font-normal leading-[1.12] tracking-[-0.014em] text-ink"
-          style={{ fontSize: "clamp(1.55rem, 1.6vw + 1rem, 2rem)" }}
-        >
-          Pitch deck teardown — Series A SaaS, fintech vertical.
-        </h3>
-
-        <div className="prose-editorial mt-6 max-w-[62ch] text-[16px] sm:text-[17px] text-ink/85">
-          <p>
-            A B2B fintech company is preparing for a $12M Series A. Their
-            current deck has a strong product story, but the market sizing
-            slide undersells the TAM and the competitive positioning feels
-            generic.
-          </p>
-          <p>
-            Submit a revised deck — or a written critique — showing a tighter
-            TAM/SAM/SOM breakdown, sharper competitive positioning, and a
-            recommendation on the financial projections slide.
-          </p>
-        </div>
-
-        <hr className="mt-10 border-0 border-t border-rule" />
-
-        {/* Metadata row + reward inset, side by side on desktop */}
-        <div className="mt-7 grid grid-cols-1 md:grid-cols-[1fr_auto] gap-y-7 md:gap-x-10 items-start">
-          <div>
-            <p className="text-[11px] tracking-[0.18em] uppercase text-muted flex flex-wrap gap-x-3 gap-y-2">
-              <span>Time 3–5 hrs</span>
-              <span aria-hidden className="text-muted/50">·</span>
-              <span>Feedback ~5 min</span>
-              <span aria-hidden className="text-muted/50">·</span>
-              <span>Top submissions surfaced to recruiters</span>
-            </p>
-            <div className="mt-5 flex flex-wrap items-center gap-x-3 gap-y-2 text-[13px] text-muted">
-              <span>Strategy</span>
-              <span aria-hidden>·</span>
-              <span>Finance</span>
-              <span aria-hidden>·</span>
-              <span>Product</span>
-              <span aria-hidden>·</span>
-              <span>Communication</span>
-            </div>
-          </div>
-
-          {/* Reward inset — big serif numeral */}
-          <div className="border-l border-rule pl-7 md:pl-10 md:min-w-[180px]">
-            <p className="text-[10px] tracking-[0.2em] uppercase text-muted">
-              Reward
-            </p>
-            <p
-              className="mt-1 font-display font-light leading-[0.95] text-oxblood tracking-[-0.022em]"
-              style={{
-                fontSize: "clamp(2.5rem, 2.5vw + 1rem, 3rem)",
-                fontVariationSettings: '"opsz" 144',
-              }}
-            >
-              +120
-            </p>
-            <p className="mt-1.5 text-[11px] tracking-[0.18em] uppercase text-muted">
-              Strategy XP
-            </p>
-          </div>
-        </div>
+    <Link
+      href={`/tasks/${companySlug}/${taskSlug}`}
+      className="
+        group flex flex-col h-full
+        border border-ink/15 bg-cream
+        rounded-[2px]
+        p-6
+        transition-colors duration-200 ease-out
+        hover:bg-parchment hover:border-ink/25
+        focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-oxblood
+      "
+    >
+      {/* Row 1: category icon + label */}
+      <div className="flex items-center justify-between">
+        <Icon
+          className="text-oxblood"
+          size={28}
+          strokeWidth={1.5}
+          aria-hidden
+        />
+        <span className="text-[11px] tracking-[0.18em] uppercase text-oxblood">
+          {CATEGORY_LABELS[category]}
+        </span>
       </div>
-    </article>
+
+      {/* Row 2: company kicker */}
+      <p className="mt-7 text-[11px] tracking-[0.16em] uppercase text-ink/60">
+        {kicker}
+      </p>
+
+      {/* Row 3: task title */}
+      <h3
+        className="
+          mt-2 font-display font-normal text-[18px] leading-[1.25]
+          tracking-[-0.012em] text-ink
+          line-clamp-2
+        "
+      >
+        {title}
+      </h3>
+
+      {/* Row 4: meta line. Pushed to the bottom via mt-auto on the
+          following arrow row so cards in a grid keep matching footers. */}
+      <p className="mt-5 text-[12px] leading-[1.5] text-ink/55">
+        {submissionMode}
+        {estimatedTime && (
+          <>
+            <span aria-hidden className="mx-1.5 text-ink/30">
+              ·
+            </span>
+            {estimatedTime}
+          </>
+        )}
+        {topDimensions.length > 0 && (
+          <>
+            <span aria-hidden className="mx-1.5 text-ink/30">
+              ·
+            </span>
+            {topDimensions.join(" · ")}
+          </>
+        )}
+      </p>
+
+      {/* Row 5: arrow, pushed to bottom */}
+      <div className="mt-auto pt-5 flex justify-end">
+        <span
+          aria-hidden
+          className="
+            text-oxblood text-[18px] leading-none
+            transition-transform duration-200 ease-out
+            group-hover:translate-x-1
+          "
+        >
+          →
+        </span>
+      </div>
+    </Link>
   );
 }

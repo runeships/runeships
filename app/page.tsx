@@ -6,7 +6,7 @@ import { Reveal } from "@/components/Reveal";
 import { ProfileMockup } from "@/components/ProfileMockup";
 import { HowItWorks } from "@/components/HowItWorks";
 import { StatStrip } from "@/components/StatStrip";
-import { TaskCard } from "@/components/TaskCard";
+import { SampleTaskCard } from "@/components/SampleTaskCard";
 import { FeedbackPreview } from "@/components/FeedbackPreview";
 import { AudienceTabs } from "@/components/AudienceTabs";
 import { CredibilityList } from "@/components/CredibilityList";
@@ -188,7 +188,7 @@ export default function Home() {
               A task on RuneShips.
             </h2>
             <div className="mt-14 sm:mt-18 max-w-[1080px] mx-auto">
-              <TaskCard />
+              <SampleTaskCard />
             </div>
 
             <div className="mt-14 sm:mt-20 max-w-[1080px] mx-auto">

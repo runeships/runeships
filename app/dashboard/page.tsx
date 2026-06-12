@@ -2,12 +2,12 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase-server";
 import { RadarChart, type RadarValues } from "@/components/RadarChart";
-import {
-  submissionModeLabel,
-  testedDimensions,
-  timeAgo,
-} from "@/lib/format";
-import type { SubmissionMode } from "@/lib/database.types";
+import { TaskGrid, type TaskForGrid } from "@/components/TaskGrid";
+import { timeAgo } from "@/lib/format";
+import type {
+  SubmissionMode,
+  TaskCategory,
+} from "@/lib/database.types";
 
 export const dynamic = "force-dynamic";
 
@@ -21,9 +21,11 @@ type TaskRowRaw = {
   id: string;
   slug: string;
   title: string;
+  brief: string;
   submission_mode: SubmissionMode;
   estimated_time: string | null;
   order_index: number;
+  category: TaskCategory;
   weight_strategy: number;
   weight_execution: number;
   weight_communication: number;
@@ -37,8 +39,6 @@ type CompanyMin = {
   name: string;
   is_practice: boolean;
 };
-
-type TaskRowData = Omit<TaskRowRaw, "company"> & { company: CompanyMin | null };
 
 type SubmissionRowRaw = {
   id: string;
@@ -124,7 +124,7 @@ export default async function DashboardPage() {
   }
 
   // ─── Tasks ────────────────────────────────────────────────────────
-  let tasks: TaskRowData[] = [];
+  let tasks: TaskForGrid[] = [];
   let tasksError: string | null = null;
 
   try {
@@ -132,7 +132,7 @@ export default async function DashboardPage() {
       .from("tasks")
       .select(
         `
-          id, slug, title, submission_mode, estimated_time, order_index,
+          id, slug, title, brief, submission_mode, estimated_time, order_index, category,
           weight_strategy, weight_execution, weight_communication, weight_technical, weight_creativity,
           company:companies (slug, name, is_practice)
         `,
@@ -144,11 +144,28 @@ export default async function DashboardPage() {
       console.error("[dashboard tasks]", result.error);
     } else {
       const raw = (result.data ?? []) as unknown as TaskRowRaw[];
-      tasks = raw.map((t) => ({
-        ...t,
-        company: normalizeRelation(t.company),
-      }));
-      tasks.sort((a, b) => {
+      const normalized = raw.map(
+        (t): TaskForGrid & { order_index: number } => ({
+          id: t.id,
+          slug: t.slug,
+          title: t.title,
+          brief: t.brief,
+          submission_mode: t.submission_mode,
+          estimated_time: t.estimated_time,
+          category: t.category,
+          weight_strategy: t.weight_strategy,
+          weight_execution: t.weight_execution,
+          weight_communication: t.weight_communication,
+          weight_technical: t.weight_technical,
+          weight_creativity: t.weight_creativity,
+          company: normalizeRelation(t.company),
+          order_index: t.order_index,
+        }),
+      );
+      // Sort once on the server (practice first, then alphabetical
+      // by company, then by order_index inside a company). TaskGrid
+      // preserves this order while filtering.
+      normalized.sort((a, b) => {
         const aPractice = a.company?.is_practice ?? false;
         const bPractice = b.company?.is_practice ?? false;
         if (aPractice && !bPractice) return -1;
@@ -160,6 +177,11 @@ export default async function DashboardPage() {
           if (diff !== 0) return diff;
         }
         return a.order_index - b.order_index;
+      });
+      tasks = normalized.map((t) => {
+        const { order_index: _orderIndex, ...rest } = t;
+        void _orderIndex;
+        return rest;
       });
     }
   } catch (err) {
@@ -283,13 +305,9 @@ export default async function DashboardPage() {
                 : "No tasks published yet."}
             </p>
           ) : (
-            <ul className="mt-2 divide-y divide-ink/10">
-              {tasks.map((t) => (
-                <li key={t.id}>
-                  <TaskRow task={t} />
-                </li>
-              ))}
-            </ul>
+            <div className="mt-8">
+              <TaskGrid tasks={tasks} />
+            </div>
           )}
         </section>
 
@@ -358,63 +376,6 @@ function DashboardSectionHeading({
       </h2>
       <hr className="mt-5 border-0 border-t border-ink/10" />
     </div>
-  );
-}
-
-function TaskRow({ task }: { task: TaskRowData }) {
-  const tested = testedDimensions(task);
-  const companyName = task.company?.is_practice
-    ? "Practice"
-    : (task.company?.name ?? "");
-  const companySlug = task.company?.slug ?? "";
-
-  return (
-    <Link
-      href={`/tasks/${companySlug}/${task.slug}`}
-      className="
-        group grid grid-cols-[88px_1fr_auto] sm:grid-cols-[120px_1fr_auto]
-        gap-3 sm:gap-6 items-center
-        py-5 sm:py-6 px-3
-        transition-colors duration-200 ease-out
-        hover:bg-parchment
-      "
-    >
-      <span className="text-[10px] sm:text-[11px] tracking-[0.16em] uppercase text-muted self-start sm:self-center">
-        {companyName}
-      </span>
-
-      <div className="min-w-0">
-        <h3 className="font-display font-normal text-[18px] sm:text-[22px] leading-[1.2] tracking-[-0.01em] text-ink">
-          {task.title}
-        </h3>
-        <p className="mt-1.5 text-[13px] leading-[1.5] text-muted">
-          {submissionModeLabel(task.submission_mode)}
-          {task.estimated_time && (
-            <>
-              <span aria-hidden className="mx-2 text-muted/50">
-                ·
-              </span>
-              {task.estimated_time}
-            </>
-          )}
-          {tested.length > 0 && (
-            <>
-              <span aria-hidden className="mx-2 text-muted/50">
-                ·
-              </span>
-              {tested.join(" · ")}
-            </>
-          )}
-        </p>
-      </div>
-
-      <span
-        aria-hidden
-        className="text-oxblood text-[18px] sm:text-[20px] transition-transform duration-200 ease-out group-hover:translate-x-1"
-      >
-        →
-      </span>
-    </Link>
   );
 }
 
