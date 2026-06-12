@@ -149,7 +149,7 @@ export default async function TaskDetailPage({
         {pastSubmissions && pastSubmissions.length > 0 && (
           <section className="mt-20 sm:mt-24">
             <SectionHeading>Your previous attempts</SectionHeading>
-            <ul className="mt-8 divide-y divide-ink/10 max-w-[680px]">
+            <ul className="mt-8 divide-y divide-ink/10 max-w-[680px] mx-auto">
               {pastSubmissions.map((s) => (
                 <li key={s.id}>
                   <Link
@@ -188,7 +188,7 @@ export default async function TaskDetailPage({
 
           <div className="mt-8 sm:mt-10">
             {inCooldown && cooldownUntil ? (
-              <div className="pl-6 sm:pl-8 border-l-2 border-oxblood max-w-[60ch]">
+              <div className="pl-6 sm:pl-8 border-l-2 border-oxblood max-w-[60ch] mx-auto">
                 <p className="text-[11px] tracking-[0.18em] uppercase text-oxblood">
                   Cooldown active
                 </p>

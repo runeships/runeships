@@ -45,7 +45,7 @@ export function SubmissionForm({
   if (state.status === "success") {
     const ready = state.feedbackGenerated;
     return (
-      <div className="pl-6 sm:pl-8 border-l-2 border-oxblood max-w-[60ch]">
+      <div className="pl-6 sm:pl-8 border-l-2 border-oxblood max-w-[60ch] mx-auto">
         <p className="text-[11px] tracking-[0.18em] uppercase text-oxblood">
           {ready ? "Feedback ready" : "Submission received"}
         </p>
@@ -76,7 +76,7 @@ export function SubmissionForm({
   }
 
   return (
-    <form action={formAction} noValidate className="space-y-8 max-w-[680px]">
+    <form action={formAction} noValidate className="space-y-8 max-w-[680px] mx-auto">
       <input type="hidden" name="task_id" value={taskId} />
 
       {/* Title — always required */}
