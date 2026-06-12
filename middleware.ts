@@ -13,6 +13,7 @@ const PROTECTED_ROUTES = [
   "/onboarding",
   "/dashboard",
   "/tasks",
+  "/submissions",
   "/profile",
 ];
 

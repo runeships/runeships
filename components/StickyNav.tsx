@@ -18,6 +18,7 @@ const APP_AUTHED_ROUTES = [
   "/onboarding",
   "/dashboard",
   "/tasks",
+  "/submissions",
   "/profile",
 ] as const;
 
