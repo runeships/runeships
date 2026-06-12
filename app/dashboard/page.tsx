@@ -382,7 +382,7 @@ export default async function DashboardPage() {
             </div>
 
             <div className="mt-10 flex flex-col items-center sm:items-start">
-              <div className="border border-ink/15 bg-cream p-6 sm:p-7">
+              <div className="border border-ink/15 bg-cream px-10 py-7 sm:px-12 sm:py-8">
                 <RadarChart
                   values={earnedAverages ?? radarValues}
                   compareValues={earnedAverages ? radarValues : null}
