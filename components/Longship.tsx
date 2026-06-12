@@ -1,77 +1,54 @@
-import { type CSSProperties } from "react";
+import Image from "next/image";
 
-const SHIP_MASK_URL = "/brand/longship.png";
+// Cropped silhouette is 1504×731 (aspect ≈ 2.057). Heights below are
+// derived from those base widths so the rendered ratio matches the
+// underlying file exactly — no stretch, no letterbox.
+const SIZE_PRESETS = {
+  hero: { width: 400, height: 195, maxClass: "max-w-[420px]" },
+  medium: { width: 240, height: 117, maxClass: "max-w-[240px]" },
+  small: { width: 120, height: 58, maxClass: "max-w-[120px]" },
+} as const;
+
+type LongshipSize = keyof typeof SIZE_PRESETS;
 
 type LongshipProps = {
-  /** 0–100, or null for "in port". */
-  percentile: number | null;
-  /** Accessible label — describing the dimension or overall standing. */
-  ariaLabel: string;
-  /**
-   * Tailwind classes for sizing — typical use is
-   * `w-full max-w-[480px] aspect-[1485/763] mx-auto`.
-   * The mask + gradient stretch to fill whatever box you give them.
-   */
+  size?: LongshipSize;
+  ariaLabel?: string;
+  /** Optional Tailwind classes added to the wrapper — typically for
+   *  margins like "mt-8" or alignment overrides. */
   className?: string;
-  /** Inline style overrides — handy when you need explicit pixel sizes
-   *  (e.g. the 80px inline ship in the submission detail breakdown). */
-  style?: CSSProperties;
 };
 
 /**
- * Single longship visualization. Fills horizontally from LEFT
- * (oxblood) to RIGHT (ink) based on percentile. Dragon head sits on
- * the right side of the silhouette — last thing to turn oxblood,
- * only at 100%.
+ * Decoration-only longship. Brand anchor visual — no fill effect,
+ * no recoloring, no mask. The PNG renders as-is via next/image
+ * (native oxblood + ink palette baked into the source).
  *
- * Implementation: a div whose background is a hard-stopped linear
- * gradient (oxblood at 0% → percentile%, ink at percentile% → 100%)
- * with the longship PNG used as a CSS mask. The mask's alpha channel
- * cuts the gradient into the ship silhouette; everything around the
- * ship stays fully transparent.
+ * Sizing presets:
+ *   - hero    ~400px  — dashboard "Where you stand" hero
+ *   - medium  ~240px  — profile earned-standing block
+ *   - small   ~120px  — reserved for compact callouts (unused for now)
  *
- * The labels that used to live inside (TOP X%, dimension name, score)
- * now sit outside in the surrounding section layout — this component
- * is just the ship.
+ * The actual data visualization lives in `PercentileTally` below the
+ * longship; the ship is purely the metaphor.
  */
 export function Longship({
-  percentile,
-  ariaLabel,
-  className,
-  style,
+  size = "medium",
+  ariaLabel = "Viking longship illustration",
+  className = "",
 }: LongshipProps) {
-  const hasData = percentile !== null;
-  const fillPct = hasData ? Math.max(0, Math.min(100, percentile)) : 0;
-
-  // At 0% (or null) the entire div is ink — "ship in port". At 100%
-  // the entire div is oxblood. In between, a hard stop at fillPct
-  // gives a clean vertical waterline between the two colors.
-  const background = hasData
-    ? `linear-gradient(to right,
-        var(--color-oxblood) 0%,
-        var(--color-oxblood) ${fillPct}%,
-        var(--color-ink) ${fillPct}%,
-        var(--color-ink) 100%)`
-    : "var(--color-ink)";
+  const preset = SIZE_PRESETS[size];
 
   return (
-    <div
-      role="img"
-      aria-label={ariaLabel}
-      className={className}
-      style={{
-        background,
-        WebkitMaskImage: `url(${SHIP_MASK_URL})`,
-        maskImage: `url(${SHIP_MASK_URL})`,
-        WebkitMaskSize: "contain",
-        maskSize: "contain",
-        WebkitMaskRepeat: "no-repeat",
-        maskRepeat: "no-repeat",
-        WebkitMaskPosition: "center",
-        maskPosition: "center",
-        transition: "background 600ms cubic-bezier(0.22, 0.61, 0.36, 1)",
-        ...style,
-      }}
-    />
+    <div className={`${preset.maxClass} mx-auto w-full ${className}`}>
+      <Image
+        src="/brand/longship.png"
+        alt={ariaLabel}
+        width={preset.width}
+        height={preset.height}
+        className="w-full h-auto"
+        priority={size === "hero"}
+      />
+    </div>
   );
 }

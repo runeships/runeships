@@ -4,6 +4,7 @@ import {
 } from "@/lib/rankings";
 import { RadarChart, type RadarValues } from "@/components/RadarChart";
 import { Longship } from "@/components/Longship";
+import { PercentileTally } from "@/components/PercentileTally";
 
 type RankingPanelProps = {
   rankings: RankingsResult;
@@ -11,15 +12,14 @@ type RankingPanelProps = {
 };
 
 /**
- * "Where you stand" dashboard hero.
+ * "Where you stand" dashboard hero. Pentagon radar on the left
+ * (per-dimension skill shape), decorative longship + percentile
+ * tally on the right (overall standing). The headline above both
+ * columns frames the strongest dimension; cohort + provisional
+ * footer below.
  *
- * - Empty state: single editorial inset with "Your ship awaits."
- *   copy + one ink-filled longship in port.
- * - Active: dual column on lg+ — pentagon radar on the left
- *   (per-dimension shape), single hero longship on the right
- *   filled to overallPercentile (cohort standing). Headline above
- *   both columns frames the strongest dimension; cohort +
- *   provisional footer below.
+ * Empty state replaces the dual-column layout with a single
+ * editorial inset: copy + decorative longship + muted tally.
  */
 export function RankingPanel({ rankings, selfRated }: RankingPanelProps) {
   const hasFeedback = rankings.strongestDimension !== null;
@@ -35,19 +35,19 @@ export function RankingPanel({ rankings, selfRated }: RankingPanelProps) {
           className="mt-4 font-display font-light leading-[1.1] tracking-[-0.018em] text-ink"
           style={{ fontSize: "clamp(1.6rem, 1.6vw + 1rem, 1.85rem)" }}
         >
-          Your ship awaits.
+          Your journey starts here.
         </p>
         <p className="mt-5 text-[14px] leading-[1.6] text-muted max-w-[60ch]">
-          Submit your first task to set sail. Your longship fills as
-          your overall percentile rises through the RuneShips cohort.
+          Submit your first task to find your place in the RuneShips
+          cohort. Your standing rises as your scores accumulate.
         </p>
 
-        <div className="mt-10 flex justify-center">
-          <Longship
-            percentile={null}
-            ariaLabel="Your longship — in port, no submissions yet."
-            className="w-full max-w-[360px] aspect-[1485/763]"
-          />
+        <div className="mt-10">
+          <Longship size="hero" ariaLabel="Viking longship illustration" />
+        </div>
+
+        <div className="mt-10">
+          <PercentileTally percentile={null} width={420} />
         </div>
       </div>
     );
@@ -66,11 +66,10 @@ export function RankingPanel({ rankings, selfRated }: RankingPanelProps) {
   };
 
   const overallPercentile = rankings.overallPercentile ?? 0;
-  const overallTopPct = Math.max(0, 100 - overallPercentile);
 
   return (
     <div className="border border-ink/15 bg-cream p-8 sm:p-10 rounded-[2px]">
-      {/* Headline — strongest-dimension framing, confident vs provisional */}
+      {/* Headline */}
       {rankings.isProvisional ? (
         <p
           className="font-display font-light leading-[1.15] tracking-[-0.018em] text-ink"
@@ -98,9 +97,9 @@ export function RankingPanel({ rankings, selfRated }: RankingPanelProps) {
         </>
       )}
 
-      {/* Dual-column: pentagon (per-dim shape) + hero longship (overall standing) */}
+      {/* Dual-column */}
       <div className="mt-10 grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-0">
-        {/* LEFT — radar */}
+        {/* LEFT — pentagon radar */}
         <div className="lg:pr-8 lg:border-r lg:border-ink/10">
           <p className="text-[11px] tracking-[0.18em] uppercase text-muted">
             Your skill shape
@@ -130,34 +129,17 @@ export function RankingPanel({ rankings, selfRated }: RankingPanelProps) {
           </div>
         </div>
 
-        {/* RIGHT — single hero longship + overall standing */}
-        <div className="lg:pl-8 flex flex-col items-center text-center">
-          <p className="text-[11px] tracking-[0.18em] uppercase text-muted self-start lg:self-auto">
+        {/* RIGHT — longship + tally */}
+        <div className="lg:pl-8 flex flex-col">
+          <p className="text-[11px] tracking-[0.18em] uppercase text-muted">
             Your standing
           </p>
-
-          {/* Hero ship — scales responsively, min-width prevents crush
-              on tiny viewports. */}
-          <div className="mt-6 w-full flex justify-center">
-            <Longship
-              percentile={overallPercentile}
-              ariaLabel={`Your overall longship — top ${overallTopPct}% across all five dimensions.`}
-              className="w-full max-w-[480px] min-w-[260px] aspect-[1485/763]"
-            />
+          <div className="mt-7">
+            <Longship size="hero" ariaLabel="Viking longship illustration" />
           </div>
-
-          <p
-            className="mt-7 font-display font-light leading-[1.05] tracking-[-0.022em] text-oxblood"
-            style={{
-              fontSize: "clamp(1.9rem, 2.2vw + 1rem, 2.25rem)",
-              fontVariationSettings: '"opsz" 144',
-            }}
-          >
-            Top {overallTopPct}% overall
-          </p>
-          <p className="mt-2 text-[12px] tracking-[0.06em] uppercase text-muted">
-            Across all five RuneShips dimensions
-          </p>
+          <div className="mt-8">
+            <PercentileTally percentile={overallPercentile} width={420} />
+          </div>
         </div>
       </div>
 

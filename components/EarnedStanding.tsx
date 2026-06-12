@@ -1,11 +1,11 @@
 import { type RankingsResult } from "@/lib/rankings";
 import { Longship } from "@/components/Longship";
+import { PercentileTally } from "@/components/PercentileTally";
 
 /**
  * Read-only "earned standing" surface on /profile (Profile tab).
- * A single medium-size longship filled to overallPercentile + the
- * "Top X% overall" line + cohort caption. When the user has no
- * feedback yet, a muted single-line prompt instead.
+ * Same medium longship + tally pairing as the dashboard, scaled
+ * down. Single muted prompt when no feedback yet.
  */
 export function EarnedStanding({ rankings }: { rankings: RankingsResult }) {
   const hasFeedback = rankings.overallPercentile !== null;
@@ -25,30 +25,14 @@ export function EarnedStanding({ rankings }: { rankings: RankingsResult }) {
           earned standing.
         </p>
       ) : (
-        <div className="mt-8 flex flex-col items-center text-center">
-          <p className="text-[11px] tracking-[0.18em] uppercase text-muted self-start sm:self-auto">
-            Your standing
-          </p>
-          <div className="mt-5 w-full flex justify-center">
-            <Longship
+        <div className="mt-8">
+          <Longship size="medium" ariaLabel="Viking longship illustration" />
+          <div className="mt-8">
+            <PercentileTally
               percentile={rankings.overallPercentile}
-              ariaLabel={`Your overall longship — top ${Math.max(0, 100 - (rankings.overallPercentile ?? 0))}% overall.`}
-              className="w-full max-w-[280px] min-w-[220px] aspect-[1485/763]"
+              width={320}
             />
           </div>
-          <p
-            className="mt-6 font-display font-light leading-[1.05] tracking-[-0.018em] text-oxblood"
-            style={{
-              fontSize: "clamp(1.5rem, 1.6vw + 1rem, 1.85rem)",
-              fontVariationSettings: '"opsz" 144',
-            }}
-          >
-            Top {Math.max(0, 100 - (rankings.overallPercentile ?? 0))}% overall
-          </p>
-          <p className="mt-2 text-[12px] tracking-[0.04em] text-muted">
-            Across all five dimensions · cohort of {rankings.cohortSize}{" "}
-            {rankings.cohortSize === 1 ? "student" : "students"}
-          </p>
         </div>
       )}
     </section>
