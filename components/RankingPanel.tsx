@@ -1,18 +1,9 @@
 import {
-  type Dimension,
   type RankingsResult,
   dimensionLabel,
 } from "@/lib/rankings";
 import { RadarChart, type RadarValues } from "@/components/RadarChart";
 import { Longship } from "@/components/Longship";
-
-const DIMENSIONS: Dimension[] = [
-  "strategy",
-  "execution",
-  "communication",
-  "technical",
-  "creativity",
-];
 
 type RankingPanelProps = {
   rankings: RankingsResult;
@@ -20,15 +11,15 @@ type RankingPanelProps = {
 };
 
 /**
- * "Where you stand" dashboard hero. Three states:
- *   - No feedback yet → fleet-in-port teaser (outline ships only)
- *   - Cohort ≥ 25    → confident headline "top X% on {dim}"
- *   - Cohort < 25    → provisional headline + provisional footer
+ * "Where you stand" dashboard hero.
  *
- * Two non-empty states use a dual-column layout: pentagon radar
- * (absolute scores) on the left, fleet of 5 longships (percentile
- * ranks) on the right. The pair is meant to read as one truth —
- * skill shape AND cohort standing.
+ * - Empty state: single editorial inset with "Your ship awaits."
+ *   copy + one ink-filled longship in port.
+ * - Active: dual column on lg+ — pentagon radar on the left
+ *   (per-dimension shape), single hero longship on the right
+ *   filled to overallPercentile (cohort standing). Headline above
+ *   both columns frames the strongest dimension; cohort +
+ *   provisional footer below.
  */
 export function RankingPanel({ rankings, selfRated }: RankingPanelProps) {
   const hasFeedback = rankings.strongestDimension !== null;
@@ -44,25 +35,19 @@ export function RankingPanel({ rankings, selfRated }: RankingPanelProps) {
           className="mt-4 font-display font-light leading-[1.1] tracking-[-0.018em] text-ink"
           style={{ fontSize: "clamp(1.6rem, 1.6vw + 1rem, 1.85rem)" }}
         >
-          Your fleet awaits.
+          Your ship awaits.
         </p>
         <p className="mt-5 text-[14px] leading-[1.6] text-muted max-w-[60ch]">
-          Submit your first task to set sail. Your longships fill as you
-          build out your skill profile — one ship per dimension, each
-          rising with your cohort percentile.
+          Submit your first task to set sail. Your longship fills as
+          your overall percentile rises through the RuneShips cohort.
         </p>
 
-        {/* Fleet in port — outline-only ships as teaser. */}
-        <div className="mt-9 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-x-3 gap-y-7">
-          {DIMENSIONS.map((d) => (
-            <Longship
-              key={d}
-              percentile={null}
-              dimension={d}
-              score={null}
-              size="small"
-            />
-          ))}
+        <div className="mt-10 flex justify-center">
+          <Longship
+            percentile={null}
+            ariaLabel="Your longship — in port, no submissions yet."
+            className="w-full max-w-[360px] aspect-[1485/763]"
+          />
         </div>
       </div>
     );
@@ -72,8 +57,6 @@ export function RankingPanel({ rankings, selfRated }: RankingPanelProps) {
   const strongestPercentile = rankings.userPercentiles[strongest] ?? 0;
   const topPct = Math.max(0, 100 - strongestPercentile);
 
-  // Earned-scores polygon for the radar. We have feedback at this
-  // point so userAggregates is non-null on every dim.
   const earnedValues: RadarValues = {
     strategy: rankings.userAggregates.strategy ?? 0,
     execution: rankings.userAggregates.execution ?? 0,
@@ -82,9 +65,12 @@ export function RankingPanel({ rankings, selfRated }: RankingPanelProps) {
     creativity: rankings.userAggregates.creativity ?? 0,
   };
 
+  const overallPercentile = rankings.overallPercentile ?? 0;
+  const overallTopPct = Math.max(0, 100 - overallPercentile);
+
   return (
     <div className="border border-ink/15 bg-cream p-8 sm:p-10 rounded-[2px]">
-      {/* Headline */}
+      {/* Headline — strongest-dimension framing, confident vs provisional */}
       {rankings.isProvisional ? (
         <p
           className="font-display font-light leading-[1.15] tracking-[-0.018em] text-ink"
@@ -112,7 +98,7 @@ export function RankingPanel({ rankings, selfRated }: RankingPanelProps) {
         </>
       )}
 
-      {/* Dual-column layout — pentagon left, fleet right. */}
+      {/* Dual-column: pentagon (per-dim shape) + hero longship (overall standing) */}
       <div className="mt-10 grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-0">
         {/* LEFT — radar */}
         <div className="lg:pr-8 lg:border-r lg:border-ink/10">
@@ -129,13 +115,9 @@ export function RankingPanel({ rankings, selfRated }: RankingPanelProps) {
               />
             </div>
           </div>
-          {/* Compact legend so the dashed dimension makes sense at a glance. */}
           <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 text-[12px]">
             <span className="inline-flex items-center gap-2 text-oxblood">
-              <span
-                aria-hidden
-                className="inline-block w-3 h-1 bg-oxblood"
-              />
+              <span aria-hidden className="inline-block w-3 h-1 bg-oxblood" />
               Earned
             </span>
             <span className="inline-flex items-center gap-2 text-ink/55">
@@ -148,27 +130,38 @@ export function RankingPanel({ rankings, selfRated }: RankingPanelProps) {
           </div>
         </div>
 
-        {/* RIGHT — fleet */}
-        <div className="lg:pl-8">
-          <p className="text-[11px] tracking-[0.18em] uppercase text-muted">
-            Your fleet
+        {/* RIGHT — single hero longship + overall standing */}
+        <div className="lg:pl-8 flex flex-col items-center text-center">
+          <p className="text-[11px] tracking-[0.18em] uppercase text-muted self-start lg:self-auto">
+            Your standing
           </p>
-          <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-x-3 gap-y-8">
-            {DIMENSIONS.map((d) => (
-              <Longship
-                key={d}
-                percentile={rankings.userPercentiles[d]}
-                dimension={d}
-                score={rankings.userAggregates[d]}
-                size="small"
-                isStrongest={d === strongest}
-              />
-            ))}
+
+          {/* Hero ship — scales responsively, min-width prevents crush
+              on tiny viewports. */}
+          <div className="mt-6 w-full flex justify-center">
+            <Longship
+              percentile={overallPercentile}
+              ariaLabel={`Your overall longship — top ${overallTopPct}% across all five dimensions.`}
+              className="w-full max-w-[480px] min-w-[260px] aspect-[1485/763]"
+            />
           </div>
+
+          <p
+            className="mt-7 font-display font-light leading-[1.05] tracking-[-0.022em] text-oxblood"
+            style={{
+              fontSize: "clamp(1.9rem, 2.2vw + 1rem, 2.25rem)",
+              fontVariationSettings: '"opsz" 144',
+            }}
+          >
+            Top {overallTopPct}% overall
+          </p>
+          <p className="mt-2 text-[12px] tracking-[0.06em] uppercase text-muted">
+            Across all five RuneShips dimensions
+          </p>
         </div>
       </div>
 
-      <div className="mt-8 pt-6 border-t border-ink/10 space-y-2">
+      <div className="mt-10 pt-6 border-t border-ink/10 space-y-2">
         <p className="text-[12px] leading-[1.55] text-muted">
           Computed from your best score per task, averaged across all
           completed tasks. Cohort size: {rankings.cohortSize}{" "}

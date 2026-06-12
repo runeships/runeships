@@ -1,24 +1,14 @@
-import {
-  type Dimension,
-  type RankingsResult,
-} from "@/lib/rankings";
+import { type RankingsResult } from "@/lib/rankings";
 import { Longship } from "@/components/Longship";
 
-const DIMENSIONS: Dimension[] = [
-  "strategy",
-  "execution",
-  "communication",
-  "technical",
-  "creativity",
-];
-
 /**
- * Read-only "earned standing" row on /profile (Profile tab). Five
- * small Longship cards — same visual language as the dashboard fleet.
- * When the user has no feedback, renders a single muted line.
+ * Read-only "earned standing" surface on /profile (Profile tab).
+ * A single medium-size longship filled to overallPercentile + the
+ * "Top X% overall" line + cohort caption. When the user has no
+ * feedback yet, a muted single-line prompt instead.
  */
 export function EarnedStanding({ rankings }: { rankings: RankingsResult }) {
-  const hasFeedback = rankings.strongestDimension !== null;
+  const hasFeedback = rankings.overallPercentile !== null;
 
   return (
     <section className="mt-16 sm:mt-20">
@@ -35,23 +25,31 @@ export function EarnedStanding({ rankings }: { rankings: RankingsResult }) {
           earned standing.
         </p>
       ) : (
-        <>
-          <p className="mt-6 text-[12px] tracking-[0.005em] text-muted">
-            Read-only. Computed from your submissions.
+        <div className="mt-8 flex flex-col items-center text-center">
+          <p className="text-[11px] tracking-[0.18em] uppercase text-muted self-start sm:self-auto">
+            Your standing
           </p>
-          <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-x-3 gap-y-8">
-            {DIMENSIONS.map((d) => (
-              <Longship
-                key={d}
-                percentile={rankings.userPercentiles[d]}
-                dimension={d}
-                score={rankings.userAggregates[d]}
-                size="small"
-                isStrongest={d === rankings.strongestDimension}
-              />
-            ))}
+          <div className="mt-5 w-full flex justify-center">
+            <Longship
+              percentile={rankings.overallPercentile}
+              ariaLabel={`Your overall longship — top ${Math.max(0, 100 - (rankings.overallPercentile ?? 0))}% overall.`}
+              className="w-full max-w-[280px] min-w-[220px] aspect-[1485/763]"
+            />
           </div>
-        </>
+          <p
+            className="mt-6 font-display font-light leading-[1.05] tracking-[-0.018em] text-oxblood"
+            style={{
+              fontSize: "clamp(1.5rem, 1.6vw + 1rem, 1.85rem)",
+              fontVariationSettings: '"opsz" 144',
+            }}
+          >
+            Top {Math.max(0, 100 - (rankings.overallPercentile ?? 0))}% overall
+          </p>
+          <p className="mt-2 text-[12px] tracking-[0.04em] text-muted">
+            Across all five dimensions · cohort of {rankings.cohortSize}{" "}
+            {rankings.cohortSize === 1 ? "student" : "students"}
+          </p>
+        </div>
       )}
     </section>
   );

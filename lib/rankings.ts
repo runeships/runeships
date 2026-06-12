@@ -34,6 +34,18 @@ export type RankingsResult = {
   cohortMeans: Record<Dimension, number>;
   strongestDimension: Dimension | null;
   weakestDimension: Dimension | null;
+  /**
+   * Sum of the user's 5 dimension aggregates. Null when the user has
+   * no feedback. Used as the single number that drives the hero
+   * longship's fill on the dashboard "Where you stand" panel.
+   */
+  overallAggregate: number | null;
+  /**
+   * The user's percentile when the cohort is ranked by overall
+   * aggregate (sum across the 5 dims). Null when the user has no
+   * feedback.
+   */
+  overallPercentile: number | null;
 };
 
 /**
@@ -87,6 +99,8 @@ export const getRankings = cache(async function getRankingsImpl(
       cohortMeans,
       strongestDimension: null,
       weakestDimension: null,
+      overallAggregate: null,
+      overallPercentile: null,
     };
   }
 
@@ -141,6 +155,26 @@ export const getRankings = cache(async function getRankingsImpl(
     }, dims[0]);
   }
 
+  // Overall standing: sum of the user's 5 dimension aggregates,
+  // ranked against the same sum for every other user in the cohort.
+  // Used by the dashboard hero longship.
+  const overallAggregate =
+    userAggregates.strategy! +
+    userAggregates.execution! +
+    userAggregates.communication! +
+    userAggregates.technical! +
+    userAggregates.creativity!;
+  const cohortOverall = rows.map(
+    (r) =>
+      Number(r.strategy) +
+      Number(r.execution) +
+      Number(r.communication) +
+      Number(r.technical) +
+      Number(r.creativity),
+  );
+  const below = cohortOverall.filter((v) => v < overallAggregate).length;
+  const overallPercentile = Math.round((below / cohortSize) * 100);
+
   return {
     cohortSize,
     isProvisional: cohortSize < PROVISIONAL_THRESHOLD,
@@ -149,6 +183,8 @@ export const getRankings = cache(async function getRankingsImpl(
     cohortMeans,
     strongestDimension,
     weakestDimension,
+    overallAggregate,
+    overallPercentile,
   };
 });
 
@@ -229,6 +265,8 @@ function emptyResult(): RankingsResult {
     },
     strongestDimension: null,
     weakestDimension: null,
+    overallAggregate: null,
+    overallPercentile: null,
   };
 }
 

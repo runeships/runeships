@@ -9,7 +9,7 @@ import {
   RegradeRequestedPanel,
 } from "@/components/RegradeButton";
 import { SubmissionContext } from "@/components/SubmissionContext";
-import { LongshipSVG } from "@/components/Longship";
+import { Longship } from "@/components/Longship";
 import { hypotheticalPercentile, type Dimension } from "@/lib/rankings";
 
 export const dynamic = "force-dynamic";
@@ -393,14 +393,13 @@ async function FeedbackContent({
                       )}
                     </div>
                     {/* Subtle visual heartbeat — the strongest dim
-                        here gets a small longship filled to its
-                        hypothetical percentile. */}
+                        here gets a small longship filled left→right
+                        to its hypothetical percentile. */}
                     {isStrongestHere ? (
-                      <LongshipSVG
+                      <Longship
                         percentile={hypoPercentile}
-                        dimension={d.dim}
-                        width={56}
-                        height={34}
+                        ariaLabel={`${d.name} longship — hypothetical rank top ${Math.max(0, 100 - (hypoPercentile ?? 0))}%.`}
+                        style={{ width: 80, height: 41 }}
                       />
                     ) : (
                       <span aria-hidden />
