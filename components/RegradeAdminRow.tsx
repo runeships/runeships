@@ -188,7 +188,7 @@ export function RegradeAdminRow({ row }: { row: AdminRegradeRow }) {
               />
             </div>
             <p className="mt-3 text-[12px] text-muted">
-              Total is recomputed from the task's per-dimension weights.
+              Total is recomputed from the task&rsquo;s per-dimension weights.
             </p>
           </div>
 
