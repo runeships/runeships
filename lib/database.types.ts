@@ -15,6 +15,8 @@
  * - 007_create_feedback                → public.feedback
  * - 009_add_specific_skills             → public.profiles.specific_skills
  * - 010_add_task_category               → public.tasks.category
+ * - 011_grant_service_role              → GRANTs only, no schema change
+ * - 012_create_regrade_requests         → public.regrade_requests
  */
 
 export type Json =
@@ -321,6 +323,41 @@ export interface Database {
           qualitative_feedback?: string;
           model_used?: string;
           generated_at?: string;
+        };
+      };
+
+      // ─── 012 ────────────────────────────────────────────────────────
+      regrade_requests: {
+        Row: {
+          id: string;
+          submission_id: string;
+          user_id: string;
+          reason: string | null;
+          status: "pending" | "resolved" | "declined";
+          resolved_at: string | null;
+          admin_note: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          submission_id: string;
+          user_id: string;
+          reason?: string | null;
+          status?: "pending" | "resolved" | "declined";
+          resolved_at?: string | null;
+          admin_note?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+        Update: {
+          id?: string;
+          submission_id?: string;
+          user_id?: string;
+          reason?: string | null;
+          status?: "pending" | "resolved" | "declined";
+          resolved_at?: string | null;
+          admin_note?: string | null;
+          created_at?: string;
         };
       };
     };
