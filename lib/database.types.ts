@@ -17,6 +17,7 @@
  * - 010_add_task_category               → public.tasks.category
  * - 011_grant_service_role              → GRANTs only, no schema change
  * - 012_create_regrade_requests         → public.regrade_requests
+ * - 013_add_admin_flag                  → public.profiles.is_admin
  */
 
 export type Json =
@@ -110,6 +111,7 @@ export interface Database {
           self_rated_technical: number;
           self_rated_creativity: number;
           onboarding_completed: boolean;
+          is_admin: boolean;
           created_at: string;
           updated_at: string;
         };
@@ -127,6 +129,7 @@ export interface Database {
           self_rated_technical?: number;
           self_rated_creativity?: number;
           onboarding_completed?: boolean;
+          is_admin?: boolean;
           created_at?: string;
           updated_at?: string;
         };
@@ -145,6 +148,7 @@ export interface Database {
           self_rated_technical?: number;
           self_rated_creativity?: number;
           onboarding_completed?: boolean;
+          is_admin?: boolean;
           created_at?: string;
           updated_at?: string;
         };

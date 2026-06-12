@@ -15,6 +15,10 @@ const PROTECTED_ROUTES = [
   "/tasks",
   "/submissions",
   "/profile",
+  // /admin/* is gated at the page level by requireAdmin(), but listing
+  // it here ensures unauthenticated visitors bounce to /login at the
+  // edge instead of doing a server-render → redirect roundtrip.
+  "/admin",
 ];
 
 function isProtected(pathname: string): boolean {
