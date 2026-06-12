@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase-server";
-import { RadarChart, type RadarValues } from "@/components/RadarChart";
+import type { RadarValues } from "@/components/RadarChart";
 import { TaskGrid, type TaskForGrid } from "@/components/TaskGrid";
 import { RankingPanel } from "@/components/RankingPanel";
 import { getRankings } from "@/lib/rankings";
@@ -240,20 +240,11 @@ export default async function DashboardPage() {
   }
 
   // ─── Cohort rankings (cached per request) ────────────────────────
-  // Source of truth for both the "Where you stand" hero AND the
-  // earned-score overlay on the radar — uses best-per-task averaging
-  // per CLAUDE.md (canonical method), not a raw mean of all rows.
+  // Source of truth for the "Where you stand" hero. The pentagon radar
+  // now lives inside that panel — the previously separate "Your skill
+  // profile" section was removed so the two visualisations (absolute
+  // shape + relative rank) sit together as one truth.
   const rankings = await getRankings(user.id);
-  const earnedAverages: RadarValues | null =
-    rankings.userAggregates.strategy !== null
-      ? {
-          strategy: rankings.userAggregates.strategy,
-          execution: rankings.userAggregates.execution ?? 0,
-          communication: rankings.userAggregates.communication ?? 0,
-          technical: rankings.userAggregates.technical ?? 0,
-          creativity: rankings.userAggregates.creativity ?? 0,
-        }
-      : null;
 
   const firstName =
     profile?.full_name?.trim().split(/\s+/)[0] ?? "there";
@@ -321,12 +312,14 @@ export default async function DashboardPage() {
         )}
 
         {/* ─── Section 0: Where you stand ─────────────────────────── */}
-        <section className="mt-16 sm:mt-20">
-          <DashboardSectionHeading>Where you stand</DashboardSectionHeading>
-          <div className="mt-8">
-            <RankingPanel rankings={rankings} />
-          </div>
-        </section>
+        {radarValues && (
+          <section className="mt-16 sm:mt-20">
+            <DashboardSectionHeading>Where you stand</DashboardSectionHeading>
+            <div className="mt-8">
+              <RankingPanel rankings={rankings} selfRated={radarValues} />
+            </div>
+          </section>
+        )}
 
         {/* ─── Section 1: Available tasks ─────────────────────────── */}
         <section className="mt-20 sm:mt-24">
@@ -366,62 +359,6 @@ export default async function DashboardPage() {
           )}
         </section>
 
-        {/* ─── Section 3: Your skill profile ──────────────────────── */}
-        {radarValues && (
-          <section className="mt-20 sm:mt-24">
-            <div>
-              <h2
-                className="font-display font-light tracking-[-0.018em] leading-[1.1] text-ink"
-                style={{ fontSize: "clamp(1.4rem, 0.6vw + 1rem, 1.5rem)" }}
-              >
-                Your skill profile
-              </h2>
-              <hr className="mt-4 border-0 border-t border-ink/10" />
-            </div>
-
-            <div className="mt-10 flex flex-col items-center sm:items-start">
-              <div className="border border-ink/15 bg-cream px-10 py-7 sm:px-12 sm:py-8">
-                <RadarChart
-                  values={earnedAverages ?? radarValues}
-                  compareValues={earnedAverages ? radarValues : null}
-                  percentiles={earnedAverages ? rankings.userPercentiles : null}
-                  size={300}
-                />
-              </div>
-
-              {earnedAverages ? (
-                <>
-                  <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 text-[12px]">
-                    <span className="inline-flex items-center gap-2 text-oxblood">
-                      <span
-                        aria-hidden
-                        className="inline-block w-3 h-1 bg-oxblood"
-                      />
-                      Earned
-                    </span>
-                    <span className="inline-flex items-center gap-2 text-ink/55">
-                      <span
-                        aria-hidden
-                        className="inline-block w-3 h-px border-t border-dashed border-ink/45"
-                      />
-                      Self-rated
-                    </span>
-                  </div>
-                  <p className="mt-3 text-[13px] leading-[1.6] text-muted max-w-[58ch] text-center sm:text-left">
-                    Earned scores are averages across your submissions.
-                    Self-rated values are your initial baseline from
-                    onboarding.
-                  </p>
-                </>
-              ) : (
-                <p className="mt-5 text-[13px] leading-[1.6] text-muted max-w-[52ch] text-center sm:text-left">
-                  Your initial self-ratings. Earned scores will appear as you
-                  complete tasks.
-                </p>
-              )}
-            </div>
-          </section>
-        )}
       </div>
     </main>
   );

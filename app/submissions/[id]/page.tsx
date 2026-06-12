@@ -9,6 +9,8 @@ import {
   RegradeRequestedPanel,
 } from "@/components/RegradeButton";
 import { SubmissionContext } from "@/components/SubmissionContext";
+import { LongshipSVG } from "@/components/Longship";
+import { hypotheticalPercentile, type Dimension } from "@/lib/rankings";
 
 export const dynamic = "force-dynamic";
 
@@ -272,6 +274,7 @@ type TaskWeights = {
 
 const DIMENSION_ROWS: Array<{
   name: string;
+  dim: Dimension;
   scoreKey: keyof Pick<
     FeedbackRow,
     | "score_strategy"
@@ -282,27 +285,11 @@ const DIMENSION_ROWS: Array<{
   >;
   weightKey: keyof TaskWeights;
 }> = [
-  { name: "Strategy", scoreKey: "score_strategy", weightKey: "weight_strategy" },
-  {
-    name: "Execution",
-    scoreKey: "score_execution",
-    weightKey: "weight_execution",
-  },
-  {
-    name: "Communication",
-    scoreKey: "score_communication",
-    weightKey: "weight_communication",
-  },
-  {
-    name: "Technical",
-    scoreKey: "score_technical",
-    weightKey: "weight_technical",
-  },
-  {
-    name: "Creativity",
-    scoreKey: "score_creativity",
-    weightKey: "weight_creativity",
-  },
+  { name: "Strategy", dim: "strategy", scoreKey: "score_strategy", weightKey: "weight_strategy" },
+  { name: "Execution", dim: "execution", scoreKey: "score_execution", weightKey: "weight_execution" },
+  { name: "Communication", dim: "communication", scoreKey: "score_communication", weightKey: "weight_communication" },
+  { name: "Technical", dim: "technical", scoreKey: "score_technical", weightKey: "weight_technical" },
+  { name: "Creativity", dim: "creativity", scoreKey: "score_creativity", weightKey: "weight_creativity" },
 ];
 
 async function FeedbackContent({
@@ -330,6 +317,19 @@ async function FeedbackContent({
     technical: feedback.score_technical,
     creativity: feedback.score_creativity,
   };
+
+  // Strongest dimension on THIS submission specifically — the score
+  // breakdown gets a small inline ship beside that row. Hypothetical
+  // percentile reads "if this score were your aggregate, where would
+  // you rank?"
+  const strongestHere = DIMENSION_ROWS.reduce((best, row) =>
+    feedback[row.scoreKey] > feedback[best.scoreKey] ? row : best,
+  );
+  const hypoPercentile = await hypotheticalPercentile(
+    userId,
+    strongestHere.dim,
+    feedback[strongestHere.scoreKey],
+  );
 
   const generatedDate = new Date(feedback.generated_at);
   const generatedFormatted = generatedDate.toLocaleString("en-US", {
@@ -376,10 +376,11 @@ async function FeedbackContent({
               {DIMENSION_ROWS.map((d) => {
                 const score = feedback[d.scoreKey];
                 const weight = weights ? weights[d.weightKey] : null;
+                const isStrongestHere = d.dim === strongestHere.dim;
                 return (
                   <li
                     key={d.name}
-                    className="grid grid-cols-[1fr_auto] gap-4 items-baseline py-3"
+                    className="grid grid-cols-[1fr_auto_auto] gap-3 items-center py-3"
                   >
                     <div>
                       <p className="text-[14px] tracking-[-0.005em] text-ink">
@@ -391,6 +392,19 @@ async function FeedbackContent({
                         </p>
                       )}
                     </div>
+                    {/* Subtle visual heartbeat — the strongest dim
+                        here gets a small longship filled to its
+                        hypothetical percentile. */}
+                    {isStrongestHere ? (
+                      <LongshipSVG
+                        percentile={hypoPercentile}
+                        dimension={d.dim}
+                        width={56}
+                        height={34}
+                      />
+                    ) : (
+                      <span aria-hidden />
+                    )}
                     <p
                       className="font-display text-[18px] leading-[1] text-ink tabular-nums"
                       style={{ fontVariationSettings: '"opsz" 96' }}

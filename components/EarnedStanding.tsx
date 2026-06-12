@@ -1,8 +1,8 @@
 import {
   type Dimension,
   type RankingsResult,
-  dimensionLabel,
 } from "@/lib/rankings";
+import { Longship } from "@/components/Longship";
 
 const DIMENSIONS: Dimension[] = [
   "strategy",
@@ -13,9 +13,9 @@ const DIMENSIONS: Dimension[] = [
 ];
 
 /**
- * Condensed read-only "earned standing" row for /profile (Profile
- * tab). Five small cells with percentile + aggregate. When the user
- * has no feedback, renders a single muted line instead.
+ * Read-only "earned standing" row on /profile (Profile tab). Five
+ * small Longship cards — same visual language as the dashboard fleet.
+ * When the user has no feedback, renders a single muted line.
  */
 export function EarnedStanding({ rankings }: { rankings: RankingsResult }) {
   const hasFeedback = rankings.strongestDimension !== null;
@@ -39,50 +39,18 @@ export function EarnedStanding({ rankings }: { rankings: RankingsResult }) {
           <p className="mt-6 text-[12px] tracking-[0.005em] text-muted">
             Read-only. Computed from your submissions.
           </p>
-          <ul className="mt-5 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-x-5 gap-y-5">
-            {DIMENSIONS.map((d) => {
-              const percentile = rankings.userPercentiles[d];
-              const aggregate = rankings.userAggregates[d];
-              return (
-                <li
-                  key={d}
-                  className="min-h-[80px] border-l-2 border-ink/10 pl-3"
-                >
-                  <p className="text-[10px] tracking-[0.16em] uppercase text-muted">
-                    {dimensionLabel(d)}
-                  </p>
-                  {percentile === null ? (
-                    <p
-                      className="mt-1.5 font-display text-[20px] leading-[1] text-ink/40 tracking-[-0.012em]"
-                      style={{ fontVariationSettings: '"opsz" 96' }}
-                    >
-                      —
-                    </p>
-                  ) : (
-                    <>
-                      <p className="mt-1.5 flex items-baseline gap-1">
-                        <span className="text-[9px] tracking-[0.18em] uppercase text-oxblood">
-                          Top
-                        </span>
-                        <span
-                          className="font-display text-[20px] leading-[1] text-oxblood tracking-[-0.012em] tabular-nums"
-                          style={{ fontVariationSettings: '"opsz" 96' }}
-                        >
-                          {Math.max(0, 100 - percentile)}%
-                        </span>
-                      </p>
-                      <p className="mt-1.5 text-[11px] text-muted">
-                        Score{" "}
-                        <span className="text-ink tabular-nums">
-                          {aggregate !== null ? Math.round(aggregate) : "—"}
-                        </span>
-                      </p>
-                    </>
-                  )}
-                </li>
-              );
-            })}
-          </ul>
+          <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-x-3 gap-y-8">
+            {DIMENSIONS.map((d) => (
+              <Longship
+                key={d}
+                percentile={rankings.userPercentiles[d]}
+                dimension={d}
+                score={rankings.userAggregates[d]}
+                size="small"
+                isStrongest={d === rankings.strongestDimension}
+              />
+            ))}
+          </div>
         </>
       )}
     </section>

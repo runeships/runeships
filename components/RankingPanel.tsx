@@ -3,6 +3,8 @@ import {
   type RankingsResult,
   dimensionLabel,
 } from "@/lib/rankings";
+import { RadarChart, type RadarValues } from "@/components/RadarChart";
+import { Longship } from "@/components/Longship";
 
 const DIMENSIONS: Dimension[] = [
   "strategy",
@@ -12,16 +14,26 @@ const DIMENSIONS: Dimension[] = [
   "creativity",
 ];
 
+type RankingPanelProps = {
+  rankings: RankingsResult;
+  selfRated: RadarValues;
+};
+
 /**
- * "Where you stand" dashboard hero. Three states based on the
- * rankings result:
- *   - No feedback yet → "Getting started" prompt
- *   - Cohort ≥ 25    → confident headline with the top dimension
- *   - Cohort < 25    → provisional copy
+ * "Where you stand" dashboard hero. Three states:
+ *   - No feedback yet → fleet-in-port teaser (outline ships only)
+ *   - Cohort ≥ 25    → confident headline "top X% on {dim}"
+ *   - Cohort < 25    → provisional headline + provisional footer
+ *
+ * Two non-empty states use a dual-column layout: pentagon radar
+ * (absolute scores) on the left, fleet of 5 longships (percentile
+ * ranks) on the right. The pair is meant to read as one truth —
+ * skill shape AND cohort standing.
  */
-export function RankingPanel({ rankings }: { rankings: RankingsResult }) {
+export function RankingPanel({ rankings, selfRated }: RankingPanelProps) {
   const hasFeedback = rankings.strongestDimension !== null;
 
+  // ─── Empty state ─────────────────────────────────────────────
   if (!hasFeedback) {
     return (
       <div className="border border-ink/15 bg-cream p-8 sm:p-10 rounded-[2px]">
@@ -29,16 +41,29 @@ export function RankingPanel({ rankings }: { rankings: RankingsResult }) {
           Getting started
         </p>
         <p
-          className="mt-4 font-display font-light leading-[1.15] tracking-[-0.018em] text-ink"
-          style={{ fontSize: "clamp(1.5rem, 1.6vw + 1rem, 1.75rem)" }}
+          className="mt-4 font-display font-light leading-[1.1] tracking-[-0.018em] text-ink"
+          style={{ fontSize: "clamp(1.6rem, 1.6vw + 1rem, 1.85rem)" }}
         >
-          Submit your first task to see your percentile ranking across the
-          five RuneShips dimensions.
+          Your fleet awaits.
         </p>
-        <p className="mt-5 text-[14px] leading-[1.55] text-muted max-w-[60ch]">
-          Your dashboard currently shows your self-rated baseline. Rankings
-          come from real work.
+        <p className="mt-5 text-[14px] leading-[1.6] text-muted max-w-[60ch]">
+          Submit your first task to set sail. Your longships fill as you
+          build out your skill profile — one ship per dimension, each
+          rising with your cohort percentile.
         </p>
+
+        {/* Fleet in port — outline-only ships as teaser. */}
+        <div className="mt-9 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-x-3 gap-y-7">
+          {DIMENSIONS.map((d) => (
+            <Longship
+              key={d}
+              percentile={null}
+              dimension={d}
+              score={null}
+              size="small"
+            />
+          ))}
+        </div>
       </div>
     );
   }
@@ -47,22 +72,30 @@ export function RankingPanel({ rankings }: { rankings: RankingsResult }) {
   const strongestPercentile = rankings.userPercentiles[strongest] ?? 0;
   const topPct = Math.max(0, 100 - strongestPercentile);
 
+  // Earned-scores polygon for the radar. We have feedback at this
+  // point so userAggregates is non-null on every dim.
+  const earnedValues: RadarValues = {
+    strategy: rankings.userAggregates.strategy ?? 0,
+    execution: rankings.userAggregates.execution ?? 0,
+    communication: rankings.userAggregates.communication ?? 0,
+    technical: rankings.userAggregates.technical ?? 0,
+    creativity: rankings.userAggregates.creativity ?? 0,
+  };
+
   return (
     <div className="border border-ink/15 bg-cream p-8 sm:p-10 rounded-[2px]">
-      {/* Headline — confident vs provisional */}
+      {/* Headline */}
       {rankings.isProvisional ? (
-        <>
-          <p
-            className="font-display font-light leading-[1.15] tracking-[-0.018em] text-ink"
-            style={{ fontSize: "clamp(1.5rem, 1.6vw + 1rem, 1.85rem)" }}
-          >
-            Your strongest dimension is{" "}
-            <span className="text-oxblood">{dimensionLabel(strongest)}</span> —
-            you&rsquo;re outperforming{" "}
-            <span className="text-oxblood">{strongestPercentile}%</span> of the
-            cohort so far.
-          </p>
-        </>
+        <p
+          className="font-display font-light leading-[1.15] tracking-[-0.018em] text-ink"
+          style={{ fontSize: "clamp(1.5rem, 1.6vw + 1rem, 1.85rem)" }}
+        >
+          Your strongest dimension is{" "}
+          <span className="text-oxblood">{dimensionLabel(strongest)}</span> —
+          you&rsquo;re outperforming{" "}
+          <span className="text-oxblood">{strongestPercentile}%</span> of the
+          cohort so far.
+        </p>
       ) : (
         <>
           <p
@@ -79,59 +112,61 @@ export function RankingPanel({ rankings }: { rankings: RankingsResult }) {
         </>
       )}
 
-      <hr className="mt-8 border-0 border-t border-ink/10" />
+      {/* Dual-column layout — pentagon left, fleet right. */}
+      <div className="mt-10 grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-0">
+        {/* LEFT — radar */}
+        <div className="lg:pr-8 lg:border-r lg:border-ink/10">
+          <p className="text-[11px] tracking-[0.18em] uppercase text-muted">
+            Your skill shape
+          </p>
+          <div className="mt-6 flex justify-center lg:justify-start">
+            <div className="border border-ink/15 bg-cream px-10 py-7 sm:px-12 sm:py-8">
+              <RadarChart
+                values={earnedValues}
+                compareValues={selfRated}
+                percentiles={rankings.userPercentiles}
+                size={320}
+              />
+            </div>
+          </div>
+          {/* Compact legend so the dashed dimension makes sense at a glance. */}
+          <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 text-[12px]">
+            <span className="inline-flex items-center gap-2 text-oxblood">
+              <span
+                aria-hidden
+                className="inline-block w-3 h-1 bg-oxblood"
+              />
+              Earned
+            </span>
+            <span className="inline-flex items-center gap-2 text-ink/55">
+              <span
+                aria-hidden
+                className="inline-block w-3 h-px border-t border-dashed border-ink/45"
+              />
+              Self-rated
+            </span>
+          </div>
+        </div>
 
-      {/* Grid: 5-col → 2-col → 1-col */}
-      <ul className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-x-6 gap-y-6">
-        {DIMENSIONS.map((d) => {
-          const percentile = rankings.userPercentiles[d];
-          const aggregate = rankings.userAggregates[d];
-          const isStrongest = d === strongest;
-          return (
-            <li
-              key={d}
-              className={`
-                ${isStrongest ? "border-l-2 border-oxblood pl-4" : "pl-4 border-l-2 border-transparent"}
-              `}
-            >
-              <p className="text-[11px] tracking-[0.16em] uppercase text-muted">
-                {dimensionLabel(d)}
-              </p>
-              {percentile === null ? (
-                <>
-                  <p
-                    className="mt-2 font-display font-light text-[28px] leading-[1] text-ink/40 tracking-[-0.012em]"
-                    style={{ fontVariationSettings: '"opsz" 96' }}
-                  >
-                    —
-                  </p>
-                  <p className="mt-2 text-[12px] text-muted">No data yet</p>
-                </>
-              ) : (
-                <>
-                  <p className="mt-2 flex items-baseline gap-1.5">
-                    <span className="text-[10px] tracking-[0.18em] uppercase text-oxblood">
-                      Top
-                    </span>
-                    <span
-                      className="font-display font-light text-[28px] leading-[1] text-oxblood tracking-[-0.012em] tabular-nums"
-                      style={{ fontVariationSettings: '"opsz" 96' }}
-                    >
-                      {Math.max(0, 100 - percentile)}%
-                    </span>
-                  </p>
-                  <p className="mt-2 text-[13px] tracking-[-0.005em] text-muted">
-                    Score:{" "}
-                    <span className="text-ink tabular-nums">
-                      {aggregate !== null ? Math.round(aggregate) : "—"}
-                    </span>
-                  </p>
-                </>
-              )}
-            </li>
-          );
-        })}
-      </ul>
+        {/* RIGHT — fleet */}
+        <div className="lg:pl-8">
+          <p className="text-[11px] tracking-[0.18em] uppercase text-muted">
+            Your fleet
+          </p>
+          <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-x-3 gap-y-8">
+            {DIMENSIONS.map((d) => (
+              <Longship
+                key={d}
+                percentile={rankings.userPercentiles[d]}
+                dimension={d}
+                score={rankings.userAggregates[d]}
+                size="small"
+                isStrongest={d === strongest}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
 
       <div className="mt-8 pt-6 border-t border-ink/10 space-y-2">
         <p className="text-[12px] leading-[1.55] text-muted">
