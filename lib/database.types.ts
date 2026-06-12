@@ -13,6 +13,7 @@
  * - 005_create_tasks                   → public.tasks
  * - 006_create_submissions             → public.submissions
  * - 007_create_feedback                → public.feedback
+ * - 009_add_specific_skills             → public.profiles.specific_skills
  */
 
 export type Json =
@@ -90,6 +91,7 @@ export interface Database {
           school: string | null;
           graduation_year: number | null;
           career_tracks: string[];
+          specific_skills: string[];
           self_rated_strategy: number;
           self_rated_execution: number;
           self_rated_communication: number;
@@ -106,6 +108,7 @@ export interface Database {
           school?: string | null;
           graduation_year?: number | null;
           career_tracks?: string[];
+          specific_skills?: string[];
           self_rated_strategy?: number;
           self_rated_execution?: number;
           self_rated_communication?: number;
@@ -123,6 +126,7 @@ export interface Database {
           school?: string | null;
           graduation_year?: number | null;
           career_tracks?: string[];
+          specific_skills?: string[];
           self_rated_strategy?: number;
           self_rated_execution?: number;
           self_rated_communication?: number;

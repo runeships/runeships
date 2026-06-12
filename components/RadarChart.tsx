@@ -39,7 +39,10 @@ export function RadarChart({
   size = 280,
   hideLabels = false,
 }: RadarChartProps) {
-  const padding = hideLabels ? 12 : 40;
+  // Internal padding reserved for the axis labels. Bigger when labels
+  // are shown so "CREATIVITY" / "COMMUNICATION" don't kiss the edge of
+  // the SVG's bounding box (or the parent container's border).
+  const padding = hideLabels ? 12 : 62;
   const cx = size / 2;
   const cy = size / 2;
   const radius = size / 2 - padding;
@@ -107,7 +110,7 @@ export function RadarChart({
   const labels = useMemo(
     () =>
       angles.map((angle, i) => {
-        const labelRadius = radius + 18;
+        const labelRadius = radius + 22;
         const x = cx + labelRadius * Math.cos(angle);
         const y = cy + labelRadius * Math.sin(angle);
 
@@ -185,10 +188,10 @@ export function RadarChart({
             y={label.y}
             textAnchor={label.textAnchor}
             dominantBaseline="middle"
-            fontSize={10}
+            fontSize={11}
             fill="rgb(138 132 127)"
             style={{
-              letterSpacing: "0.12em",
+              letterSpacing: "0.11em",
               textTransform: "uppercase",
               fontFamily:
                 "var(--font-instrument, ui-sans-serif, system-ui, sans-serif)",

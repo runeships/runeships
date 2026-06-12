@@ -71,7 +71,7 @@ export default async function DashboardPage() {
         </Reveal>
 
         <Reveal mode="load" delay={0.20} className="mt-12 sm:mt-14">
-          <div className="border-t border-oxblood/40 pt-10 sm:pt-12 grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-10 lg:gap-16 items-start">
+          <div className="border-t border-oxblood/40 pt-10 sm:pt-12 grid grid-cols-1 lg:grid-cols-[1fr_440px] gap-10 lg:gap-12 items-start">
             {/* LEFT — task-list placeholder */}
             <div>
               <p className="text-[11px] tracking-[0.18em] uppercase text-oxblood">
@@ -100,8 +100,8 @@ export default async function DashboardPage() {
               <p className="text-[11px] tracking-[0.18em] uppercase text-muted">
                 Your profile · self-rated
               </p>
-              <div className="mt-4 border border-ink/15 bg-cream p-6 sm:p-7">
-                <RadarChart values={radarValues} size={300} />
+              <div className="mt-4 border border-ink/15 bg-cream p-6 sm:p-7 flex items-center justify-center">
+                <RadarChart values={radarValues} size={380} />
               </div>
               <ul className="mt-6 text-[13px] tracking-[0.005em] text-muted space-y-1.5">
                 {profile.school && (

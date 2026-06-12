@@ -15,12 +15,45 @@ import {
   type OnboardingState,
 } from "@/app/actions/completeOnboarding";
 
-const TRACK_OPTIONS = [
+/**
+ * Career tracks = the high-level industry / role direction the student
+ * is aiming at. NOT the same as the five skill dimensions (those live
+ * on the radar in section 3).
+ */
+const CAREER_TRACKS = [
+  "Finance",
+  "Consulting",
+  "Product management",
+  "Software engineering",
   "Strategy",
-  "Execution",
-  "Communication",
-  "Technical",
-  "Creativity",
+  "Marketing",
+  "Data science",
+  "Design (UI/UX)",
+  "Operations",
+  "Entrepreneurship",
+] as const;
+
+/**
+ * Specific skills = tools, languages, and software the student can
+ * use. Distinct from career tracks AND from the five skill dimensions.
+ */
+const SPECIFIC_SKILLS = [
+  "Python",
+  "JavaScript / TypeScript",
+  "SQL",
+  "C++",
+  "Java",
+  "R",
+  "Excel",
+  "Google Sheets",
+  "Financial modeling",
+  "Tableau / Power BI",
+  "Figma",
+  "Adobe Creative Suite",
+  "PowerPoint / Keynote",
+  "Notion",
+  "Statistics",
+  "Machine learning",
 ] as const;
 
 const GRAD_YEARS = [2025, 2026, 2027, 2028, 2029, 2030] as const;
@@ -64,6 +97,8 @@ export default function OnboardingPage() {
   const [graduationYear, setGraduationYear] = useState<number | "">("");
   const [tracks, setTracks] = useState<Set<string>>(new Set());
   const [otherTrack, setOtherTrack] = useState("");
+  const [tools, setTools] = useState<Set<string>>(new Set());
+  const [otherTool, setOtherTool] = useState("");
   const [skills, setSkills] = useState<RadarValues>({
     strategy: 50,
     execution: 50,
@@ -79,13 +114,23 @@ export default function OnboardingPage() {
   const fullNameId = useId();
   const schoolId = useId();
   const yearId = useId();
-  const otherId = useId();
+  const otherTrackId = useId();
+  const otherToolId = useId();
 
   function toggleTrack(track: string) {
     setTracks((prev) => {
       const next = new Set(prev);
       if (next.has(track)) next.delete(track);
       else next.add(track);
+      return next;
+    });
+  }
+
+  function toggleTool(tool: string) {
+    setTools((prev) => {
+      const next = new Set(prev);
+      if (next.has(tool)) next.delete(tool);
+      else next.add(tool);
       return next;
     });
   }
@@ -120,7 +165,7 @@ export default function OnboardingPage() {
 
   return (
     <main className="px-6 sm:px-10 md:px-16 pt-28 sm:pt-36 md:pt-40 pb-24 sm:pb-32 min-h-dvh">
-      <div className="mx-auto max-w-[860px]">
+      <div className="mx-auto max-w-[1000px]">
         <Reveal mode="load" delay={0.05}>
           <p className="text-[11px] tracking-[0.18em] uppercase text-muted">
             Onboarding
@@ -228,62 +273,102 @@ export default function OnboardingPage() {
               >
                 What you&rsquo;re aiming at.
               </h2>
-              <p className="mt-5 text-[15px] leading-[1.55] text-muted max-w-[58ch] mx-auto text-center">
-                Pick the tracks you&rsquo;re most interested in. We use this to
-                surface relevant tasks and to share your strongest skills with
-                recruiters.
+              <p className="mt-5 text-[15px] leading-[1.55] text-muted max-w-[60ch] mx-auto text-center">
+                Pick the tracks you&rsquo;re most interested in and the
+                specific tools you&rsquo;re comfortable with. We use both to
+                surface relevant tasks and to share your strongest skills
+                with recruiters.
               </p>
 
-              <div className="mt-10 max-w-[640px] mx-auto">
-                <div className="flex flex-wrap gap-2.5 justify-center">
-                  {TRACK_OPTIONS.map((track) => {
-                    const active = tracks.has(track);
-                    return (
-                      <button
+              <div className="mt-12 max-w-[800px] mx-auto space-y-12">
+                {/* Career tracks */}
+                <div>
+                  <p className="text-[11px] tracking-[0.20em] uppercase text-oxblood mb-5 text-center">
+                    Career tracks
+                  </p>
+                  <div className="flex flex-wrap gap-2.5 justify-center">
+                    {CAREER_TRACKS.map((track) => (
+                      <ChipToggle
                         key={track}
-                        type="button"
-                        aria-pressed={active}
+                        label={track}
+                        active={tracks.has(track)}
                         onClick={() => toggleTrack(track)}
                         disabled={isPending}
-                        className={`
-                          inline-flex items-center
-                          min-h-[44px] px-5
-                          text-[14px] tracking-[0.005em]
-                          border
-                          transition-colors duration-200 ease-out
-                          focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-oxblood
-                          disabled:opacity-60 disabled:cursor-not-allowed
-                          ${
-                            active
-                              ? "bg-oxblood border-oxblood text-cream hover:bg-oxblood-hover"
-                              : "bg-cream border-oxblood/40 text-oxblood hover:border-oxblood"
-                          }
-                        `}
-                      >
-                        {track}
-                      </button>
-                    );
-                  })}
+                      />
+                    ))}
+                  </div>
+
+                  {/* Hidden inputs serialize the active tracks for the action. */}
+                  {Array.from(tracks).map((t) => (
+                    <input
+                      key={t}
+                      type="hidden"
+                      name="career_tracks"
+                      value={t}
+                    />
+                  ))}
+
+                  <div className="mt-6 max-w-[440px] mx-auto">
+                    <FieldLabel htmlFor={otherTrackId}>
+                      Other track (optional)
+                    </FieldLabel>
+                    <TextInput
+                      id={otherTrackId}
+                      name="other_track"
+                      type="text"
+                      value={otherTrack}
+                      onChange={(e) => setOtherTrack(e.target.value)}
+                      disabled={isPending}
+                      placeholder="e.g., Climate, Healthcare, Research"
+                    />
+                  </div>
                 </div>
 
-                {/* Hidden inputs serialize the active tracks for the action. */}
-                {Array.from(tracks).map((t) => (
-                  <input key={t} type="hidden" name="career_tracks" value={t} />
-                ))}
+                {/* Specific skills */}
+                <div>
+                  <p className="text-[11px] tracking-[0.20em] uppercase text-oxblood mb-2.5 text-center">
+                    Specific skills
+                  </p>
+                  <p className="text-[13px] leading-[1.5] text-muted text-center max-w-[52ch] mx-auto mb-5">
+                    Tools, languages, and software you can actually use today.
+                  </p>
+                  <div className="flex flex-wrap gap-2 justify-center">
+                    {SPECIFIC_SKILLS.map((skill) => (
+                      <ChipToggle
+                        key={skill}
+                        label={skill}
+                        active={tools.has(skill)}
+                        onClick={() => toggleTool(skill)}
+                        disabled={isPending}
+                        size="sm"
+                      />
+                    ))}
+                  </div>
 
-                <div className="mt-7 max-w-[440px] mx-auto">
-                  <FieldLabel htmlFor={otherId}>
-                    Other (optional)
-                  </FieldLabel>
-                  <TextInput
-                    id={otherId}
-                    name="other_track"
-                    type="text"
-                    value={otherTrack}
-                    onChange={(e) => setOtherTrack(e.target.value)}
-                    disabled={isPending}
-                    placeholder="e.g., Product design, Research"
-                  />
+                  {/* Hidden inputs serialize the active specific skills. */}
+                  {Array.from(tools).map((s) => (
+                    <input
+                      key={s}
+                      type="hidden"
+                      name="specific_skills"
+                      value={s}
+                    />
+                  ))}
+
+                  <div className="mt-6 max-w-[440px] mx-auto">
+                    <FieldLabel htmlFor={otherToolId}>
+                      Other skill (optional)
+                    </FieldLabel>
+                    <TextInput
+                      id={otherToolId}
+                      name="other_skill"
+                      type="text"
+                      value={otherTool}
+                      onChange={(e) => setOtherTool(e.target.value)}
+                      disabled={isPending}
+                      placeholder="e.g., Stata, Solidworks, Mandarin"
+                    />
+                  </div>
                 </div>
               </div>
             </section>
@@ -301,15 +386,15 @@ export default function OnboardingPage() {
               >
                 Where you are now.
               </h2>
-              <p className="mt-5 text-[15px] leading-[1.55] text-muted max-w-[58ch] mx-auto text-center">
+              <p className="mt-5 text-[15px] leading-[1.55] text-muted max-w-[60ch] mx-auto text-center">
                 Rate yourself honestly across these five dimensions. This is
                 your starting point — your real scores will build from the
                 tasks you complete.
               </p>
 
-              <div className="mt-12 grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-10 lg:gap-14 items-start">
+              <div className="mt-12 sm:mt-14 grid grid-cols-1 lg:grid-cols-[1fr_480px] gap-12 lg:gap-12 items-start">
                 {/* Sliders */}
-                <div className="space-y-6">
+                <div className="space-y-7 sm:space-y-8">
                   {SKILL_LABELS.map((s) => (
                     <SkillSlider
                       key={s.key}
@@ -324,12 +409,12 @@ export default function OnboardingPage() {
                 </div>
 
                 {/* Radar chart */}
-                <div className="flex flex-col items-center lg:items-start">
-                  <p className="text-[11px] tracking-[0.18em] uppercase text-muted mb-4">
+                <div className="flex flex-col items-center lg:items-stretch">
+                  <p className="text-[11px] tracking-[0.20em] uppercase text-muted mb-4 lg:text-left text-center">
                     Your starting profile
                   </p>
-                  <div className="border border-ink/15 bg-cream p-5">
-                    <RadarChart values={skills} size={290} />
+                  <div className="border border-ink/15 bg-cream p-7 sm:p-8 flex items-center justify-center">
+                    <RadarChart values={skills} size={400} />
                   </div>
                 </div>
               </div>
@@ -413,6 +498,51 @@ function TextInput(props: TextInputProps) {
   );
 }
 
+type ChipToggleProps = {
+  label: string;
+  active: boolean;
+  onClick: () => void;
+  disabled?: boolean;
+  size?: "md" | "sm";
+};
+
+function ChipToggle({
+  label,
+  active,
+  onClick,
+  disabled,
+  size = "md",
+}: ChipToggleProps) {
+  const sizing =
+    size === "sm"
+      ? "min-h-[36px] px-3.5 text-[13px]"
+      : "min-h-[44px] px-5 text-[14px]";
+  return (
+    <button
+      type="button"
+      aria-pressed={active}
+      onClick={onClick}
+      disabled={disabled}
+      className={`
+        inline-flex items-center
+        ${sizing}
+        tracking-[0.005em]
+        border
+        transition-colors duration-200 ease-out
+        focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-oxblood
+        disabled:opacity-60 disabled:cursor-not-allowed
+        ${
+          active
+            ? "bg-oxblood border-oxblood text-cream hover:bg-oxblood-hover"
+            : "bg-cream border-oxblood/40 text-oxblood hover:border-oxblood"
+        }
+      `}
+    >
+      {label}
+    </button>
+  );
+}
+
 type SkillSliderProps = {
   name: string;
   label: string;
@@ -436,12 +566,12 @@ function SkillSlider({
       <div className="flex items-baseline justify-between gap-4 mb-2">
         <label
           htmlFor={id}
-          className="flex items-baseline gap-2 text-[14px] tracking-[-0.005em]"
+          className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 text-[14px] tracking-[-0.005em]"
         >
           <span className="text-ink font-medium">{label}</span>
           <span className="text-muted text-[12px]">— {detail}</span>
         </label>
-        <span className="font-display text-[18px] leading-none text-ink tabular-nums">
+        <span className="font-display text-[20px] leading-none text-ink tabular-nums">
           {value}
         </span>
       </div>

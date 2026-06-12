@@ -22,6 +22,11 @@ export async function completeOnboarding(
   const gradYear = gradYearRaw ? Number(gradYearRaw) : null;
   const tracks = formData.getAll("career_tracks").map(String).filter(Boolean);
   const otherTrack = String(formData.get("other_track") ?? "").trim();
+  const specificSkills = formData
+    .getAll("specific_skills")
+    .map(String)
+    .filter(Boolean);
+  const otherSkill = String(formData.get("other_skill") ?? "").trim();
 
   const skills = {
     strategy: clamp(Number(formData.get("skill_strategy") ?? 50)),
@@ -39,6 +44,9 @@ export async function completeOnboarding(
     return error("Pick at least one career track you’re aiming at.");
 
   const allTracks = otherTrack ? [...tracks, otherTrack] : tracks;
+  const allSkills = otherSkill
+    ? [...specificSkills, otherSkill]
+    : specificSkills;
 
   const supabase = await createClient();
   const {
@@ -57,6 +65,7 @@ export async function completeOnboarding(
       school,
       graduation_year: gradYear,
       career_tracks: allTracks,
+      specific_skills: allSkills,
       self_rated_strategy: skills.strategy,
       self_rated_execution: skills.execution,
       self_rated_communication: skills.communication,
