@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState, type FormEvent } from "react";
+import { Suspense, useEffect, useState, type FormEvent } from "react";
 import { useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase-browser";
 import { Reveal } from "@/components/Reveal";
@@ -12,6 +12,11 @@ type State =
   | { kind: "error"; message: string };
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+// sessionStorage key for the last email a visitor tried. Survives a
+// magic-link redirect bounce (within the same tab), so callback errors
+// can land the visitor back on /login with the input prefilled.
+const STORAGE_KEY = "runeships:last_email";
 
 export default function LoginPage() {
   // useSearchParams must live inside a Suspense boundary so the page
@@ -42,13 +47,78 @@ function LoginShell() {
   );
 }
 
+/**
+ * Maps the ?error=... query param the callback route appends to the
+ * user-facing message. null when there's no error to show.
+ */
+function callbackErrorMessageFor(code: string | null): string | null {
+  switch (code) {
+    case "expired":
+      return "This link expired. Magic links last 24 hours. Send a fresh one below.";
+    case "already_used":
+      return "This link was already used. Send a fresh one to sign in again.";
+    case "browser_mismatch":
+      return "Looks like you opened the link in a different browser than where you requested it. Try again — request the link AND open the email in the same browser.";
+    case null:
+    case "":
+      return null;
+    case "invalid_link":
+    default:
+      return "Couldn’t sign you in. Send a fresh link below.";
+  }
+}
+
 function LoginForm() {
   const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [state, setState] = useState<State>({ kind: "idle" });
+  // Tracks a resend-from-success-state attempt independently of the
+  // primary state machine so the success card stays visible during it.
+  const [isResending, setIsResending] = useState(false);
+  const [resendError, setResendError] = useState<string | null>(null);
 
   const next = searchParams.get("next") ?? "/dashboard";
   const errorParam = searchParams.get("error");
+  const callbackErrorMessage =
+    state.kind === "error" ? null : callbackErrorMessageFor(errorParam);
+
+  // On mount, prefill the email input from sessionStorage so a visitor
+  // bounced back here by a failed callback doesn't have to retype.
+  useEffect(() => {
+    try {
+      const stored = sessionStorage.getItem(STORAGE_KEY);
+      if (stored) setEmail(stored);
+    } catch {
+      // sessionStorage can throw in privacy mode — safe to ignore.
+    }
+  }, []);
+
+  async function sendMagicLink(emailToSend: string): Promise<{
+    ok: boolean;
+  }> {
+    const supabase = createClient();
+    const siteUrl =
+      process.env.NEXT_PUBLIC_SITE_URL ?? window.location.origin;
+    const callback = `${siteUrl}/auth/callback?next=${encodeURIComponent(next)}`;
+
+    const { error } = await supabase.auth.signInWithOtp({
+      email: emailToSend,
+      options: { emailRedirectTo: callback },
+    });
+
+    if (error) {
+      console.error("[signInWithOtp]", error);
+      return { ok: false };
+    }
+
+    try {
+      sessionStorage.setItem(STORAGE_KEY, emailToSend);
+    } catch {
+      // ignore
+    }
+
+    return { ok: true };
+  }
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -59,19 +129,9 @@ function LoginForm() {
     }
 
     setState({ kind: "submitting" });
+    const { ok } = await sendMagicLink(trimmed);
 
-    const supabase = createClient();
-    const siteUrl =
-      process.env.NEXT_PUBLIC_SITE_URL ?? window.location.origin;
-    const callback = `${siteUrl}/auth/callback?next=${encodeURIComponent(next)}`;
-
-    const { error } = await supabase.auth.signInWithOtp({
-      email: trimmed,
-      options: { emailRedirectTo: callback },
-    });
-
-    if (error) {
-      console.error("[signInWithOtp]", error);
+    if (!ok) {
       setState({
         kind: "error",
         message: "Couldn’t send the link. Check the email and try again.",
@@ -80,6 +140,30 @@ function LoginForm() {
     }
 
     setState({ kind: "success", email: trimmed });
+  }
+
+  async function handleResend() {
+    if (state.kind !== "success") return;
+    setIsResending(true);
+    setResendError(null);
+    const { ok } = await sendMagicLink(state.email);
+    setIsResending(false);
+    if (!ok) {
+      setResendError(
+        "Couldn’t send another link. Try again or use a different email.",
+      );
+    }
+  }
+
+  function resetForDifferentEmail() {
+    setEmail("");
+    setResendError(null);
+    setState({ kind: "idle" });
+    try {
+      sessionStorage.removeItem(STORAGE_KEY);
+    } catch {
+      // ignore
+    }
   }
 
   const pending = state.kind === "submitting";
@@ -100,36 +184,75 @@ function LoginForm() {
         </Reveal>
 
         <Reveal mode="load" delay={0.18} className="mt-6">
-          <p className="text-[17px] leading-[1.55] text-muted max-w-[36ch]">
-            We’ll send a magic link to your email. No password needed.
+          <p className="text-[17px] leading-[1.55] text-muted max-w-[40ch]">
+            We&rsquo;ll send a magic link to your email. No password needed.
           </p>
         </Reveal>
 
         {state.kind === "success" ? (
           <Reveal mode="load" delay={0.05} className="mt-12">
-            <div className="pl-6 sm:pl-8 border-l-2 border-oxblood max-w-[40ch]">
-              <p className="text-[11px] tracking-[0.16em] uppercase text-oxblood">
+            <div className="pl-6 sm:pl-8 border-l-2 border-oxblood max-w-[46ch]">
+              <p className="text-[11px] tracking-[0.18em] uppercase text-oxblood">
                 Check your inbox
               </p>
               <p className="mt-3 text-[17px] leading-[1.55] text-ink/90">
-                We sent a sign-in link to{" "}
+                Magic link sent to{" "}
                 <span className="text-ink font-medium">{state.email}</span>.
-                Click it to sign in. It works on any device.
+                Open the link in the same browser you&rsquo;re using right
+                now — different browsers won&rsquo;t recognize the session.
+                Links are valid for 24 hours.
               </p>
-              <p className="mt-5 text-[13px] tracking-[0.005em] text-muted">
-                The link expires in an hour.{" "}
+              <p className="mt-5 text-[14px] leading-[1.6] text-muted">
+                Didn&rsquo;t get it? Check spam, or{" "}
                 <button
                   type="button"
-                  onClick={() => setState({ kind: "idle" })}
-                  className="link-anim text-ink hover:text-oxblood transition-colors duration-200 ease-out"
+                  onClick={handleResend}
+                  disabled={isResending}
+                  aria-busy={isResending}
+                  className={`
+                    link-anim text-ink
+                    hover:text-oxblood focus-visible:text-oxblood
+                    transition-colors duration-200 ease-out
+                    focus-visible:outline-none
+                    disabled:cursor-not-allowed
+                    ${isResending ? "btn-pulse" : ""}
+                  `}
                 >
-                  Wrong email?
+                  {isResending ? "resending…" : "resend magic link"}
+                </button>
+                .
+              </p>
+              {resendError && (
+                <p role="alert" className="mt-2 text-[13px] text-oxblood">
+                  {resendError}
+                </p>
+              )}
+              <p className="mt-4 text-[13px] tracking-[0.005em] text-muted">
+                <button
+                  type="button"
+                  onClick={resetForDifferentEmail}
+                  className="
+                    link-anim text-muted hover:text-ink
+                    transition-colors duration-200 ease-out
+                    focus-visible:outline-none focus-visible:text-ink
+                  "
+                >
+                  Use a different email
                 </button>
               </p>
             </div>
           </Reveal>
         ) : (
           <Reveal mode="load" delay={0.30} className="mt-10 sm:mt-12">
+            {callbackErrorMessage && (
+              <p
+                role="alert"
+                className="mb-6 pl-5 border-l-2 border-oxblood text-[14px] leading-[1.55] text-oxblood max-w-[42ch]"
+              >
+                {callbackErrorMessage}
+              </p>
+            )}
+
             <form onSubmit={handleSubmit} noValidate>
               <label htmlFor="login-email" className="sr-only">
                 Email address
@@ -189,15 +312,6 @@ function LoginForm() {
                   className="mt-3 text-[14px] leading-snug text-oxblood"
                 >
                   {state.message}
-                </p>
-              )}
-
-              {errorParam === "invalid_link" && state.kind !== "error" && (
-                <p
-                  role="alert"
-                  className="mt-3 text-[14px] leading-snug text-oxblood"
-                >
-                  That sign-in link was invalid or expired. Send a fresh one.
                 </p>
               )}
             </form>
