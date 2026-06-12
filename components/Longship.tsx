@@ -106,19 +106,22 @@ export function Longship({
 
   // Inline variant — no card chrome at all, just the ship. Used in
   // the submission detail score breakdown.
+  // Container dimensions match the cropped PNG aspect (≈1.946:1) so
+  // the gradient's 0–100% mark exactly tracks the ship's visible
+  // top and bottom — no gutter to throw off the waterline.
   if (size === "inline") {
     return (
       <LongshipSVG
         percentile={percentile}
         dimension={dimension}
-        width={56}
-        height={34}
+        width={64}
+        height={33}
       />
     );
   }
 
-  const shipWidth = size === "large" ? 160 : 90;
-  const shipHeight = size === "large" ? 96 : 54;
+  const shipWidth = size === "large" ? 180 : 100;
+  const shipHeight = size === "large" ? 92 : 51;
   const topPctClass =
     size === "large"
       ? "font-display text-[24px] leading-[1.1] tracking-[-0.012em] tabular-nums"
