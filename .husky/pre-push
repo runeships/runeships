@@ -1,0 +1,7 @@
+# Pre-push: run the same checks Vercel runs (lint + typecheck) so we
+# catch failures before they cost a deploy round-trip. Takes ~10s on
+# a warm cache.
+#
+# Skip in emergencies with: git push --no-verify
+echo "→ running preflight (lint + typecheck)…"
+npm run preflight
