@@ -1,6 +1,9 @@
 "use client";
 
 import { useMemo } from "react";
+import { motion, useReducedMotion } from "motion/react";
+
+const EASE_OUT_QUART: [number, number, number, number] = [0.22, 1, 0.36, 1];
 
 export type RadarValues = {
   strategy: number;
@@ -66,6 +69,14 @@ export function RadarChart({
   showScoreLabels = false,
   percentiles = null,
 }: RadarChartProps) {
+  const reducedMotion = useReducedMotion();
+  // Shared style for the motion.g wrappers — sets the scale origin
+  // to the SVG's geometric center so polygons expand outward from
+  // the middle, not from the top-left of the bounding box.
+  const scaleOriginStyle = useMemo(
+    () => ({ transformOrigin: `${50}% ${50}%`, transformBox: "fill-box" as const }),
+    [],
+  );
   // Internal padding reserved for the axis labels. Bigger when labels
   // are shown so "CREATIVITY" / "COMMUNICATION" don't kiss the edge of
   // the SVG's bounding box (or the parent container's border).
@@ -229,46 +240,77 @@ export function RadarChart({
       ))}
 
       {/* Comparison polygon — drawn first so it sits BEHIND. Dashed,
-          no fill. */}
+          no fill. Animates outward from center after the earned
+          polygon so the layered reveal reads naturally. */}
       {comparePath && (
-        <path
-          d={comparePath}
-          fill="none"
-          stroke="rgb(23 21 20 / 0.45)"
-          strokeWidth={1}
-          strokeDasharray="4 4"
-          strokeLinejoin="round"
-        />
+        <motion.g
+          style={scaleOriginStyle}
+          initial={reducedMotion ? false : { scale: 0, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{
+            duration: reducedMotion ? 0 : 1.0,
+            delay: reducedMotion ? 0 : 0.4,
+            ease: EASE_OUT_QUART,
+          }}
+        >
+          <path
+            d={comparePath}
+            fill="none"
+            stroke="rgb(23 21 20 / 0.45)"
+            strokeWidth={1}
+            strokeDasharray="4 4"
+            strokeLinejoin="round"
+          />
+        </motion.g>
       )}
 
-      {/* Filled value polygon */}
-      <path
-        d={valuePath}
-        fill="rgb(107 22 32 / 0.22)"
-        stroke="rgb(107 22 32)"
-        strokeWidth={1.5}
-        strokeLinejoin="round"
-      />
+      {/* Earned polygon + its vertex dots. Both animate together so
+          the dots stay glued to the polygon's corners. */}
+      <motion.g
+        style={scaleOriginStyle}
+        initial={reducedMotion ? false : { scale: 0, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{
+          duration: reducedMotion ? 0 : 1.2,
+          delay: reducedMotion ? 0 : 0.1,
+          ease: EASE_OUT_QUART,
+        }}
+      >
+        <path
+          d={valuePath}
+          fill="rgb(107 22 32 / 0.22)"
+          stroke="rgb(107 22 32)"
+          strokeWidth={1.5}
+          strokeLinejoin="round"
+        />
+        {angles.map((angle, i) => {
+          const v = Math.min(100, Math.max(0, orderedValues[i])) / 100;
+          const x = cx + radius * v * Math.cos(angle);
+          const y = cy + radius * v * Math.sin(angle);
+          return (
+            <circle
+              key={`pt-${i}`}
+              cx={x}
+              cy={y}
+              r={3}
+              fill="rgb(107 22 32)"
+            />
+          );
+        })}
+      </motion.g>
 
-      {/* Value points */}
-      {angles.map((angle, i) => {
-        const v = Math.min(100, Math.max(0, orderedValues[i])) / 100;
-        const x = cx + radius * v * Math.cos(angle);
-        const y = cy + radius * v * Math.sin(angle);
-        return (
-          <circle
-            key={`pt-${i}`}
-            cx={x}
-            cy={y}
-            r={3}
-            fill="rgb(107 22 32)"
-          />
-        );
-      })}
-
-      {/* Labels */}
-      {!hideLabels &&
-        labels.map((label, i) => (
+      {/* Labels — fade in after polygons settle. Single motion.g
+          wraps every label text element so the reveal feels unified. */}
+      {!hideLabels && (
+        <motion.g
+          initial={reducedMotion ? false : { opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{
+            duration: reducedMotion ? 0 : 0.5,
+            delay: reducedMotion ? 0 : 1.0,
+          }}
+        >
+          {labels.map((label, i) => (
           <g key={`label-${i}`}>
             <text
               x={label.x}
@@ -324,7 +366,9 @@ export function RadarChart({
               </text>
             )}
           </g>
-        ))}
+          ))}
+        </motion.g>
+      )}
     </svg>
   );
 }
