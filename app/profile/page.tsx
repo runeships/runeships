@@ -7,6 +7,8 @@ import {
 } from "@/components/ProfileTabForm";
 import { AccountTab } from "@/components/AccountTab";
 import { PrivacyTab } from "@/components/PrivacyTab";
+import { EarnedStanding } from "@/components/EarnedStanding";
+import { getRankings } from "@/lib/rankings";
 
 export const dynamic = "force-dynamic";
 
@@ -104,7 +106,14 @@ export default async function ProfilePage({
 
         {/* Tab content */}
         <div className="mt-12 sm:mt-16">
-          {tab === "profile" && <ProfileTabForm initialValues={initialValues} />}
+          {tab === "profile" && (
+            <>
+              <ProfileTabForm initialValues={initialValues} />
+              {/* Read-only earned standing — fetched server-side so we
+                  don't ship rankings logic to the client form. */}
+              <EarnedStanding rankings={await getRankings(user.id)} />
+            </>
+          )}
           {tab === "account" && (
             <AccountTab
               email={email}

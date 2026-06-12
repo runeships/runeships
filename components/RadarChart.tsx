@@ -36,6 +36,18 @@ type RadarChartProps = {
    * show "Strategy 78" at each vertex.
    */
   showScoreLabels?: boolean;
+  /**
+   * Per-vertex percentile rank. When provided, each axis label gets a
+   * second line "TOP {100 - percentile}%" in small caps oxblood.
+   * Null entries render as "—" to indicate no data for that dimension.
+   */
+  percentiles?: {
+    strategy: number | null;
+    execution: number | null;
+    communication: number | null;
+    technical: number | null;
+    creativity: number | null;
+  } | null;
 };
 
 /**
@@ -52,11 +64,14 @@ export function RadarChart({
   hideLabels = false,
   compareValues = null,
   showScoreLabels = false,
+  percentiles = null,
 }: RadarChartProps) {
   // Internal padding reserved for the axis labels. Bigger when labels
   // are shown so "CREATIVITY" / "COMMUNICATION" don't kiss the edge of
   // the SVG's bounding box (or the parent container's border).
-  const padding = hideLabels ? 12 : 62;
+  // Extra room when percentile sub-labels are shown — the second line
+  // of text needs vertical breathing space on the top/bottom vertices.
+  const padding = hideLabels ? 12 : percentiles ? 70 : 62;
   const cx = size / 2;
   const cy = size / 2;
   const radius = size / 2 - padding;
@@ -147,6 +162,22 @@ export function RadarChart({
         y2: cy + radius * Math.sin(angle),
       })),
     [angles, cx, cy, radius],
+  );
+
+  // Per-dimension percentile values in axis order. Null preserves
+  // "no data" semantics so the bottom-line can render "—".
+  const orderedPercentiles = useMemo(
+    () =>
+      percentiles
+        ? [
+            percentiles.strategy,
+            percentiles.execution,
+            percentiles.communication,
+            percentiles.technical,
+            percentiles.creativity,
+          ]
+        : null,
+    [percentiles],
   );
 
   // Labels — placed outside the outer pentagon
@@ -270,6 +301,26 @@ export function RadarChart({
                 }}
               >
                 {Math.round(orderedValues[i])}
+              </text>
+            )}
+            {orderedPercentiles && (
+              <text
+                x={label.x}
+                y={label.y + (showScoreLabels ? 32 : 16)}
+                textAnchor={label.textAnchor}
+                dominantBaseline="middle"
+                fontSize={10}
+                fill="rgb(107 22 32)"
+                style={{
+                  letterSpacing: "0.10em",
+                  textTransform: "uppercase",
+                  fontFamily:
+                    "var(--font-instrument, ui-sans-serif, system-ui, sans-serif)",
+                }}
+              >
+                {orderedPercentiles[i] === null
+                  ? "—"
+                  : `Top ${Math.max(0, 100 - (orderedPercentiles[i] ?? 0))}%`}
               </text>
             )}
           </g>

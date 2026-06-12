@@ -3,6 +3,8 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase-server";
 import { RadarChart, type RadarValues } from "@/components/RadarChart";
 import { TaskGrid, type TaskForGrid } from "@/components/TaskGrid";
+import { RankingPanel } from "@/components/RankingPanel";
+import { getRankings } from "@/lib/rankings";
 import { timeAgo } from "@/lib/format";
 import type {
   SubmissionMode,
@@ -237,33 +239,21 @@ export default async function DashboardPage() {
     console.error("[dashboard submissions throw]", err);
   }
 
-  // ─── Earned-score averages for the profile radar overlay ─────────
-  let earnedAverages: RadarValues | null = null;
-  try {
-    const { data: allFeedback } = await supabase
-      .from("feedback")
-      .select(
-        "score_strategy, score_execution, score_communication, score_technical, score_creativity",
-      );
-
-    if (allFeedback && allFeedback.length > 0) {
-      const n = allFeedback.length;
-      earnedAverages = {
-        strategy:
-          allFeedback.reduce((s, f) => s + f.score_strategy, 0) / n,
-        execution:
-          allFeedback.reduce((s, f) => s + f.score_execution, 0) / n,
-        communication:
-          allFeedback.reduce((s, f) => s + f.score_communication, 0) / n,
-        technical:
-          allFeedback.reduce((s, f) => s + f.score_technical, 0) / n,
-        creativity:
-          allFeedback.reduce((s, f) => s + f.score_creativity, 0) / n,
-      };
-    }
-  } catch (err) {
-    console.error("[dashboard feedback aggregate]", err);
-  }
+  // ─── Cohort rankings (cached per request) ────────────────────────
+  // Source of truth for both the "Where you stand" hero AND the
+  // earned-score overlay on the radar — uses best-per-task averaging
+  // per CLAUDE.md (canonical method), not a raw mean of all rows.
+  const rankings = await getRankings(user.id);
+  const earnedAverages: RadarValues | null =
+    rankings.userAggregates.strategy !== null
+      ? {
+          strategy: rankings.userAggregates.strategy,
+          execution: rankings.userAggregates.execution ?? 0,
+          communication: rankings.userAggregates.communication ?? 0,
+          technical: rankings.userAggregates.technical ?? 0,
+          creativity: rankings.userAggregates.creativity ?? 0,
+        }
+      : null;
 
   const firstName =
     profile?.full_name?.trim().split(/\s+/)[0] ?? "there";
@@ -330,8 +320,16 @@ export default async function DashboardPage() {
           </div>
         )}
 
-        {/* ─── Section 1: Available tasks ─────────────────────────── */}
+        {/* ─── Section 0: Where you stand ─────────────────────────── */}
         <section className="mt-16 sm:mt-20">
+          <DashboardSectionHeading>Where you stand</DashboardSectionHeading>
+          <div className="mt-8">
+            <RankingPanel rankings={rankings} />
+          </div>
+        </section>
+
+        {/* ─── Section 1: Available tasks ─────────────────────────── */}
+        <section className="mt-20 sm:mt-24">
           <DashboardSectionHeading>Available tasks</DashboardSectionHeading>
 
           {tasks.length === 0 ? (
@@ -386,6 +384,7 @@ export default async function DashboardPage() {
                 <RadarChart
                   values={earnedAverages ?? radarValues}
                   compareValues={earnedAverages ? radarValues : null}
+                  percentiles={earnedAverages ? rankings.userPercentiles : null}
                   size={300}
                 />
               </div>

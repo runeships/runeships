@@ -19,6 +19,7 @@
  * - 012_create_regrade_requests         → public.regrade_requests
  * - 013_add_admin_flag                  → public.profiles.is_admin
  * - 014_add_notification_prefs          → public.profiles.notify_on_feedback
+ * - 015_user_aggregates_fn              → public.get_user_aggregates() rpc
  */
 
 export type Json =
@@ -373,7 +374,18 @@ export interface Database {
       [_ in never]: never;
     };
     Functions: {
-      [_ in never]: never;
+      get_user_aggregates: {
+        Args: Record<string, never>;
+        Returns: Array<{
+          user_id: string;
+          strategy: number;
+          execution: number;
+          communication: number;
+          technical: number;
+          creativity: number;
+          task_count: number;
+        }>;
+      };
     };
     Enums: {
       [_ in never]: never;

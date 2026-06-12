@@ -8,6 +8,7 @@ import {
   RegradeButton,
   RegradeRequestedPanel,
 } from "@/components/RegradeButton";
+import { SubmissionContext } from "@/components/SubmissionContext";
 
 export const dynamic = "force-dynamic";
 
@@ -195,6 +196,8 @@ export default async function SubmissionDetailPage({
               weights={taskWeights}
               submissionId={submission.id}
               regrade={regrade}
+              userId={user.id}
+              taskId={submission.task_id}
             />
           ) : (
             <div className="mt-8 sm:mt-10 mx-auto max-w-[680px]">
@@ -302,11 +305,13 @@ const DIMENSION_ROWS: Array<{
   },
 ];
 
-function FeedbackContent({
+async function FeedbackContent({
   feedback,
   weights,
   submissionId,
   regrade,
+  userId,
+  taskId,
 }: {
   feedback: FeedbackRow;
   weights: TaskWeights | null;
@@ -315,6 +320,8 @@ function FeedbackContent({
     created_at: string;
     status: "pending" | "resolved" | "declined";
   } | null;
+  userId: string;
+  taskId: string;
 }) {
   const radarValues: RadarValues = {
     strategy: feedback.score_strategy,
@@ -397,6 +404,23 @@ function FeedbackContent({
           </div>
         </div>
       </div>
+
+      {/* In-context framing — only renders when user has ≥3 total
+          submissions. Sits between the score panel and the regrade
+          CTA so the relative-shape narrative happens before the
+          dispute path. */}
+      <SubmissionContext
+        userId={userId}
+        submissionId={submissionId}
+        taskId={taskId}
+        feedback={{
+          score_strategy: feedback.score_strategy,
+          score_execution: feedback.score_execution,
+          score_communication: feedback.score_communication,
+          score_technical: feedback.score_technical,
+          score_creativity: feedback.score_creativity,
+        }}
+      />
 
       {/* Human regrade CTA / status — sits between the scores and the
           written feedback so a student who disagrees with the grade
