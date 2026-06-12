@@ -1,22 +1,10 @@
-"use client";
-
-import { useId } from "react";
 import { type Dimension, dimensionLabel } from "@/lib/rankings";
 
-// Editorial palette — kept as literal RGB so SVG fill="rgb(…)" reads
-// the same color as the rest of the page without depending on Tailwind
-// arbitrary value resolution inside SVG attributes.
-const OXBLOOD = "rgb(107 22 32)";
-const PARCHMENT = "rgb(244 239 230)";
-
-// Single source of truth for the silhouette geometry. Defined once and
-// referenced via <use href="#…"> three times (parchment fill,
-// oxblood-clipped fill, outline) so the path only travels the wire once
-// per component instance.
-const HULL_D =
-  "M 22 30 C 14 30 14 42 22 44 C 26 46 28 52 32 58 L 168 58 C 172 56 176 50 180 40 C 184 38 184 44 182 50 C 178 56 174 60 170 64 C 130 94 70 94 30 64 C 24 58 20 52 22 30 Z";
-
-const SHIELD_POSITIONS = [55, 78, 100, 122, 145];
+// Path to the silhouette PNG used as a CSS mask. The PNG must have a
+// transparent background (the silhouette stays, the rest goes clear)
+// so mask-mode: alpha (the default) cuts the gradient into the ship
+// shape and leaves everything around it untouched.
+const SHIP_MASK_URL = "/brand/longship.png";
 
 type LongshipSize = "small" | "large" | "inline";
 
@@ -28,9 +16,17 @@ type LongshipSVGProps = {
 };
 
 /**
- * Pure SVG variant of the longship — no card chrome, no labels. Used
- * inline next to the strongest-dimension row in the submission detail
- * score breakdown. Card variants below compose this.
+ * Longship silhouette filled to the given percentile.
+ *
+ * Implementation: a single <div> whose background is a hard-stopped
+ * linear gradient (oxblood at bottom → parchment at top, split at the
+ * percentile mark) clipped by a CSS mask of the longship PNG. The
+ * oxblood "waterline" rises as the percentile grows.
+ *
+ * The legacy name `LongshipSVG` is preserved so existing imports keep
+ * working — the implementation is no longer an SVG but the contract
+ * (percentile-driven fill, given width/height, accessible label) is
+ * identical.
  */
 export function LongshipSVG({
   percentile,
@@ -38,92 +34,49 @@ export function LongshipSVG({
   width,
   height,
 }: LongshipSVGProps) {
-  // useId works in both server and client components in React 18+. SVG
-  // ids can't legally contain colons, so strip them.
-  const baseId = useId().replace(/:/g, "_");
-  const shipId = `ship-${baseId}`;
-  const clipId = `clip-${baseId}`;
-
   const hasData = percentile !== null;
-  // Fill rises from the bottom of the viewBox as percentile grows.
-  // 75% percentile → bottom 90 units (75% of 120) are oxblood-filled.
-  const fillHeight = hasData
-    ? (Math.max(0, Math.min(100, percentile)) / 100) * 120
+  const fillPct = hasData
+    ? Math.max(0, Math.min(100, percentile))
     : 0;
-  const fillY = 120 - fillHeight;
 
   const dimName = dimensionLabel(dimension);
   const ariaLabel = hasData
     ? `${dimName} longship, filled to ${Math.max(0, 100 - percentile)} percent — top ${Math.max(0, 100 - percentile)}% of cohort`
     : `${dimName} longship, no data yet`;
 
+  // Hard-stopped gradient: rising oxblood waterline below, parchment
+  // above. At 0% the whole thing is parchment ("ship in port"); at
+  // 100% it's all oxblood; at 50% a clean half-and-half split.
+  // Linear gradient handles the transition smoothness — the optional
+  // CSS transition on the gradient stops is browser-supported and
+  // gives the 600ms fill-rise animation on prop change.
+  const background = hasData
+    ? `linear-gradient(to top,
+        var(--color-oxblood) 0%,
+        var(--color-oxblood) ${fillPct}%,
+        var(--color-parchment) ${fillPct}%,
+        var(--color-parchment) 100%)`
+    : "var(--color-parchment)";
+
   return (
-    <svg
+    <div
       role="img"
       aria-label={ariaLabel}
-      viewBox="0 0 200 120"
-      width={width}
-      height={height}
-      className="overflow-visible block"
-    >
-      <defs>
-        {/* All fillable parts grouped once. Outline circles get
-            fill="none" applied via the outline <use> below — the
-            base shapes don't carry their own fill. */}
-        <g id={shipId}>
-          <path d={HULL_D} />
-          {/* Sail */}
-          <rect x={70} y={15} width={60} height={38} />
-          {/* Mast (thin vertical) */}
-          <rect x={99.25} y={14} width={1.5} height={40} />
-          {/* Shields along the deck */}
-          {SHIELD_POSITIONS.map((cx) => (
-            <circle key={cx} cx={cx} cy={56} r={2.5} />
-          ))}
-        </g>
-        {hasData && (
-          <clipPath id={clipId}>
-            <rect
-              x={0}
-              y={fillY}
-              width={200}
-              height={fillHeight}
-              style={{
-                transition:
-                  "y 600ms cubic-bezier(0.22, 0.61, 0.36, 1), height 600ms cubic-bezier(0.22, 0.61, 0.36, 1)",
-              }}
-            />
-          </clipPath>
-        )}
-      </defs>
-
-      {/* Background parchment fill — only when there's data. When
-          there's no data the silhouette renders as outline only,
-          reading as "ship in port". */}
-      {hasData && (
-        <use href={`#${shipId}`} fill={PARCHMENT} stroke="none" />
-      )}
-
-      {/* Oxblood fill clipped to waterline — the percentile reading. */}
-      {hasData && (
-        <use
-          href={`#${shipId}`}
-          fill={OXBLOOD}
-          stroke="none"
-          clipPath={`url(#${clipId})`}
-        />
-      )}
-
-      {/* Outline always last so it stays crisp over the fills. */}
-      <use
-        href={`#${shipId}`}
-        fill="none"
-        stroke={OXBLOOD}
-        strokeWidth={1.5}
-        strokeLinejoin="round"
-        strokeLinecap="round"
-      />
-    </svg>
+      style={{
+        width: `${width}px`,
+        height: `${height}px`,
+        background,
+        WebkitMaskImage: `url(${SHIP_MASK_URL})`,
+        maskImage: `url(${SHIP_MASK_URL})`,
+        WebkitMaskSize: "contain",
+        maskSize: "contain",
+        WebkitMaskRepeat: "no-repeat",
+        maskRepeat: "no-repeat",
+        WebkitMaskPosition: "center",
+        maskPosition: "center",
+        transition: "background 600ms cubic-bezier(0.22, 0.61, 0.36, 1)",
+      }}
+    />
   );
 }
 
@@ -136,9 +89,9 @@ type LongshipProps = {
 };
 
 /**
- * Card variant — dimension label above, SVG ship, "TOP X%" + score
- * below. Used on the dashboard fleet row, the profile earned-standing
- * row, and the dashboard empty-state teaser.
+ * Card variant — dimension label above, longship in the middle,
+ * "TOP X%" + score below. Used on the dashboard fleet row, the
+ * profile earned-standing row, and the dashboard empty-state teaser.
  */
 export function Longship({
   percentile,
@@ -151,8 +104,8 @@ export function Longship({
   const displayTop = hasData ? Math.max(0, 100 - percentile) : null;
   const dimName = dimensionLabel(dimension);
 
-  // Inline variant — no card chrome at all, just the SVG. Used in the
-  // submission detail score breakdown.
+  // Inline variant — no card chrome at all, just the ship. Used in
+  // the submission detail score breakdown.
   if (size === "inline") {
     return (
       <LongshipSVG
