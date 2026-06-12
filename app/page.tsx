@@ -1,5 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase-server";
 import { Wordmark } from "@/components/Wordmark";
 import { RuneOpener } from "@/components/RuneOpener";
 import { Reveal } from "@/components/Reveal";
@@ -12,9 +14,43 @@ import { AudienceTabs } from "@/components/AudienceTabs";
 import { CredibilityList } from "@/components/CredibilityList";
 import { PullQuote } from "@/components/PullQuote";
 
-export default function Home() {
+// Auth check needs cookies, which forces dynamic rendering. Don't try
+// to pre-render this page — it has to run per-request to decide
+// landing-vs-dashboard.
+export const dynamic = "force-dynamic";
+
+export default async function Home({
+  searchParams,
+}: {
+  searchParams: Promise<{ deleted?: string }>;
+}) {
+  // Signed-in visitors skip the marketing page entirely and land on
+  // their dashboard. The redirect happens server-side BEFORE any JSX
+  // ships, so there's no flash of landing content. getUser() (vs
+  // getSession) is the recommended call — it verifies the token
+  // cryptographically instead of trusting the cookie blindly.
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (user) redirect("/dashboard");
+
+  // One-time deletion confirmation set by deleteAccount() redirect.
+  // Visible to the now-logged-out user above the hero.
+  const justDeleted = (await searchParams).deleted === "1";
+
   return (
     <main>
+      {justDeleted && (
+        <div className="bg-parchment border-b border-oxblood/40">
+          <div className="mx-auto max-w-[1240px] px-6 sm:px-10 md:px-16 py-4 flex items-center justify-center text-center">
+            <p className="text-[13px] tracking-[0.005em] text-ink/85">
+              Account deleted. Your data has been removed from RuneShips.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* ─── 1. HERO — cream ────────────────────────────────────── */}
       <section
         aria-labelledby="hero-headline"

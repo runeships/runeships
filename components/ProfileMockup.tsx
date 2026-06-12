@@ -37,7 +37,7 @@ export function ProfileMockup() {
         Sample student profile
       </p>
       <h3 className="mt-3 font-display font-normal text-[26px] sm:text-[28px] leading-[1.15] tracking-[-0.014em] text-ink">
-        S. Patel&rsquo;s Skill Profile
+        Alex Park&rsquo;s Skill Profile
       </h3>
 
       <div className="mt-6 sm:mt-7 flex justify-center">

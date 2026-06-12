@@ -3,6 +3,8 @@ import { Fraunces, Instrument_Sans, Noto_Sans_Runic } from "next/font/google";
 import "./globals.css";
 import { StickyNav } from "@/components/StickyNav";
 import { Toast } from "@/components/Toast";
+import { CookieBanner } from "@/components/CookieBanner";
+import { Footer } from "@/components/Footer";
 
 // Editorial display serif. The opsz axis lets us scale optical sizing for
 // the very large hero headline vs. smaller section titles.
@@ -59,6 +61,8 @@ export default function RootLayout({
       <body className="min-h-dvh bg-cream text-ink font-body antialiased selection:bg-oxblood selection:text-cream">
         <StickyNav />
         {children}
+        <Footer />
+        <CookieBanner />
         <Toast />
       </body>
     </html>

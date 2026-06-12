@@ -9,7 +9,7 @@ import {
   motion,
   useReducedMotion,
 } from "motion/react";
-import { UserMenu } from "./UserMenu";
+import { ProfileMenu } from "./ProfileMenu";
 
 // App routes that should render the minimal "in-app" nav (no marketing
 // links). Authenticated routes additionally render <UserMenu />.
@@ -154,8 +154,8 @@ export function StickyNav() {
             </div>
           )}
 
-          {/* Authenticated app routes: user name + sign-out link */}
-          {isAppAuthed && <UserMenu />}
+          {/* Authenticated app routes: avatar dropdown */}
+          {isAppAuthed && <ProfileMenu />}
 
           {/* Mobile: hamburger trigger — only on marketing routes */}
           {!isAppMode && <button
