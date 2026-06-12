@@ -139,7 +139,7 @@ export function StickyNav() {
               <NavLink href="/#students">For students</NavLink>
               <NavLink href="/#companies">For companies</NavLink>
               <Link
-                href="/#waitlist"
+                href="/login"
                 className="
                   text-[13px] font-medium tracking-[0.01em]
                   bg-oxblood text-cream
@@ -149,7 +149,7 @@ export function StickyNav() {
                   focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-oxblood
                 "
               >
-                Get early access
+                Sign in
               </Link>
             </div>
           )}
@@ -238,7 +238,7 @@ export function StickyNav() {
 
               <div className="mt-6">
                 <Link
-                  href="/#waitlist"
+                  href="/login"
                   onClick={() => setMobileOpen(false)}
                   className="
                     inline-flex items-center
@@ -250,7 +250,7 @@ export function StickyNav() {
                     hover:bg-oxblood-hover
                   "
                 >
-                  Get early access
+                  Sign in
                 </Link>
               </div>
             </nav>

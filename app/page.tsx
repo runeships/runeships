@@ -3,7 +3,6 @@ import Image from "next/image";
 import { Wordmark } from "@/components/Wordmark";
 import { RuneOpener } from "@/components/RuneOpener";
 import { Reveal } from "@/components/Reveal";
-import { WaitlistForm } from "@/components/WaitlistForm";
 import { ProfileMockup } from "@/components/ProfileMockup";
 import { HowItWorks } from "@/components/HowItWorks";
 import { StatStrip } from "@/components/StatStrip";
@@ -56,13 +55,26 @@ export default function Home() {
                 </p>
               </Reveal>
 
-              <Reveal
-                mode="load"
-                delay={0.42}
-                id="waitlist"
-                className="mt-9 scroll-mt-28"
-              >
-                <WaitlistForm source="landing_hero" id="hero" />
+              <Reveal mode="load" delay={0.42} className="mt-9">
+                <Link
+                  href="/login"
+                  className="
+                    inline-flex items-center
+                    min-h-[56px] px-7
+                    bg-oxblood text-cream
+                    border border-oxblood
+                    text-[15px] tracking-[0.01em] font-medium
+                    transition-colors duration-200 ease-out
+                    hover:bg-oxblood-hover focus-visible:bg-oxblood-hover
+                    focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-oxblood
+                  "
+                >
+                  Try RuneShips <span aria-hidden className="ml-1.5">→</span>
+                </Link>
+                <p className="mt-4 text-[14px] leading-[1.55] text-muted max-w-[44ch]">
+                  Magic-link sign in. No password. Practice tasks open
+                  immediately.
+                </p>
               </Reveal>
 
               <Reveal mode="load" delay={0.52} className="mt-6">
@@ -357,10 +369,24 @@ export default function Home() {
               Show your work. Earn your ships.
             </p>
 
-            <div className="mt-14 sm:mt-16 max-w-[34rem] mx-auto">
-              <WaitlistForm source="landing_closing" id="closing" variant="dark" />
-              <p className="mt-5 text-[13px] tracking-[0.02em] text-cream/60 text-center sm:text-left">
-                Free for students. Always.
+            <div className="mt-14 sm:mt-16 flex flex-col items-center gap-4">
+              <Link
+                href="/login"
+                className="
+                  inline-flex items-center
+                  min-h-[56px] px-7
+                  bg-oxblood text-cream
+                  border border-oxblood
+                  text-[15px] tracking-[0.01em] font-medium
+                  transition-colors duration-200 ease-out
+                  hover:bg-oxblood-hover focus-visible:bg-oxblood-hover
+                  focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-oxblood
+                "
+              >
+                Try RuneShips <span aria-hidden className="ml-1.5">→</span>
+              </Link>
+              <p className="text-[14px] leading-[1.55] text-cream/70 text-center">
+                Magic-link sign in. No password.
               </p>
             </div>
 

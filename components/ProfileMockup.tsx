@@ -1,90 +1,54 @@
-"use client";
-
-import { useEffect, useRef, useState } from "react";
-import { useReducedMotion, useInView } from "motion/react";
-
-const SKILLS = [
-  { name: "Strategy", top: 4 },
-  { name: "Finance", top: 11 },
-  { name: "Product", top: 18 },
-  { name: "Marketing", top: 27 },
-] as const;
+import Link from "next/link";
+import { RadarChart, type RadarValues } from "./RadarChart";
 
 /**
- * Sample student profile, rendered as an editorial paper panel.
- *
- * Initial state (and the SSR HTML) renders the FINAL percentile values —
- * so visitors with slow JS or no JS see correct numbers. Once the panel
- * enters the viewport on the client, the values reset to 0 and animate
- * up to their targets over 1000ms (ease-out cubic, staggered).
+ * Hardcoded sample profile used as the hero-right editorial mockup.
+ * Asymmetric on purpose — different scores make the polygon shape
+ * obviously non-regular, which previews what a real student profile
+ * looks like.
+ */
+const SAMPLE_VALUES: RadarValues = {
+  strategy: 78,
+  execution: 65,
+  communication: 82,
+  technical: 71,
+  creativity: 58,
+};
+
+/**
+ * Sample student profile shown next to the hero. Static — no count-up,
+ * no scroll animation, no interactivity beyond the "See full profile"
+ * link that funnels into /login.
  */
 export function ProfileMockup() {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const inView = useInView(containerRef, {
-    once: true,
-    margin: "0px 0px -5% 0px",
-  });
-
   return (
     <div
-      ref={containerRef}
       role="img"
-      aria-label="Sample student skill profile: S. Patel — Strategy Top 4%, Finance Top 11%, Product Top 18%, Marketing Top 27%, 7 tasks completed, 3 recruiter views."
+      aria-label="Sample student skill profile across five dimensions: Strategy 78, Execution 65, Communication 82, Technical 71, Creativity 58. Tasks completed: 7. Recruiter views: 3."
       className="
-        group/profile
         border border-ink/15 bg-cream
-        p-7 sm:p-9
+        p-6 sm:p-8
         transition-[box-shadow,border-color] duration-200 ease-out
         hover:border-ink/30
         hover:[box-shadow:0_1px_0_rgb(23_21_20/0.08),1px_0_0_rgb(23_21_20/0.08)]
       "
     >
-      <p className="text-[11px] tracking-[0.16em] uppercase text-muted">
-        Student profile · preview
+      <p className="text-[11px] tracking-[0.20em] uppercase text-muted">
+        Sample student profile
       </p>
-      <h3 className="mt-3 font-display font-normal text-[22px] sm:text-[24px] leading-[1.15] tracking-[-0.012em] text-ink">
+      <h3 className="mt-3 font-display font-normal text-[26px] sm:text-[28px] leading-[1.15] tracking-[-0.014em] text-ink">
         S. Patel&rsquo;s Skill Profile
       </h3>
 
-      <dl className="mt-7 divide-y divide-rule">
-        {SKILLS.map((skill, i) => (
-          <div
-            key={skill.name}
-            className="
-              flex items-end justify-between gap-6 py-4
-              -mx-2 px-2
-              transition-colors duration-150 ease-out
-              hover:bg-parchment
-            "
-          >
-            <dt className="text-[15px] text-ink pb-1">{skill.name}</dt>
-            <dd className="text-right">
-              <span className="block text-[10px] tracking-[0.18em] uppercase text-muted leading-none mb-1.5">
-                Top
-              </span>
-              <span
-                className="font-display font-light leading-[0.95] text-ink tracking-[-0.022em]"
-                style={{
-                  fontSize: "clamp(2.25rem, 2.8vw + 0.5rem, 2.75rem)",
-                  fontVariationSettings: '"opsz" 144',
-                }}
-              >
-                <CountUp
-                  target={skill.top}
-                  delayMs={200 + i * 70}
-                  inView={inView}
-                />
-                <span className="text-[18px] sm:text-[20px] ml-0.5 text-ink/80">
-                  %
-                </span>
-              </span>
-            </dd>
-          </div>
-        ))}
-      </dl>
+      <div className="mt-6 sm:mt-7 flex justify-center">
+        <RadarChart values={SAMPLE_VALUES} size={300} />
+      </div>
 
       <div className="mt-6 flex items-center gap-2.5">
-        <span aria-hidden className="inline-block w-2 h-2 rounded-full bg-oxblood live-dot" />
+        <span
+          aria-hidden
+          className="inline-block w-2 h-2 rounded-full bg-oxblood live-dot"
+        />
         <p className="text-[13px] tracking-[0.02em] text-muted">
           Tasks completed: <span className="text-ink">7</span>
           <span aria-hidden className="mx-2 text-muted/60">·</span>
@@ -93,7 +57,7 @@ export function ProfileMockup() {
       </div>
 
       <div className="mt-7 pt-6 border-t border-rule">
-        <p className="text-[11px] tracking-[0.16em] uppercase text-muted">
+        <p className="text-[11px] tracking-[0.20em] uppercase text-muted">
           Latest feedback
         </p>
         <p className="mt-3 text-[14px] leading-[1.6] italic text-ink/85">
@@ -103,77 +67,17 @@ export function ProfileMockup() {
       </div>
 
       <div className="mt-7 pt-5 border-t border-rule flex justify-end">
-        <a
-          href="#"
-          aria-disabled="true"
-          onClick={(e) => e.preventDefault()}
+        <Link
+          href="/login"
           className="
-            link-anim text-[13px] tracking-[0.01em] text-oxblood
-            hover:text-oxblood-hover transition-colors duration-200 ease-out
+            link-anim text-[13px] tracking-[0.01em] text-muted
+            hover:text-oxblood
+            transition-colors duration-200 ease-out
           "
         >
           See full profile <span aria-hidden>→</span>
-        </a>
+        </Link>
       </div>
     </div>
   );
-}
-
-/**
- * Count-up display. SSR-safe: initial state is the target value, so the
- * server-rendered HTML shows the final percentile. Once `inView` flips
- * true on the client, we reset to 0 and animate up over `durationMs`
- * using ease-out cubic via requestAnimationFrame.
- *
- * Skipping motion library here on purpose — RAF + Math.pow is plenty for
- * a four-number counter and avoids motion runtime per CountUp instance.
- */
-function CountUp({
-  target,
-  delayMs = 0,
-  durationMs = 1000,
-  inView,
-}: {
-  target: number;
-  delayMs?: number;
-  durationMs?: number;
-  inView: boolean;
-}) {
-  const reducedMotion = useReducedMotion();
-  // SSR + initial client render: target. No hydration mismatch.
-  const [value, setValue] = useState(target);
-  const startedRef = useRef(false);
-
-  useEffect(() => {
-    if (reducedMotion) {
-      // Force-keep target in case it was previously animated.
-      setValue(target);
-      return;
-    }
-    if (!inView) return;
-    if (startedRef.current) return;
-    startedRef.current = true;
-
-    // Reset to 0 to start the animation.
-    setValue(0);
-
-    let raf = 0;
-    let startTime = 0;
-    const tick = (now: number) => {
-      if (!startTime) startTime = now + delayMs;
-      const elapsed = now - startTime;
-      if (elapsed < 0) {
-        raf = requestAnimationFrame(tick);
-        return;
-      }
-      const progress = Math.min(elapsed / durationMs, 1);
-      const eased = 1 - Math.pow(1 - progress, 3);
-      setValue(Math.round(eased * target));
-      if (progress < 1) raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [inView, target, delayMs, durationMs, reducedMotion]);
-
-  return <span className="tabular-nums">{value}</span>;
 }
