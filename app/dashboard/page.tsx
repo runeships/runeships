@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase-server";
 import type { RadarValues } from "@/components/RadarChart";
 import { TaskGrid, type TaskForGrid } from "@/components/TaskGrid";
 import { RankingPanel } from "@/components/RankingPanel";
-import { getRankings } from "@/lib/rankings";
+import { getRankings, getLeaderboard } from "@/lib/rankings";
 import { timeAgo } from "@/lib/format";
 import type {
   SubmissionMode,
@@ -239,12 +239,15 @@ export default async function DashboardPage() {
     console.error("[dashboard submissions throw]", err);
   }
 
-  // ─── Cohort rankings (cached per request) ────────────────────────
-  // Source of truth for the "Where you stand" hero. The pentagon radar
-  // now lives inside that panel — the previously separate "Your skill
-  // profile" section was removed so the two visualisations (absolute
-  // shape + relative rank) sit together as one truth.
-  const rankings = await getRankings(user.id);
+  // ─── Cohort rankings + leaderboard (both cached per request) ────
+  // Rankings drive the per-dimension percentile labels + the hero
+  // longship. Leaderboard rows drive the cohort table embedded inside
+  // the "Where you stand" panel so the user can see their absolute
+  // scores AND their position in the cohort without leaving the page.
+  const [rankings, leaderboardRows] = await Promise.all([
+    getRankings(user.id),
+    getLeaderboard(),
+  ]);
 
   const firstName =
     profile?.full_name?.trim().split(/\s+/)[0] ?? "there";
@@ -311,8 +314,23 @@ export default async function DashboardPage() {
           </div>
         )}
 
-        {/* ─── Section 1: Available tasks ─────────────────────────── */}
-        <section className="mt-16 sm:mt-20">
+        {/* ─── Section 1: Where you stand ─────────────────────────── */}
+        {radarValues && (
+          <section className="mt-16 sm:mt-20">
+            <DashboardSectionHeading>Where you stand</DashboardSectionHeading>
+            <div className="mt-8">
+              <RankingPanel
+                rankings={rankings}
+                selfRated={radarValues}
+                leaderboardRows={leaderboardRows}
+                currentUserId={user.id}
+              />
+            </div>
+          </section>
+        )}
+
+        {/* ─── Section 2: Available tasks ─────────────────────────── */}
+        <section className="mt-20 sm:mt-24">
           <DashboardSectionHeading>Available tasks</DashboardSectionHeading>
 
           {tasks.length === 0 ? (
@@ -328,7 +346,7 @@ export default async function DashboardPage() {
           )}
         </section>
 
-        {/* ─── Section 2: Your submissions ────────────────────────── */}
+        {/* ─── Section 3: Your submissions ────────────────────────── */}
         <section className="mt-20 sm:mt-24">
           <DashboardSectionHeading>Your submissions</DashboardSectionHeading>
 
@@ -348,16 +366,6 @@ export default async function DashboardPage() {
             </ul>
           )}
         </section>
-
-        {/* ─── Section 3: Where you stand ─────────────────────────── */}
-        {radarValues && (
-          <section className="mt-20 sm:mt-24">
-            <DashboardSectionHeading>Where you stand</DashboardSectionHeading>
-            <div className="mt-8">
-              <RankingPanel rankings={rankings} selfRated={radarValues} />
-            </div>
-          </section>
-        )}
       </div>
     </main>
   );

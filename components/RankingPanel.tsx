@@ -1,14 +1,18 @@
 import {
+  type LeaderboardRow,
   type RankingsResult,
   dimensionLabel,
 } from "@/lib/rankings";
 import { RadarChart, type RadarValues } from "@/components/RadarChart";
 import { Longship } from "@/components/Longship";
 import { PercentileTally } from "@/components/PercentileTally";
+import { LeaderboardTable } from "@/components/LeaderboardTable";
 
 type RankingPanelProps = {
   rankings: RankingsResult;
   selfRated: RadarValues;
+  leaderboardRows: LeaderboardRow[];
+  currentUserId: string;
 };
 
 /**
@@ -21,7 +25,12 @@ type RankingPanelProps = {
  * Empty state replaces the dual-column layout with a single
  * editorial inset: copy + decorative longship + muted tally.
  */
-export function RankingPanel({ rankings, selfRated }: RankingPanelProps) {
+export function RankingPanel({
+  rankings,
+  selfRated,
+  leaderboardRows,
+  currentUserId,
+}: RankingPanelProps) {
   const hasFeedback = rankings.strongestDimension !== null;
 
   // ─── Empty state ─────────────────────────────────────────────
@@ -142,6 +151,19 @@ export function RankingPanel({ rankings, selfRated }: RankingPanelProps) {
           </div>
         </div>
       </div>
+
+      {/* Embedded leaderboard — same data as the standalone page used
+          to show, now inline below the dual column so the user can see
+          their absolute scores AND their position in the cohort
+          without leaving the dashboard. */}
+      {leaderboardRows.length > 0 && (
+        <div className="mt-12 pt-8 border-t border-ink/10">
+          <p className="text-[11px] tracking-[0.18em] uppercase text-muted">
+            Cohort leaderboard
+          </p>
+          <LeaderboardTable rows={leaderboardRows} currentUserId={currentUserId} />
+        </div>
+      )}
 
       <div className="mt-10 pt-6 border-t border-ink/10 space-y-2">
         <p className="text-[12px] leading-[1.55] text-muted">

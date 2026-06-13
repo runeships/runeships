@@ -20,7 +20,6 @@ const APP_AUTHED_ROUTES = [
   "/tasks",
   "/submissions",
   "/profile",
-  "/leaderboard",
 ] as const;
 
 function matchesPrefix(pathname: string, routes: readonly string[]): boolean {
@@ -155,11 +154,12 @@ export function StickyNav() {
             </div>
           )}
 
-          {/* Authenticated app routes: in-app nav + avatar dropdown */}
+          {/* Authenticated app routes: in-app nav + avatar dropdown.
+              Leaderboard is now embedded inside the dashboard "Where
+              you stand" panel — no separate route. */}
           {isAppAuthed && (
             <div className="flex items-center gap-7">
               <NavLink href="/dashboard">Dashboard</NavLink>
-              <NavLink href="/leaderboard">Leaderboard</NavLink>
               <ProfileMenu />
             </div>
           )}

@@ -64,10 +64,12 @@ export function LeaderboardTable({
 
   return (
     <>
-      {/* Filter chips */}
+      {/* Filter chips — no top margin so the parent can control
+          spacing whether this is embedded in a panel or rendered as
+          its own page. */}
       <nav
         aria-label="Sort options"
-        className="mt-12 sm:mt-14 flex flex-wrap gap-2"
+        className="mt-6 flex flex-wrap gap-2"
       >
         {SORT_OPTIONS.map((opt) => {
           const active = opt.key === sortKey;
