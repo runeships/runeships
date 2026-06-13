@@ -8,6 +8,7 @@ import { RadarChart, type RadarValues } from "@/components/RadarChart";
 import { Longship } from "@/components/Longship";
 import { PercentileTally } from "@/components/PercentileTally";
 import { LeaderboardTable } from "@/components/LeaderboardTable";
+import { FeedbackTrigger } from "@/components/FeedbackTrigger";
 
 type RankingPanelProps = {
   rankings: RankingsResult;
@@ -178,10 +179,14 @@ export function RankingPanel({
           completed tasks. Cohort size: {rankings.cohortSize}{" "}
           {rankings.cohortSize === 1 ? "student" : "students"}.
         </p>
-        {rankings.isProvisional && (
+        {rankings.isProvisional ? (
           <p className="text-[12px] leading-[1.55] italic text-oxblood">
             Provisional rankings. RuneShips is early — these refine as more
-            students join.
+            students join. <FeedbackTrigger />
+          </p>
+        ) : (
+          <p className="text-[12px] leading-[1.55] italic text-muted">
+            <FeedbackTrigger />
           </p>
         )}
       </div>

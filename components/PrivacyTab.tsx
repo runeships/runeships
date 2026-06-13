@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { FeedbackTrigger } from "@/components/FeedbackTrigger";
 
 const LINKS: Array<{
   label: string;
@@ -81,6 +82,9 @@ export function PrivacyTab() {
           </a>{" "}
           — we&rsquo;ll respond within 30 days. You can request deletion or
           export of your data at any time.
+        </p>
+        <p className="mt-4 text-[14px] leading-[1.7] text-ink/80">
+          For general product feedback, use <FeedbackTrigger />
         </p>
       </div>
     </div>
