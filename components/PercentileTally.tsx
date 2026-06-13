@@ -24,8 +24,8 @@ const ALL_MARKS: Array<{ pos: number; isMajor: boolean }> = [
 const FILL_GRADIENT =
   "linear-gradient(to right, #3D0F18 0%, var(--color-oxblood) 50%, #F2E0DE 100%)";
 
-const TRACK_HEIGHT = 6;
-const MARKER_HEIGHT = 16;
+const TRACK_HEIGHT = 12;
+const MARKER_HEIGHT = 22;
 const EASE_OUT_QUART: [number, number, number, number] = [0.22, 1, 0.36, 1];
 
 /**
@@ -89,7 +89,7 @@ export function PercentileTally({
               className="absolute left-0 top-1/2 -translate-y-1/2"
               style={{
                 height: TRACK_HEIGHT,
-                borderRadius: 3,
+                borderRadius: 6,
                 background: FILL_GRADIENT,
                 zIndex: 2,
               }}
