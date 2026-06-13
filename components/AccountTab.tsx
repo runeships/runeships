@@ -18,15 +18,19 @@ const initialDelete: DeleteAccountState = { status: "idle" };
 export function AccountTab({
   email,
   notifyOnFeedback,
+  notifyOnNewTasks,
   leaderboardVisible,
 }: {
   email: string;
   notifyOnFeedback: boolean;
+  notifyOnNewTasks: boolean;
   leaderboardVisible: boolean;
 }) {
   const [signOutPending, startSignOut] = useTransition();
   const [notify, setNotify] = useState(notifyOnFeedback);
   const [notifyPending, startNotify] = useTransition();
+  const [newTaskNotify, setNewTaskNotify] = useState(notifyOnNewTasks);
+  const [newTaskNotifyPending, startNewTaskNotify] = useTransition();
   const [visible, setVisible] = useState(leaderboardVisible);
   const [visiblePending, startVisible] = useTransition();
   const [confirming, setConfirming] = useState(false);
@@ -40,9 +44,29 @@ export function AccountTab({
     const next = !notify;
     setNotify(next); // optimistic
     startNotify(async () => {
-      const result = await updateNotificationPrefs(next);
+      const result = await updateNotificationPrefs({
+        notifyOnFeedback: next,
+      });
       if (!result.success) {
         setNotify(!next); // rollback
+        window.dispatchEvent(
+          new CustomEvent("runeships:toast", {
+            detail: { text: "Couldn’t save preference. Try again." },
+          }),
+        );
+      }
+    });
+  }
+
+  function toggleNewTaskNotify() {
+    const next = !newTaskNotify;
+    setNewTaskNotify(next); // optimistic
+    startNewTaskNotify(async () => {
+      const result = await updateNotificationPrefs({
+        notifyOnNewTasks: next,
+      });
+      if (!result.success) {
+        setNewTaskNotify(!next); // rollback
         window.dispatchEvent(
           new CustomEvent("runeships:toast", {
             detail: { text: "Couldn’t save preference. Try again." },
@@ -151,10 +175,45 @@ export function AccountTab({
                 Email me when I receive feedback on a submission
               </span>
               <span className="block mt-2 text-[13px] leading-[1.55] text-muted max-w-[54ch]">
-                We&rsquo;ll never send marketing email without your permission.
-                Currently we only send a confirmation when AI feedback completes
-                on your submission. (Feature coming soon — this toggle is wired
-                up but the email itself ships in a later update.)
+                Sent immediately when AI feedback completes or when the
+                RuneShips team finishes a human review.
+              </span>
+            </span>
+          </label>
+
+          {/* Second toggle: new task announcements */}
+          <label className="mt-7 flex items-start gap-4 cursor-pointer select-none">
+            <button
+              type="button"
+              role="switch"
+              aria-checked={newTaskNotify}
+              onClick={toggleNewTaskNotify}
+              disabled={newTaskNotifyPending}
+              className={`
+                relative shrink-0 mt-0.5 w-11 h-6 border transition-colors duration-200 ease-out
+                disabled:opacity-60 disabled:cursor-not-allowed
+                focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-oxblood
+                ${newTaskNotify
+                  ? "bg-oxblood border-oxblood"
+                  : "bg-cream border-ink/30"
+                }
+              `}
+            >
+              <span
+                aria-hidden
+                className={`
+                  absolute top-[1px] w-[18px] h-[18px] transition-all duration-200 ease-out
+                  ${newTaskNotify ? "left-[22px] bg-cream" : "left-[1px] bg-ink/70"}
+                `}
+              />
+            </button>
+            <span>
+              <span className="block text-[15px] tracking-[-0.005em] text-ink">
+                Email me when new tasks are published that match my interests
+              </span>
+              <span className="block mt-2 text-[13px] leading-[1.55] text-muted max-w-[54ch]">
+                Matching is based on the career tracks you selected during
+                onboarding. You can update those in the Profile tab.
               </span>
             </span>
           </label>

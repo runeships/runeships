@@ -151,6 +151,7 @@ export async function saveHumanFeedback(
       taskTitle: task.title,
       totalScore,
       notifyOnFeedback: studentRes.data.notify_on_feedback,
+      source: "human",
     });
   }
 

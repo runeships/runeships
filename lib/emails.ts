@@ -128,6 +128,9 @@ type StudentNotificationCtx = {
   taskTitle: string;
   totalScore: number;
   notifyOnFeedback: boolean;
+  /** 'ai' (Claude-generated) vs 'human' (admin scoring form). The
+   *  subject line + lead paragraph adapt accordingly. */
+  source: "ai" | "human";
 };
 
 export async function notifyStudentOfFeedback(
@@ -144,13 +147,20 @@ export async function notifyStudentOfFeedback(
   const firstName = firstNameOf(ctx.studentName);
   const submissionUrl = `${SITE_URL}/submissions/${ctx.submissionId}`;
   const roundedTotal = Math.round(ctx.totalScore);
+  const isHuman = ctx.source === "human";
+  const subject = isHuman
+    ? "Your RuneShips feedback is ready — reviewed by the team"
+    : "Your RuneShips feedback is ready";
+  const humanSentence = isHuman
+    ? " Your submission was reviewed personally by the RuneShips team."
+    : "";
 
   const body = `
     <p style="margin:0 0 16px 0; color:${INK};">Hi ${escapeHtml(firstName)},</p>
     <p style="margin:0 0 16px 0; color:${INK}; line-height:1.6;">
       Your submission on <strong>${escapeHtml(ctx.taskTitle)}</strong> has been reviewed.
       Total score: <strong style="color:${OXBLOOD};">${roundedTotal}/100</strong>.
-      View your full feedback for per-dimension scores and qualitative notes from the reviewer.
+      View your full feedback for per-dimension scores and qualitative notes from the reviewer.${humanSentence}
     </p>
     ${buttonHtml(submissionUrl, "View feedback")}
     <p style="margin:20px 0 0 0; color:${MUTED}; font-size:12px; line-height:1.55;">
@@ -163,13 +173,80 @@ export async function notifyStudentOfFeedback(
       from: RESEND_FROM,
       to: ctx.studentEmail,
       replyTo: "hello@runeships.com",
-      subject: "Your RuneShips feedback is ready",
+      subject,
       html: shellHtml({ title: "Your feedback is ready", body }),
-      text: `Hi ${firstName},\n\nYour submission on ${ctx.taskTitle} has been reviewed. Total score: ${roundedTotal}/100.\n\nView: ${submissionUrl}`,
+      text: `Hi ${firstName},\n\nYour submission on ${ctx.taskTitle} has been reviewed. Total score: ${roundedTotal}/100.${humanSentence}\n\nView: ${submissionUrl}`,
     });
     return { ok: true };
   } catch (err) {
     console.error("[notifyStudentOfFeedback resend]", err);
+    return { ok: false };
+  }
+}
+
+/* ─── Student notification: new task matching their interests ─────── */
+
+type NewTaskNotificationCtx = {
+  recipientEmail: string;
+  recipientName: string | null;
+  taskTitle: string;
+  taskSlug: string;
+  companyName: string;
+  companySlug: string;
+  estimatedTime: string | null;
+  /** Capitalized dimension names (e.g. ['Strategy', 'Communication']). */
+  primaryDimensions: string[];
+  /** Plain-text teaser, already trimmed and ellipsised. */
+  briefTeaser: string;
+};
+
+export async function notifyStudentOfNewTask(
+  ctx: NewTaskNotificationCtx,
+): Promise<{ ok: boolean }> {
+  if (!resend) {
+    console.warn("[notifyStudentOfNewTask] Resend not configured");
+    return { ok: false };
+  }
+
+  const taskUrl = `${SITE_URL}/tasks/${ctx.companySlug}/${ctx.taskSlug}`;
+  const profileUrl = `${SITE_URL}/profile?tab=account`;
+  const dims = ctx.primaryDimensions
+    .map((d) => escapeHtml(d.toUpperCase()))
+    .join(
+      ` <span style="color:${MUTED};" aria-hidden="true">·</span> `,
+    );
+
+  const body = `
+    <p style="margin:0 0 18px 0; font-family: Georgia, 'Times New Roman', serif; font-size:22px; font-weight:300; line-height:1.2; color:${INK}; letter-spacing:-0.012em;">
+      ${escapeHtml(ctx.taskTitle)}
+    </p>
+    <p style="margin:0 0 10px 0; color:${MUTED}; font-size:13px;">
+      Posted by <span style="color:${INK};">${escapeHtml(ctx.companyName)}</span>${ctx.estimatedTime ? ` <span style="color:${MUTED};">·</span> Est. ${escapeHtml(ctx.estimatedTime)}` : ""}
+    </p>
+    <p style="margin:0 0 18px 0; color:${OXBLOOD}; font-size:11px; letter-spacing:0.16em;">
+      ${dims}
+    </p>
+    <p style="margin:0 0 8px 0; color:${INK}; line-height:1.6; font-size:14px;">
+      ${escapeHtml(ctx.briefTeaser)}
+    </p>
+    ${buttonHtml(taskUrl, "View task")}
+    <p style="margin:24px 0 0 0; color:${MUTED}; font-size:12px; line-height:1.55;">
+      You&rsquo;re receiving this because you opted in to new task notifications. Adjust your preferences in your <a href="${profileUrl}" style="color:${OXBLOOD}; text-decoration: underline;">profile</a>.
+    </p>
+  `;
+
+  try {
+    await resend.emails.send({
+      from: RESEND_FROM,
+      to: ctx.recipientEmail,
+      replyTo: "hello@runeships.com",
+      subject: `New task on RuneShips: ${ctx.taskTitle}`,
+      html: shellHtml({ title: "A new task is live.", body }),
+      text: `${ctx.taskTitle}\nPosted by ${ctx.companyName}${ctx.estimatedTime ? ` · Est. ${ctx.estimatedTime}` : ""}\n\n${ctx.briefTeaser}\n\nView: ${taskUrl}`,
+    });
+    return { ok: true };
+  } catch (err) {
+    console.error("[notifyStudentOfNewTask resend]", err);
     return { ok: false };
   }
 }

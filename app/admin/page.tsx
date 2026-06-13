@@ -2,6 +2,7 @@ import Link from "next/link";
 import { requireAdmin } from "@/lib/admin";
 import { createAdminClient } from "@/lib/supabase-admin";
 import { AdminNav } from "@/components/AdminNav";
+import { NotifyCohortButton } from "@/components/NotifyCohortButton";
 import { timeAgo, domainOf } from "@/lib/format";
 import { ArrowUpRight, Inbox } from "lucide-react";
 
@@ -95,6 +96,37 @@ export default async function AdminIndexPage() {
   const profileById = byId(profilesRes.data ?? [], (p) => p.id);
   const taskById = byId(taskDetailRes.data ?? [], (t) => t.id);
   const companyById = byId(companiesRes.data ?? [], (c) => c.id);
+
+  // ─── Tasks section data ─────────────────────────────────────
+  // Every published task + its company + its lifetime submission
+  // count, so the admin can fire a "new task" email blast directly
+  // from the queue page.
+  const allTasksRes = await admin
+    .from("tasks")
+    .select(
+      "id, slug, title, company_id, category, evaluation_mode, is_published",
+    )
+    .eq("is_published", true)
+    .order("category", { ascending: true });
+  const allCompanyIds = unique(
+    (allTasksRes.data ?? []).map((t) => t.company_id),
+  );
+  const allCompaniesRes =
+    allCompanyIds.length > 0
+      ? await admin
+          .from("companies")
+          .select("id, name")
+          .in("id", allCompanyIds)
+      : { data: [] as { id: string; name: string }[], error: null };
+  const allCompanyById = byId(allCompaniesRes.data ?? [], (c) => c.id);
+  // Submission counts via JS histogram across all submissions.
+  const taskSubmissionCounts = new Map<string, number>();
+  for (const s of submissionsRes.data ?? []) {
+    taskSubmissionCounts.set(
+      s.task_id,
+      (taskSubmissionCounts.get(s.task_id) ?? 0) + 1,
+    );
+  }
 
   return (
     <main className="px-6 sm:px-10 md:px-16 pt-28 sm:pt-32 md:pt-36 pb-24 sm:pb-32 min-h-dvh">
@@ -221,6 +253,59 @@ export default async function AdminIndexPage() {
             </ul>
           </>
         )}
+
+        {/* ─── Tasks ─────────────────────────────────────────── */}
+        <section className="mt-20 sm:mt-24">
+          <div>
+            <h2
+              className="font-display font-light tracking-[-0.018em] leading-[1.1] text-ink"
+              style={{ fontSize: "clamp(1.5rem, 1vw + 1rem, 1.75rem)" }}
+            >
+              Tasks
+            </h2>
+            <hr className="mt-4 border-0 border-t border-ink/10" />
+          </div>
+          <p className="mt-5 font-display italic text-[15px] leading-[1.5] text-muted max-w-[56ch]">
+            All published tasks. Use “Notify cohort” to email opted-in
+            students whose interests match the task’s primary dimensions.
+          </p>
+          <ul className="mt-8 divide-y divide-ink/10 border-y border-ink/10">
+            {(allTasksRes.data ?? []).map((t) => {
+              const tc = allCompanyById.get(t.company_id);
+              const subCount = taskSubmissionCounts.get(t.id) ?? 0;
+              return (
+                <li
+                  key={t.id}
+                  className="py-5 grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-x-6 gap-y-3 items-center"
+                >
+                  <div className="min-w-0">
+                    <p className="text-[15px] tracking-[-0.005em] text-ink font-medium">
+                      {t.title}
+                    </p>
+                    <p className="mt-1 text-[12px] text-muted">
+                      {tc?.name ?? "(unknown company)"}
+                      <span aria-hidden className="mx-2 text-muted/50">·</span>
+                      <span className="uppercase tracking-[0.04em]">
+                        {t.evaluation_mode === "human"
+                          ? "human review"
+                          : "ai feedback"}
+                      </span>
+                      <span aria-hidden className="mx-2 text-muted/50">·</span>
+                      {subCount}{" "}
+                      {subCount === 1 ? "submission" : "submissions"}
+                    </p>
+                  </div>
+                  <div className="shrink-0">
+                    <NotifyCohortButton
+                      taskId={t.id}
+                      taskTitle={t.title}
+                    />
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
 
         <div className="mt-16 pt-8 border-t border-ink/10">
           <Link

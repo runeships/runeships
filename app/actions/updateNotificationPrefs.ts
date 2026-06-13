@@ -3,17 +3,23 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase-server";
 
+export type NotificationPrefs = {
+  notifyOnFeedback?: boolean;
+  notifyOnNewTasks?: boolean;
+};
+
 export type UpdateNotificationPrefsResult =
-  | { success: true; notifyOnFeedback: boolean }
+  | { success: true; prefs: NotificationPrefs }
   | { success: false; error: "unauthorized" | "update_failed" };
 
 /**
- * Toggle a single notification preference. The UI optimistically
- * flips the switch and calls this; on failure the client should
- * snap the switch back.
+ * Update one or both of the student's notification toggles. Each
+ * toggle is independent — the AccountTab calls this once per flip
+ * with only the changed pref set. Omit a key entirely to leave it
+ * untouched.
  */
 export async function updateNotificationPrefs(
-  notifyOnFeedback: boolean,
+  prefs: NotificationPrefs,
 ): Promise<UpdateNotificationPrefsResult> {
   const supabase = await createClient();
 
@@ -22,9 +28,27 @@ export async function updateNotificationPrefs(
   } = await supabase.auth.getUser();
   if (!user) return { success: false, error: "unauthorized" };
 
+  // Build the partial update — only keys present in `prefs` are
+  // forwarded, so an undefined key doesn't accidentally overwrite a
+  // value that's been set elsewhere.
+  const updateObj: {
+    notify_on_feedback?: boolean;
+    notify_on_new_tasks?: boolean;
+  } = {};
+  if (prefs.notifyOnFeedback !== undefined) {
+    updateObj.notify_on_feedback = prefs.notifyOnFeedback;
+  }
+  if (prefs.notifyOnNewTasks !== undefined) {
+    updateObj.notify_on_new_tasks = prefs.notifyOnNewTasks;
+  }
+  if (Object.keys(updateObj).length === 0) {
+    // No-op — nothing to write.
+    return { success: true, prefs };
+  }
+
   const { error: updateError } = await supabase
     .from("profiles")
-    .update({ notify_on_feedback: notifyOnFeedback })
+    .update(updateObj)
     .eq("id", user.id);
 
   if (updateError) {
@@ -33,5 +57,5 @@ export async function updateNotificationPrefs(
   }
 
   revalidatePath("/profile");
-  return { success: true, notifyOnFeedback };
+  return { success: true, prefs };
 }

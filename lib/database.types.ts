@@ -25,6 +25,7 @@
  * - 018_update_veganuno_task            → content swap, no schema change
  * - 019_add_task_dataset_url            → tasks.dataset_url + .dataset_label
  * - 022_add_evaluation_mode             → tasks.evaluation_mode
+ * - 024_add_new_task_notification_pref  → profiles.notify_on_new_tasks
  */
 
 export type Json =
@@ -120,6 +121,7 @@ export interface Database {
           onboarding_completed: boolean;
           is_admin: boolean;
           notify_on_feedback: boolean;
+          notify_on_new_tasks: boolean;
           is_seed: boolean;
           leaderboard_visible: boolean;
           created_at: string;
@@ -141,6 +143,7 @@ export interface Database {
           onboarding_completed?: boolean;
           is_admin?: boolean;
           notify_on_feedback?: boolean;
+          notify_on_new_tasks?: boolean;
           is_seed?: boolean;
           leaderboard_visible?: boolean;
           created_at?: string;
@@ -163,6 +166,7 @@ export interface Database {
           onboarding_completed?: boolean;
           is_admin?: boolean;
           notify_on_feedback?: boolean;
+          notify_on_new_tasks?: boolean;
           is_seed?: boolean;
           leaderboard_visible?: boolean;
           created_at?: string;

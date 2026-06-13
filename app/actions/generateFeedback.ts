@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase-server";
 import { createAdminClient } from "@/lib/supabase-admin";
 import { anthropic, DEFAULT_MODEL } from "@/lib/anthropic";
+import { notifyStudentOfFeedback } from "@/lib/emails";
 
 // Note: `maxDuration` cannot be exported from a "use server" file —
 // it's a Route Segment Config and must live on the page/route that
@@ -170,6 +171,29 @@ export async function generateFeedback(
   if (insertError || !inserted) {
     console.error("[generateFeedback insert]", insertError);
     return { success: false, error: "insert_failed" };
+  }
+
+  // Best-effort email notification. Email failure must not block
+  // feedback delivery — the DB row is the source of truth.
+  try {
+    const { data: studentProfile } = await admin
+      .from("profiles")
+      .select("email, full_name, notify_on_feedback")
+      .eq("id", submission.user_id)
+      .maybeSingle();
+    if (studentProfile) {
+      await notifyStudentOfFeedback({
+        submissionId: submission.id,
+        studentEmail: studentProfile.email,
+        studentName: studentProfile.full_name,
+        taskTitle: task.title ?? "(untitled task)",
+        totalScore,
+        notifyOnFeedback: studentProfile.notify_on_feedback,
+        source: "ai",
+      });
+    }
+  } catch (err) {
+    console.error("[generateFeedback notify]", err);
   }
 
   return { success: true, feedbackId: inserted.id, reused: false };

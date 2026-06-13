@@ -11,7 +11,8 @@
     "preflight": "npm run lint && npm run typecheck",
     "prepare": "husky",
     "seed:demo": "tsx scripts/seed-demo-users.ts",
-    "seed:clear": "tsx scripts/clear-demo-users.ts"
+    "seed:clear": "tsx scripts/clear-demo-users.ts",
+    "notify-task": "tsx scripts/notify-new-task.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.100.1",
