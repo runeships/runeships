@@ -114,17 +114,6 @@ export function RegradeAdminRow({ row }: { row: AdminRegradeRow }) {
           >
             Review
           </button>
-          <a
-            href={`/submissions/${row.submissionId}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="
-              link-anim text-[14px] tracking-[0.005em] text-muted
-              hover:text-ink transition-colors duration-200 ease-out
-            "
-          >
-            Open student view ↗
-          </a>
         </div>
       ) : (
         <form action={formAction} className="px-7 pb-7 space-y-7">
