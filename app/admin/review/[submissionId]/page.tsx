@@ -93,17 +93,30 @@ export default async function AdminReviewPage({
   return (
     <main className="px-6 sm:px-10 md:px-16 pt-28 sm:pt-32 md:pt-36 pb-24 sm:pb-32 min-h-dvh">
       <div className="mx-auto max-w-[1240px]">
-        <p className="text-[11px] tracking-[0.20em] uppercase text-oxblood">
-          Admin · Review
+        {/* Breadcrumb */}
+        <nav
+          aria-label="Breadcrumb"
+          className="text-[12px] tracking-[0.04em] text-muted"
+        >
+          <Link
+            href="/admin"
+            className="link-anim hover:text-ink transition-colors duration-200 ease-out"
+          >
+            <span aria-hidden>←</span> Review queue
+          </Link>
+        </nav>
+
+        <p className="mt-7 text-[11px] tracking-[0.20em] uppercase text-oxblood">
+          Reviewing
         </p>
         <h1
-          className="mt-4 font-display font-light tracking-[-0.022em] leading-[1.04] text-ink"
+          className="mt-3 font-display font-light tracking-[-0.022em] leading-[1.04] text-ink"
           style={{
             fontSize: "clamp(1.85rem, 2vw + 1rem, 2.3rem)",
             fontVariationSettings: '"opsz" 144',
           }}
         >
-          Reviewing: {studentName}&rsquo;s submission
+          {studentName}&rsquo;s submission
         </h1>
         <p className="mt-4 text-[12px] tracking-[0.06em] uppercase text-muted">
           {task.title}

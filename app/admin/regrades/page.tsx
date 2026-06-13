@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { requireAdmin } from "@/lib/admin";
+import { AdminNav } from "@/components/AdminNav";
 import { createAdminClient } from "@/lib/supabase-admin";
 import { RegradeAdminRow } from "@/components/RegradeAdminRow";
 
@@ -48,20 +49,18 @@ export default async function AdminRegradesPage() {
   return (
     <main className="px-6 sm:px-10 md:px-16 pt-28 sm:pt-32 md:pt-36 pb-24 sm:pb-32 min-h-dvh">
       <div className="mx-auto max-w-[1080px]">
-        {/* Header */}
-        <p className="text-[11px] tracking-[0.20em] uppercase text-oxblood">
-          Admin · Signed in as {adminEmail}
-        </p>
+        <AdminNav current="regrades" email={adminEmail} />
+
         <h1
-          className="mt-4 font-display font-light tracking-[-0.022em] leading-[1.02] text-ink"
+          className="mt-10 font-display font-light tracking-[-0.022em] leading-[1.04] text-ink"
           style={{
-            fontSize: "clamp(2rem, 3.6vw + 1rem, 3.25rem)",
+            fontSize: "clamp(1.85rem, 2.4vw + 1rem, 2.5rem)",
             fontVariationSettings: '"opsz" 144',
           }}
         >
-          Regrade requests
+          Student-requested regrades
         </h1>
-        <p className="mt-5 text-[15px] leading-[1.55] text-muted max-w-[60ch]">
+        <p className="mt-5 font-display italic text-[16px] sm:text-[17px] leading-[1.5] text-muted max-w-[56ch]">
           {pendingRows.length === 0
             ? "No pending requests."
             : `${pendingRows.length} pending ${
