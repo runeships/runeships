@@ -1,119 +1,243 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Reveal } from "@/components/Reveal";
+import { FeedbackTrigger } from "@/components/FeedbackTrigger";
 
 export const metadata: Metadata = {
-  title: "Why this exists — RuneShips",
+  title: "Why RuneShips exists",
   description:
-    "The founder story behind RuneShips: 40 rejected internships, the visibility problem, and the case for letting students prove the work directly.",
+    "The experience loop, our bet on demonstrable skill, and what this platform is and isn't.",
 };
 
-/**
- * Founder story — full version. Editorial article layout. Eight
- * numbered paragraph slots. Replace each `sketch` field with the real
- * copy when ready; the structure stays put.
- */
 export default function StoryPage() {
-  const paragraphs: { n: number; label: string; sketch: string }[] = [
-    {
-      n: 1,
-      label: "The 40 internships",
-      sketch:
-        "What you applied to, why, what types of firms. The volume and the texture of those applications. The first signal that something was structurally off.",
-    },
-    {
-      n: 2,
-      label: "The two interviews",
-      sketch:
-        "The two résumé screens you made it past. What the interviewers actually said. The phrasing of being told you weren't qualified for the qualification.",
-    },
-    {
-      n: 3,
-      label: "Watching who got in",
-      sketch:
-        "The pattern in the people who did land internships. Parents at the firm. Target schools. On-campus recruiting that front-loaded the funnel. Visibility, not capability.",
-    },
-    {
-      n: 4,
-      label: "The realization",
-      sketch:
-        "Naming the problem clearly: the credential gate isn't a quality filter, it's a proxy for who got introduced to the right person early. What that means for everyone who's outside that funnel.",
-    },
-    {
-      n: 5,
-      label: "The insight that became RuneShips",
-      sketch:
-        "Work as proof. A way to demonstrate ability before being given the chance to demonstrate it. The moment this stopped being a complaint and started being a product idea.",
-    },
-    {
-      n: 6,
-      label: "Why now",
-      sketch:
-        "What's different about this moment. AI feedback at scale. Distribution through LinkedIn and university clubs. Why this couldn't have worked five years ago and won't be necessary in fifteen.",
-    },
-    {
-      n: 7,
-      label: "What RuneShips is and isn't",
-      sketch:
-        "It's not a job board, not a course platform, not an AI tutor. It's a portable, work-tested skill rank. State what we will and won't do — the discipline matters.",
-    },
-    {
-      n: 8,
-      label: "The invitation",
-      sketch:
-        "What you're asking the reader to do. Sign up if you're a student. Post a pilot task if you're a company. Email me directly if you have something else to add.",
-    },
-  ];
-
   return (
     <main className="px-6 sm:px-10 md:px-16 pt-28 sm:pt-36 md:pt-44 pb-24 sm:pb-32">
       <article className="mx-auto max-w-[680px]">
-        <Reveal mode="load" delay={0.05}>
-          <p className="text-[12px] tracking-[0.16em] uppercase text-muted">
-            Founder note
-          </p>
-          <h1
-            className="mt-5 font-display font-light tracking-[-0.022em] leading-[1.02] text-ink"
-            style={{
-              fontSize: "var(--text-display)",
-              fontVariationSettings: '"opsz" 144',
-            }}
-          >
-            Why this exists.
-          </h1>
-          <p className="mt-7 text-[14px] tracking-[0.02em] text-muted">
-            By Diego Marjotie, founder
-          </p>
-        </Reveal>
+        <p className="text-[12px] tracking-[0.16em] uppercase text-muted">
+          Story
+        </p>
+        <h1
+          className="mt-5 font-display font-light tracking-[-0.022em] leading-[1.02] text-ink"
+          style={{
+            fontSize: "var(--text-display)",
+            fontVariationSettings: '"opsz" 144',
+          }}
+        >
+          The experience loop.
+        </h1>
 
-        <Reveal mode="load" delay={0.20} className="mt-12 sm:mt-14">
-          <div className="text-[17px] leading-[1.7] text-ink/85 space-y-10">
-            {paragraphs.map((p) => (
-              <section key={p.n}>
-                <p className="text-[11px] tracking-[0.18em] uppercase text-oxblood mb-3 tabular-nums">
-                  <span className="font-display">{p.n}.</span>{" "}
-                  <span>{p.label}</span>
-                </p>
-                <p className="italic text-muted">{p.sketch}</p>
-              </section>
-            ))}
+        <Lede>
+          <p>
+            You need experience to get experience. Most internships require
+            experience. Most experience requires an internship. Most
+            opportunities require a credential the candidate doesn&rsquo;t
+            yet have, gated by the very system that&rsquo;s supposed to
+            grant it.
+          </p>
+          <p>
+            This particularly hurts freshmen and sophomores — students with
+            no track record yet, locked out of formative opportunities by a
+            system that selects for opportunities already had.
+          </p>
+          <p className="text-ink">RuneShips exists to break that loop.</p>
+        </Lede>
+
+        <Section title="What we tried before">
+          <p>There have been attempts.</p>
+          <DefinitionList>
+            <DefItem term="Résumé optimization">
+              Better keywords, ATS tricks, cleaner formatting. Doesn&rsquo;t
+              fix the problem; it just helps you compete for the same
+              scarce slots.
+            </DefItem>
+            <DefItem term="Networking events">
+              Useful, but they reproduce the network you already have. They
+              reward extroversion and proximity to existing opportunity,
+              not skill.
+            </DefItem>
+            <DefItem term="Project portfolios">
+              Closer to the right idea, but most students don&rsquo;t know
+              what to build, and what they do build isn&rsquo;t comparable
+              across people.
+            </DefItem>
+            <DefItem term="Coding challenge platforms">
+              They work for software roles. They don&rsquo;t work for
+              strategy, design, communication, or creativity.
+            </DefItem>
+            <DefItem term="Case competitions">
+              Too rare, too curated, too tied to specific schools.
+            </DefItem>
+          </DefinitionList>
+          <p>
+            The common failure: none of these produce a portable,
+            comparable signal of skill that operates outside the credential
+            system.
+          </p>
+        </Section>
+
+        <Section title="The RuneShips bet">
+          <p>
+            We think skill is demonstrable. If you can do strategic
+            thinking, you can write a strategic recommendation. If you can
+            communicate, you can write a clear memo. If you can build, you
+            can ship something. The work itself is the proof.
+          </p>
+          <p>
+            So we ask companies to post real tasks. We let any student
+            attempt them, regardless of where they go to school or what
+            year they&rsquo;re in. We score the work across five dimensions
+            using AI feedback that&rsquo;s calibrated, specific, and
+            immediate. We aggregate scores into a portable ranking that
+            travels with the student, visible to recruiters hiring for
+            early-career roles.
+          </p>
+          <p>
+            The student gets feedback faster than they&rsquo;d get from a
+            TA. The recruiter gets signal tied to actual work, not GPA or
+            school name. The company that posted the task gets a stream of
+            attempts from students they might otherwise never see.
+          </p>
+        </Section>
+
+        <Section title="What this is">
+          <p>
+            A skill assessment platform. A practice surface. A portable
+            transcript for work you&rsquo;ve actually done.
+          </p>
+        </Section>
+
+        <Section title="What this isn’t">
+          <p>
+            A job placement service. A guarantee of any specific role or
+            outcome. A replacement for relationships, mentorship, or
+            in-person learning. A credential that supersedes degrees or
+            experience — it&rsquo;s adjacent to those, not replacement for
+            them.
+          </p>
+          <p>
+            If you complete tasks here and rank well, you&rsquo;ve shown
+            you can do those specific tasks. That&rsquo;s it. That&rsquo;s
+            also more than most students can show at this point in their
+            journey.
+          </p>
+        </Section>
+
+        <Section title="Where we are">
+          <p>
+            RuneShips is early. We&rsquo;re testing whether AI feedback can
+            be calibrated enough to trust, whether students will find the
+            feedback genuinely useful, whether companies will post tasks
+            that matter, whether recruiters will use the rankings.
+          </p>
+          <p>
+            We don&rsquo;t know yet. We&rsquo;re going to find out by doing
+            it.
+          </p>
+          <DefinitionList>
+            <DefItem term="If you’re a student">
+              Try a task. See what the feedback looks like. Tell us if
+              it&rsquo;s useful.
+            </DefItem>
+            <DefItem term="If you’re a company">
+              Post a task. See what students do with it. Tell us if the
+              work is good.
+            </DefItem>
+            <DefItem term="If you’re a recruiter">
+              Tell us what signal you&rsquo;d actually use, what you
+              wouldn&rsquo;t trust, what we&rsquo;d need to prove.
+            </DefItem>
+          </DefinitionList>
+        </Section>
+
+        <Section title="A note from the founder">
+          {/* Reminder to Diego — visible inset so the draft below
+              doesn't ship as a final voice without a pass. */}
+          <div className="pl-6 sm:pl-8 border-l-2 border-oxblood/60 max-w-[60ch]">
+            <p className="font-display italic text-[14px] leading-[1.6] text-oxblood">
+              Diego — rewrite this section in your own voice before
+              publishing. The draft below is a starting point, but this is
+              the page where your actual voice matters most. Edit freely.
+            </p>
           </div>
-        </Reveal>
+          <p>
+            I&rsquo;m Diego. I noticed that students around me with
+            capability and ambition were running into closed doors because
+            they couldn&rsquo;t prove what they could do. I&rsquo;m
+            building RuneShips to give them a door to walk through.
+          </p>
+          <p>
+            There&rsquo;s no point pretending I have all the answers. I
+            have a thesis, a working platform, and a willingness to be
+            wrong about pieces of it. Send me feedback. Tell me what&rsquo;s
+            broken. The early users shape what this becomes.
+          </p>
+        </Section>
 
-        <div className="mt-20 sm:mt-24 pt-10 border-t border-rule">
+        {/* Feedback inset */}
+        <div className="mt-14 pl-6 sm:pl-8 border-l-2 border-oxblood/60 max-w-[60ch]">
+          <p className="font-display italic text-[16px] leading-[1.6] text-ink/85">
+            Want to shape what RuneShips becomes? <FeedbackTrigger />
+          </p>
+        </div>
+
+        <div className="mt-16 pt-10 border-t border-rule">
           <Link
             href="/"
-            className="
-              inline-flex items-center gap-1.5
-              text-[14px] tracking-[0.01em] text-ink
-              underline-offset-[5px] decoration-ink/30 hover:decoration-ink hover:underline
-              transition-colors duration-200 ease-out
-            "
+            className="link-anim text-[14px] tracking-[0.01em] text-ink transition-colors duration-200 ease-out"
           >
             <span aria-hidden>←</span> Back to RuneShips
           </Link>
         </div>
       </article>
     </main>
+  );
+}
+
+/* ─── Editorial helpers ─────────────────────────────────────────── */
+
+function Lede({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="mt-10 prose-editorial text-[18px] sm:text-[19px] leading-[1.65] text-ink/85 space-y-5">
+      {children}
+    </div>
+  );
+}
+
+function Section({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="mt-14 sm:mt-16">
+      <h2 className="font-display font-light text-[22px] sm:text-[24px] leading-[1.2] tracking-[-0.018em] text-ink">
+        {title}
+      </h2>
+      <hr className="mt-3 border-0 border-t border-ink/10" />
+      <div className="mt-6 prose-editorial text-[16px] sm:text-[17px] leading-[1.7] text-ink/85 space-y-5 [&_ul]:list-disc [&_ul]:pl-6 [&_ul]:space-y-2 [&_li]:leading-[1.65]">
+        {children}
+      </div>
+    </section>
+  );
+}
+
+function DefinitionList({ children }: { children: React.ReactNode }) {
+  return <div className="space-y-5">{children}</div>;
+}
+
+function DefItem({
+  term,
+  children,
+}: {
+  term: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <p>
+      <strong className="text-oxblood font-semibold">{term}</strong>
+      {" — "}
+      {children}
+    </p>
   );
 }
