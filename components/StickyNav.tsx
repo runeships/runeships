@@ -44,14 +44,19 @@ const SCROLL_THRESHOLD = 80;
  * - On mobile, the desktop link list collapses into a hamburger that
  *   opens a full-screen takeover menu.
  */
-export function StickyNav() {
+export function StickyNav({ isAuthed = false }: { isAuthed?: boolean }) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const reducedMotion = useReducedMotion();
   const pathname = usePathname() ?? "/";
 
   const isAppMinimal = matchesPrefix(pathname, APP_MINIMAL_ROUTES);
-  const isAppAuthed = matchesPrefix(pathname, APP_AUTHED_ROUTES);
+  // A signed-in user on a marketing-style page (e.g. /privacy,
+  // /cookies, /terms, /proof, /story) should still see the in-app
+  // nav so they can get back to /dashboard without hunting. Treat
+  // any non-/login route as in-app-mode when authenticated.
+  const isAppAuthed =
+    !isAppMinimal && (matchesPrefix(pathname, APP_AUTHED_ROUTES) || isAuthed);
   const isAppMode = isAppMinimal || isAppAuthed;
 
   useEffect(() => {

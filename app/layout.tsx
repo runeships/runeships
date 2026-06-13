@@ -5,6 +5,7 @@ import { StickyNav } from "@/components/StickyNav";
 import { Toast } from "@/components/Toast";
 import { CookieBanner } from "@/components/CookieBanner";
 import { Footer } from "@/components/Footer";
+import { createClient } from "@/lib/supabase-server";
 
 // Editorial display serif. The opsz axis lets us scale optical sizing for
 // the very large hero headline vs. smaller section titles.
@@ -50,16 +51,28 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  // Auth state once per request so StickyNav can pick the right
+  // navigation variant — marketing CTA when signed out, in-app
+  // (Dashboard + ProfileMenu) when signed in, regardless of which
+  // page the user is on. Reading auth here makes the layout
+  // dynamic, which is the right tradeoff: marketing pages still
+  // render fast, and the nav stops "flashing" the wrong variant.
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const isAuthed = Boolean(user);
+
   return (
     <html
       lang="en"
       className={`${fraunces.variable} ${instrumentSans.variable} ${notoSansRunic.variable}`}
     >
       <body className="min-h-dvh bg-cream text-ink font-body antialiased selection:bg-oxblood selection:text-cream">
-        <StickyNav />
+        <StickyNav isAuthed={isAuthed} />
         {children}
         <Footer />
         <CookieBanner />
