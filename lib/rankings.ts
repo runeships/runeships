@@ -250,6 +250,21 @@ export async function hypotheticalPercentile(
 
 /* ─── Leaderboard helper ────────────────────────────────────────── */
 
+/**
+ * Per-(user, task) best scores. Independent max per dimension and
+ * per total — matches the global aggregation strategy where a user's
+ * "best on this dimension for this task" might come from a different
+ * submission than their "best total on this task".
+ */
+export type TaskBest = {
+  total: number;
+  strategy: number;
+  execution: number;
+  communication: number;
+  technical: number;
+  creativity: number;
+};
+
 export type LeaderboardRow = {
   userId: string;
   fullName: string;
@@ -257,7 +272,27 @@ export type LeaderboardRow = {
   graduationYear: number | null;
   aggregates: Record<Dimension, number | null>;
   overall: number | null;
+  /** Average of the user's best total_score per task — distinct from
+   *  `overall` (sum of per-dim aggregates) because it normalizes by
+   *  task count instead of summing across dimensions. Null when the
+   *  user has no feedback. */
+  avgPerTask: number | null;
   submissionCount: number;
+  /** Best scores per task the user has submitted to, keyed by task id.
+   *  Powers the task-scoped leaderboard view. */
+  taskScores: Record<string, TaskBest>;
+};
+
+export type LeaderboardTaskOption = {
+  id: string;
+  slug: string;
+  title: string;
+  companySlug: string;
+};
+
+export type LeaderboardData = {
+  rows: LeaderboardRow[];
+  tasks: LeaderboardTaskOption[];
 };
 
 /**
@@ -271,26 +306,44 @@ export type LeaderboardRow = {
  * view if the cohort gets large.
  */
 export const getLeaderboard = cache(async function getLeaderboardImpl(): Promise<
-  LeaderboardRow[]
+  LeaderboardData
 > {
   const admin = createAdminClient();
-  const [profilesRes, aggregatesRes, submissionsRes, visibleIds] =
-    await Promise.all([
-      admin
-        .from("profiles")
-        .select("id, full_name, school, graduation_year"),
-      admin.rpc("get_user_aggregates"),
-      admin.from("submissions").select("user_id"),
-      getVisibleUserIds(admin),
-    ]);
+  const [
+    profilesRes,
+    aggregatesRes,
+    submissionsRes,
+    feedbackRes,
+    tasksRes,
+    companiesRes,
+    visibleIds,
+  ] = await Promise.all([
+    admin
+      .from("profiles")
+      .select("id, full_name, school, graduation_year"),
+    admin.rpc("get_user_aggregates"),
+    admin.from("submissions").select("id, user_id, task_id"),
+    admin
+      .from("feedback")
+      .select(
+        "submission_id, total_score, score_strategy, score_execution, score_communication, score_technical, score_creativity",
+      ),
+    admin
+      .from("tasks")
+      .select("id, slug, title, company_id")
+      .eq("is_published", true)
+      .order("order_index", { ascending: true }),
+    admin.from("companies").select("id, slug"),
+    getVisibleUserIds(admin),
+  ]);
 
   if (profilesRes.error) {
     console.error("[getLeaderboard profiles]", profilesRes.error);
-    return [];
+    return { rows: [], tasks: [] };
   }
   if (aggregatesRes.error) {
     console.error("[getLeaderboard rpc]", aggregatesRes.error);
-    return [];
+    return { rows: [], tasks: [] };
   }
 
   // Pre-migration tolerance — visibleIds=null means no filter applied.
@@ -305,8 +358,46 @@ export const getLeaderboard = cache(async function getLeaderboardImpl(): Promise
     aggregatesByUser.set(row.user_id, row);
   }
 
-  // Submission counts per user. Cheaper than `count: 'exact'` per
-  // user since we just want a histogram across user_ids.
+  // ─── Per-(user, task) best scores ────────────────────────────
+  // Join feedback ↔ submissions in JS. Independent max per dimension
+  // matches the global aggregation in get_user_aggregates().
+  const submissionsById = new Map<string, { user_id: string; task_id: string }>();
+  for (const s of submissionsRes.data ?? []) {
+    submissionsById.set(s.id, { user_id: s.user_id, task_id: s.task_id });
+  }
+  const taskBestByUser = new Map<string, Map<string, TaskBest>>();
+  for (const fb of feedbackRes.data ?? []) {
+    const sub = submissionsById.get(fb.submission_id);
+    if (!sub) continue;
+    let userMap = taskBestByUser.get(sub.user_id);
+    if (!userMap) {
+      userMap = new Map();
+      taskBestByUser.set(sub.user_id, userMap);
+    }
+    const existing = userMap.get(sub.task_id);
+    if (!existing) {
+      userMap.set(sub.task_id, {
+        total: fb.total_score,
+        strategy: fb.score_strategy,
+        execution: fb.score_execution,
+        communication: fb.score_communication,
+        technical: fb.score_technical,
+        creativity: fb.score_creativity,
+      });
+    } else {
+      existing.total = Math.max(existing.total, fb.total_score);
+      existing.strategy = Math.max(existing.strategy, fb.score_strategy);
+      existing.execution = Math.max(existing.execution, fb.score_execution);
+      existing.communication = Math.max(
+        existing.communication,
+        fb.score_communication,
+      );
+      existing.technical = Math.max(existing.technical, fb.score_technical);
+      existing.creativity = Math.max(existing.creativity, fb.score_creativity);
+    }
+  }
+
+  // Submission counts per user.
   const submissionCounts = new Map<string, number>();
   for (const row of submissionsRes.data ?? []) {
     submissionCounts.set(
@@ -315,7 +406,20 @@ export const getLeaderboard = cache(async function getLeaderboardImpl(): Promise
     );
   }
 
-  return profiles.map((p): LeaderboardRow => {
+  // ─── Build task option list for the dropdown ─────────────────
+  const companySlugMap = new Map<string, string>();
+  for (const c of companiesRes.data ?? []) {
+    companySlugMap.set(c.id, c.slug);
+  }
+  const tasks: LeaderboardTaskOption[] = (tasksRes.data ?? []).map((t) => ({
+    id: t.id,
+    slug: t.slug,
+    title: t.title,
+    companySlug: companySlugMap.get(t.company_id) ?? "",
+  }));
+
+  // ─── Build leaderboard rows ──────────────────────────────────
+  const rows: LeaderboardRow[] = profiles.map((p): LeaderboardRow => {
     const agg = aggregatesByUser.get(p.id);
     const aggregates: Record<Dimension, number | null> = agg
       ? {
@@ -333,6 +437,19 @@ export const getLeaderboard = cache(async function getLeaderboardImpl(): Promise
         Number(agg.technical) +
         Number(agg.creativity)
       : null;
+
+    const userTasks = taskBestByUser.get(p.id);
+    const taskScores: Record<string, TaskBest> = {};
+    let avgPerTask: number | null = null;
+    if (userTasks && userTasks.size > 0) {
+      let sum = 0;
+      for (const [taskId, best] of userTasks.entries()) {
+        taskScores[taskId] = best;
+        sum += best.total;
+      }
+      avgPerTask = sum / userTasks.size;
+    }
+
     return {
       userId: p.id,
       fullName: p.full_name ?? "(unnamed)",
@@ -340,9 +457,13 @@ export const getLeaderboard = cache(async function getLeaderboardImpl(): Promise
       graduationYear: p.graduation_year,
       aggregates,
       overall,
+      avgPerTask,
       submissionCount: submissionCounts.get(p.id) ?? 0,
+      taskScores,
     };
   });
+
+  return { rows, tasks };
 });
 
 /* ─── Internal helpers ──────────────────────────────────────────── */

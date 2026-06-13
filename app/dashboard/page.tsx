@@ -241,13 +241,13 @@ export default async function DashboardPage() {
 
   // ─── Cohort rankings + leaderboard (both cached per request) ────
   // Rankings drive the per-dimension percentile labels + the hero
-  // longship. Leaderboard rows drive the cohort table embedded inside
-  // the "Where you stand" panel so the user can see their absolute
-  // scores AND their position in the cohort without leaving the page.
-  const [rankings, leaderboardRows] = await Promise.all([
+  // longship. Leaderboard data drives the embedded cohort table —
+  // rows for the table itself, tasks for the scope dropdown.
+  const [rankings, leaderboard] = await Promise.all([
     getRankings(user.id),
     getLeaderboard(),
   ]);
+  const { rows: leaderboardRows, tasks: leaderboardTasks } = leaderboard;
 
   const firstName =
     profile?.full_name?.trim().split(/\s+/)[0] ?? "there";
@@ -323,6 +323,7 @@ export default async function DashboardPage() {
                 rankings={rankings}
                 selfRated={radarValues}
                 leaderboardRows={leaderboardRows}
+                leaderboardTasks={leaderboardTasks}
                 currentUserId={user.id}
               />
             </div>

@@ -1,5 +1,6 @@
 import {
   type LeaderboardRow,
+  type LeaderboardTaskOption,
   type RankingsResult,
   dimensionLabel,
 } from "@/lib/rankings";
@@ -12,6 +13,7 @@ type RankingPanelProps = {
   rankings: RankingsResult;
   selfRated: RadarValues;
   leaderboardRows: LeaderboardRow[];
+  leaderboardTasks: LeaderboardTaskOption[];
   currentUserId: string;
 };
 
@@ -29,6 +31,7 @@ export function RankingPanel({
   rankings,
   selfRated,
   leaderboardRows,
+  leaderboardTasks,
   currentUserId,
 }: RankingPanelProps) {
   const hasFeedback = rankings.strongestDimension !== null;
@@ -161,7 +164,11 @@ export function RankingPanel({
           <p className="text-[11px] tracking-[0.18em] uppercase text-muted">
             Cohort leaderboard
           </p>
-          <LeaderboardTable rows={leaderboardRows} currentUserId={currentUserId} />
+          <LeaderboardTable
+            rows={leaderboardRows}
+            tasks={leaderboardTasks}
+            currentUserId={currentUserId}
+          />
         </div>
       )}
 
