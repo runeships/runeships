@@ -21,6 +21,9 @@
  * - 014_add_notification_prefs          → public.profiles.notify_on_feedback
  * - 015_user_aggregates_fn              → public.get_user_aggregates() rpc
  * - 016_add_seed_and_visibility         → profiles.is_seed + .leaderboard_visible
+ * - 017_grant_service_role_writes       → GRANTs only, no schema change
+ * - 018_update_veganuno_task            → content swap, no schema change
+ * - 019_add_task_dataset_url            → tasks.dataset_url + .dataset_label
  */
 
 export type Json =
@@ -222,6 +225,8 @@ export interface Database {
           order_index: number;
           is_published: boolean;
           category: TaskCategory;
+          dataset_url: string | null;
+          dataset_label: string | null;
           created_at: string;
         };
         Insert: {
@@ -240,6 +245,8 @@ export interface Database {
           order_index?: number;
           is_published?: boolean;
           category?: TaskCategory;
+          dataset_url?: string | null;
+          dataset_label?: string | null;
           created_at?: string;
         };
         Relationships: [];
@@ -259,6 +266,8 @@ export interface Database {
           order_index?: number;
           is_published?: boolean;
           category?: TaskCategory;
+          dataset_url?: string | null;
+          dataset_label?: string | null;
           created_at?: string;
         };
       };

@@ -49,7 +49,7 @@ export default async function TaskDetailPage({
   const { data: task } = await supabase
     .from("tasks")
     .select(
-      "id, slug, title, brief, submission_mode, estimated_time, weight_strategy, weight_execution, weight_communication, weight_technical, weight_creativity, is_published",
+      "id, slug, title, brief, submission_mode, estimated_time, weight_strategy, weight_execution, weight_communication, weight_technical, weight_creativity, is_published, dataset_url, dataset_label",
     )
     .eq("company_id", company.id)
     .eq("slug", taskSlug)
@@ -136,6 +136,45 @@ export default async function TaskDetailPage({
             )}
           </p>
         </header>
+
+        {/* Starter dataset — shown above the brief when the task has
+            an attached file. Editorial hairline-bordered panel with
+            label + filename + download button. */}
+        {task.dataset_url && (
+          <section className="mt-16 sm:mt-20">
+            <div className="mx-auto max-w-[680px]">
+              <div className="border-l-2 border-oxblood pl-6 sm:pl-8">
+                <p className="text-[11px] tracking-[0.18em] uppercase text-oxblood">
+                  Starter dataset
+                </p>
+                {task.dataset_label && (
+                  <p className="mt-4 text-[15px] leading-[1.6] text-ink/85">
+                    {task.dataset_label}
+                  </p>
+                )}
+                <a
+                  href={task.dataset_url}
+                  download
+                  className="
+                    mt-5 inline-flex items-center gap-2
+                    min-h-[44px] px-5
+                    bg-oxblood text-cream border border-oxblood
+                    text-[14px] tracking-[0.01em] font-medium
+                    transition-colors duration-200 ease-out
+                    hover:bg-oxblood-hover focus-visible:bg-oxblood-hover
+                    focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-oxblood
+                  "
+                >
+                  Download dataset
+                  <span aria-hidden>↓</span>
+                </a>
+                <p className="mt-3 text-[12px] tracking-[0.005em] text-muted">
+                  {task.dataset_url.split("/").pop()}
+                </p>
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* Brief */}
         <section className="mt-16 sm:mt-20">
