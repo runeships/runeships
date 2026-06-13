@@ -11,19 +11,24 @@ import {
   type DeleteAccountState,
 } from "@/app/actions/deleteAccount";
 import { updateNotificationPrefs } from "@/app/actions/updateNotificationPrefs";
+import { updateLeaderboardVisibility } from "@/app/actions/updateLeaderboardVisibility";
 
 const initialDelete: DeleteAccountState = { status: "idle" };
 
 export function AccountTab({
   email,
   notifyOnFeedback,
+  leaderboardVisible,
 }: {
   email: string;
   notifyOnFeedback: boolean;
+  leaderboardVisible: boolean;
 }) {
   const [signOutPending, startSignOut] = useTransition();
   const [notify, setNotify] = useState(notifyOnFeedback);
   const [notifyPending, startNotify] = useTransition();
+  const [visible, setVisible] = useState(leaderboardVisible);
+  const [visiblePending, startVisible] = useTransition();
   const [confirming, setConfirming] = useState(false);
   const [deleteState, deleteAction, deletePending] = useActionState(
     deleteAccount,
@@ -38,6 +43,22 @@ export function AccountTab({
       const result = await updateNotificationPrefs(next);
       if (!result.success) {
         setNotify(!next); // rollback
+        window.dispatchEvent(
+          new CustomEvent("runeships:toast", {
+            detail: { text: "Couldn’t save preference. Try again." },
+          }),
+        );
+      }
+    });
+  }
+
+  function toggleVisible() {
+    const next = !visible;
+    setVisible(next); // optimistic
+    startVisible(async () => {
+      const result = await updateLeaderboardVisibility(next);
+      if (!result.success) {
+        setVisible(!next); // rollback
         window.dispatchEvent(
           new CustomEvent("runeships:toast", {
             detail: { text: "Couldn’t save preference. Try again." },
@@ -134,6 +155,54 @@ export function AccountTab({
                 Currently we only send a confirmation when AI feedback completes
                 on your submission. (Feature coming soon — this toggle is wired
                 up but the email itself ships in a later update.)
+              </span>
+            </span>
+          </label>
+        </div>
+      </section>
+
+      {/* ─── Leaderboard visibility ──────────────────────────── */}
+      <section className="max-w-[680px]">
+        <h2 className="font-display font-light text-[22px] sm:text-[24px] leading-[1.15] tracking-[-0.018em] text-ink">
+          Leaderboard visibility
+        </h2>
+        <hr className="mt-4 border-0 border-t border-ink/10" />
+
+        <div className="mt-7">
+          <label className="flex items-start gap-4 cursor-pointer select-none">
+            <button
+              type="button"
+              role="switch"
+              aria-checked={visible}
+              onClick={toggleVisible}
+              disabled={visiblePending}
+              className={`
+                relative shrink-0 mt-0.5 w-11 h-6 border transition-colors duration-200 ease-out
+                disabled:opacity-60 disabled:cursor-not-allowed
+                focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-oxblood
+                ${visible
+                  ? "bg-oxblood border-oxblood"
+                  : "bg-cream border-ink/30"
+                }
+              `}
+            >
+              <span
+                aria-hidden
+                className={`
+                  absolute top-[1px] w-[18px] h-[18px] transition-all duration-200 ease-out
+                  ${visible ? "left-[22px] bg-cream" : "left-[1px] bg-ink/70"}
+                `}
+              />
+            </button>
+            <span>
+              <span className="block text-[15px] tracking-[-0.005em] text-ink">
+                Show me on the leaderboard
+              </span>
+              <span className="block mt-2 text-[13px] leading-[1.55] text-muted max-w-[54ch]">
+                When enabled, your name, school, and scores appear on the
+                public RuneShips leaderboard. Disable to keep your profile
+                private — your work and feedback remain available to you
+                either way.
               </span>
             </span>
           </label>

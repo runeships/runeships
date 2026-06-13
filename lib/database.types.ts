@@ -20,6 +20,7 @@
  * - 013_add_admin_flag                  → public.profiles.is_admin
  * - 014_add_notification_prefs          → public.profiles.notify_on_feedback
  * - 015_user_aggregates_fn              → public.get_user_aggregates() rpc
+ * - 016_add_seed_and_visibility         → profiles.is_seed + .leaderboard_visible
  */
 
 export type Json =
@@ -115,6 +116,8 @@ export interface Database {
           onboarding_completed: boolean;
           is_admin: boolean;
           notify_on_feedback: boolean;
+          is_seed: boolean;
+          leaderboard_visible: boolean;
           created_at: string;
           updated_at: string;
         };
@@ -134,6 +137,8 @@ export interface Database {
           onboarding_completed?: boolean;
           is_admin?: boolean;
           notify_on_feedback?: boolean;
+          is_seed?: boolean;
+          leaderboard_visible?: boolean;
           created_at?: string;
           updated_at?: string;
         };
@@ -154,6 +159,8 @@ export interface Database {
           onboarding_completed?: boolean;
           is_admin?: boolean;
           notify_on_feedback?: boolean;
+          is_seed?: boolean;
+          leaderboard_visible?: boolean;
           created_at?: string;
           updated_at?: string;
         };

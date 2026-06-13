@@ -65,14 +65,32 @@ export const getRankings = cache(async function getRankingsImpl(
   userId: string,
 ): Promise<RankingsResult> {
   const admin = createAdminClient();
-  const { data, error } = await admin.rpc("get_user_aggregates");
+  // Fetch aggregates and the visibility flags in parallel. We filter
+  // the aggregates down to the leaderboard-visible cohort before any
+  // percentile / mean calc — opt-out users don't count toward cohort
+  // stats. The caller is still found in the (unfiltered) aggregates
+  // so they can see their own row even if they themselves are opted
+  // out.
+  const [aggregatesRes, visibleRes] = await Promise.all([
+    admin.rpc("get_user_aggregates"),
+    admin
+      .from("profiles")
+      .select("id")
+      .eq("leaderboard_visible", true),
+  ]);
 
-  if (error) {
-    console.error("[getRankings rpc]", error);
+  if (aggregatesRes.error) {
+    console.error("[getRankings rpc]", aggregatesRes.error);
+    return emptyResult();
+  }
+  if (visibleRes.error) {
+    console.error("[getRankings visibility]", visibleRes.error);
     return emptyResult();
   }
 
-  const rows = data ?? [];
+  const allRows = aggregatesRes.data ?? [];
+  const visibleIds = new Set((visibleRes.data ?? []).map((p) => p.id));
+  const rows = allRows.filter((r) => visibleIds.has(r.user_id));
   const cohortSize = rows.length;
 
   if (cohortSize === 0) {
@@ -88,8 +106,10 @@ export const getRankings = cache(async function getRankingsImpl(
     creativity: avg(rows.map((r) => Number(r.creativity))),
   };
 
-  // Locate the caller's row.
-  const userRow = rows.find((r) => r.user_id === userId);
+  // Locate the caller's row. We check the FULL aggregates list (not
+  // the visibility-filtered cohort) so users who opted out of the
+  // leaderboard still see their own standing.
+  const userRow = allRows.find((r) => r.user_id === userId);
   if (!userRow) {
     return {
       cohortSize,
@@ -207,26 +227,116 @@ export async function hypotheticalPercentile(
   dim: Dimension,
   value: number,
 ): Promise<number | null> {
-  // Reuse getRankings only for cohort access; cheap enough to call.
   const admin = createAdminClient();
-  const { data } = await admin.rpc("get_user_aggregates");
-  if (!data || data.length === 0) return null;
+  const [aggregatesRes, visibleRes] = await Promise.all([
+    admin.rpc("get_user_aggregates"),
+    admin.from("profiles").select("id").eq("leaderboard_visible", true),
+  ]);
+  const data = aggregatesRes.data ?? [];
+  if (data.length === 0) return null;
+  const visibleIds = new Set((visibleRes.data ?? []).map((p) => p.id));
 
-  // We still want one row for the caller in the comparison set, but
-  // with the hypothetical value substituted on the chosen dimension.
-  // Build a comparable array of per-row aggregates on this dim.
-  const aggregates = data.map((r) => {
-    if (r.user_id === userId) return value;
-    return Number(r[dim]);
-  });
+  // Cohort = visible users only. Substitute the caller's hypothetical
+  // value when they're in the cohort; otherwise the cohort is the
+  // baseline they're being compared against.
+  const aggregates = data
+    .filter((r) => visibleIds.has(r.user_id))
+    .map((r) => (r.user_id === userId ? value : Number(r[dim])));
 
   const cohortSize = aggregates.length;
   if (cohortSize === 0) return null;
-  // ≤ to match the main percentileFor() formula — counterfactual
-  // and cohort percentiles share the same semantics.
   const atOrBelow = aggregates.filter((a) => a <= value).length;
   return Math.round((atOrBelow / cohortSize) * 100);
 }
+
+/* ─── Leaderboard helper ────────────────────────────────────────── */
+
+export type LeaderboardRow = {
+  userId: string;
+  fullName: string;
+  school: string | null;
+  graduationYear: number | null;
+  aggregates: Record<Dimension, number | null>;
+  overall: number | null;
+  submissionCount: number;
+};
+
+/**
+ * Returns one row per leaderboard-visible profile. Includes profiles
+ * with no submissions yet (aggregates null, submissionCount 0) — the
+ * /leaderboard page renders them at the bottom rather than hiding
+ * them.
+ *
+ * Hits 3 tables (profiles + aggregates RPC + submissions) but all in
+ * parallel. At <100 users this is fine; promote to a precomputed
+ * view if the cohort gets large.
+ */
+export const getLeaderboard = cache(async function getLeaderboardImpl(): Promise<
+  LeaderboardRow[]
+> {
+  const admin = createAdminClient();
+  const [profilesRes, aggregatesRes, submissionsRes] = await Promise.all([
+    admin
+      .from("profiles")
+      .select("id, full_name, school, graduation_year")
+      .eq("leaderboard_visible", true),
+    admin.rpc("get_user_aggregates"),
+    admin.from("submissions").select("user_id"),
+  ]);
+
+  if (profilesRes.error) {
+    console.error("[getLeaderboard profiles]", profilesRes.error);
+    return [];
+  }
+  if (aggregatesRes.error) {
+    console.error("[getLeaderboard rpc]", aggregatesRes.error);
+    return [];
+  }
+
+  const aggregatesByUser = new Map<string, (typeof aggregatesRes.data)[number]>();
+  for (const row of aggregatesRes.data ?? []) {
+    aggregatesByUser.set(row.user_id, row);
+  }
+
+  // Submission counts per user. Cheaper than `count: 'exact'` per
+  // user since we just want a histogram across user_ids.
+  const submissionCounts = new Map<string, number>();
+  for (const row of submissionsRes.data ?? []) {
+    submissionCounts.set(
+      row.user_id,
+      (submissionCounts.get(row.user_id) ?? 0) + 1,
+    );
+  }
+
+  return (profilesRes.data ?? []).map((p): LeaderboardRow => {
+    const agg = aggregatesByUser.get(p.id);
+    const aggregates: Record<Dimension, number | null> = agg
+      ? {
+          strategy: Number(agg.strategy),
+          execution: Number(agg.execution),
+          communication: Number(agg.communication),
+          technical: Number(agg.technical),
+          creativity: Number(agg.creativity),
+        }
+      : nullDims();
+    const overall = agg
+      ? Number(agg.strategy) +
+        Number(agg.execution) +
+        Number(agg.communication) +
+        Number(agg.technical) +
+        Number(agg.creativity)
+      : null;
+    return {
+      userId: p.id,
+      fullName: p.full_name ?? "(unnamed)",
+      school: p.school,
+      graduationYear: p.graduation_year,
+      aggregates,
+      overall,
+      submissionCount: submissionCounts.get(p.id) ?? 0,
+    };
+  });
+});
 
 /* ─── Internal helpers ──────────────────────────────────────────── */
 

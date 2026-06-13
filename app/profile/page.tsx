@@ -37,7 +37,7 @@ export default async function ProfilePage({
   const { data: profile } = await supabase
     .from("profiles")
     .select(
-      "full_name, school, graduation_year, career_tracks, specific_skills, self_rated_strategy, self_rated_execution, self_rated_communication, self_rated_technical, self_rated_creativity, notify_on_feedback, created_at",
+      "full_name, school, graduation_year, career_tracks, specific_skills, self_rated_strategy, self_rated_execution, self_rated_communication, self_rated_technical, self_rated_creativity, notify_on_feedback, leaderboard_visible, created_at",
     )
     .eq("id", user.id)
     .maybeSingle();
@@ -118,6 +118,7 @@ export default async function ProfilePage({
             <AccountTab
               email={email}
               notifyOnFeedback={profile.notify_on_feedback}
+              leaderboardVisible={profile.leaderboard_visible}
             />
           )}
           {tab === "privacy" && <PrivacyTab />}
