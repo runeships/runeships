@@ -34,10 +34,11 @@ export default async function ProfilePage({
   } = await supabase.auth.getUser();
   if (!user) redirect("/login?next=/profile");
 
+  // Core profile fields — these existed before migration 016.
   const { data: profile } = await supabase
     .from("profiles")
     .select(
-      "full_name, school, graduation_year, career_tracks, specific_skills, self_rated_strategy, self_rated_execution, self_rated_communication, self_rated_technical, self_rated_creativity, notify_on_feedback, leaderboard_visible, created_at",
+      "full_name, school, graduation_year, career_tracks, specific_skills, self_rated_strategy, self_rated_execution, self_rated_communication, self_rated_technical, self_rated_creativity, notify_on_feedback, created_at",
     )
     .eq("id", user.id)
     .maybeSingle();
@@ -46,6 +47,19 @@ export default async function ProfilePage({
     // Profile row should exist via the on_auth_user_created trigger.
     // If it doesn't, push the user back to onboarding which creates it.
     redirect("/onboarding");
+  }
+
+  // leaderboard_visible is post-016. Read it in a separate query so
+  // a missing column doesn't take the whole profile page down. Default
+  // true matches the column's eventual default value.
+  let leaderboardVisible = true;
+  const { data: visRow, error: visErr } = await supabase
+    .from("profiles")
+    .select("leaderboard_visible")
+    .eq("id", user.id)
+    .maybeSingle();
+  if (!visErr && visRow && visRow.leaderboard_visible !== null) {
+    leaderboardVisible = visRow.leaderboard_visible;
   }
 
   const tab = parseTab((await searchParams).tab);
@@ -118,7 +132,7 @@ export default async function ProfilePage({
             <AccountTab
               email={email}
               notifyOnFeedback={profile.notify_on_feedback}
-              leaderboardVisible={profile.leaderboard_visible}
+              leaderboardVisible={leaderboardVisible}
             />
           )}
           {tab === "privacy" && <PrivacyTab />}

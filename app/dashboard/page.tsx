@@ -311,18 +311,8 @@ export default async function DashboardPage() {
           </div>
         )}
 
-        {/* ─── Section 0: Where you stand ─────────────────────────── */}
-        {radarValues && (
-          <section className="mt-16 sm:mt-20">
-            <DashboardSectionHeading>Where you stand</DashboardSectionHeading>
-            <div className="mt-8">
-              <RankingPanel rankings={rankings} selfRated={radarValues} />
-            </div>
-          </section>
-        )}
-
         {/* ─── Section 1: Available tasks ─────────────────────────── */}
-        <section className="mt-20 sm:mt-24">
+        <section className="mt-16 sm:mt-20">
           <DashboardSectionHeading>Available tasks</DashboardSectionHeading>
 
           {tasks.length === 0 ? (
@@ -359,6 +349,15 @@ export default async function DashboardPage() {
           )}
         </section>
 
+        {/* ─── Section 3: Where you stand ─────────────────────────── */}
+        {radarValues && (
+          <section className="mt-20 sm:mt-24">
+            <DashboardSectionHeading>Where you stand</DashboardSectionHeading>
+            <div className="mt-8">
+              <RankingPanel rankings={rankings} selfRated={radarValues} />
+            </div>
+          </section>
+        )}
       </div>
     </main>
   );

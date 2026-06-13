@@ -65,32 +65,26 @@ export const getRankings = cache(async function getRankingsImpl(
   userId: string,
 ): Promise<RankingsResult> {
   const admin = createAdminClient();
-  // Fetch aggregates and the visibility flags in parallel. We filter
-  // the aggregates down to the leaderboard-visible cohort before any
-  // percentile / mean calc — opt-out users don't count toward cohort
-  // stats. The caller is still found in the (unfiltered) aggregates
-  // so they can see their own row even if they themselves are opted
-  // out.
-  const [aggregatesRes, visibleRes] = await Promise.all([
+  const [aggregatesRes, visibleIds] = await Promise.all([
     admin.rpc("get_user_aggregates"),
-    admin
-      .from("profiles")
-      .select("id")
-      .eq("leaderboard_visible", true),
+    getVisibleUserIds(admin),
   ]);
 
   if (aggregatesRes.error) {
     console.error("[getRankings rpc]", aggregatesRes.error);
     return emptyResult();
   }
-  if (visibleRes.error) {
-    console.error("[getRankings visibility]", visibleRes.error);
-    return emptyResult();
-  }
 
   const allRows = aggregatesRes.data ?? [];
-  const visibleIds = new Set((visibleRes.data ?? []).map((p) => p.id));
-  const rows = allRows.filter((r) => visibleIds.has(r.user_id));
+  // visibleIds === null means migration 016 hasn't run yet, in which
+  // case we don't filter — treat all users as visible. Once the
+  // column exists, opted-out users drop out of the cohort numerator.
+  // The caller is found in the unfiltered list either way so opted-
+  // out users still see their own standing.
+  const rows =
+    visibleIds === null
+      ? allRows
+      : allRows.filter((r) => visibleIds.has(r.user_id));
   const cohortSize = rows.length;
 
   if (cohortSize === 0) {
@@ -228,20 +222,25 @@ export async function hypotheticalPercentile(
   value: number,
 ): Promise<number | null> {
   const admin = createAdminClient();
-  const [aggregatesRes, visibleRes] = await Promise.all([
+  const [aggregatesRes, visibleIds] = await Promise.all([
     admin.rpc("get_user_aggregates"),
-    admin.from("profiles").select("id").eq("leaderboard_visible", true),
+    getVisibleUserIds(admin),
   ]);
   const data = aggregatesRes.data ?? [];
   if (data.length === 0) return null;
-  const visibleIds = new Set((visibleRes.data ?? []).map((p) => p.id));
 
-  // Cohort = visible users only. Substitute the caller's hypothetical
-  // value when they're in the cohort; otherwise the cohort is the
-  // baseline they're being compared against.
-  const aggregates = data
-    .filter((r) => visibleIds.has(r.user_id))
-    .map((r) => (r.user_id === userId ? value : Number(r[dim])));
+  // visibleIds === null → migration 016 hasn't run yet; don't filter.
+  const cohortRows =
+    visibleIds === null
+      ? data
+      : data.filter((r) => visibleIds.has(r.user_id));
+
+  // Substitute the caller's hypothetical value when they're in the
+  // cohort; otherwise the cohort is the baseline they're being
+  // compared against.
+  const aggregates = cohortRows.map((r) =>
+    r.user_id === userId ? value : Number(r[dim]),
+  );
 
   const cohortSize = aggregates.length;
   if (cohortSize === 0) return null;
@@ -275,14 +274,15 @@ export const getLeaderboard = cache(async function getLeaderboardImpl(): Promise
   LeaderboardRow[]
 > {
   const admin = createAdminClient();
-  const [profilesRes, aggregatesRes, submissionsRes] = await Promise.all([
-    admin
-      .from("profiles")
-      .select("id, full_name, school, graduation_year")
-      .eq("leaderboard_visible", true),
-    admin.rpc("get_user_aggregates"),
-    admin.from("submissions").select("user_id"),
-  ]);
+  const [profilesRes, aggregatesRes, submissionsRes, visibleIds] =
+    await Promise.all([
+      admin
+        .from("profiles")
+        .select("id, full_name, school, graduation_year"),
+      admin.rpc("get_user_aggregates"),
+      admin.from("submissions").select("user_id"),
+      getVisibleUserIds(admin),
+    ]);
 
   if (profilesRes.error) {
     console.error("[getLeaderboard profiles]", profilesRes.error);
@@ -292,6 +292,13 @@ export const getLeaderboard = cache(async function getLeaderboardImpl(): Promise
     console.error("[getLeaderboard rpc]", aggregatesRes.error);
     return [];
   }
+
+  // Pre-migration tolerance — visibleIds=null means no filter applied.
+  const allProfiles = profilesRes.data ?? [];
+  const profiles =
+    visibleIds === null
+      ? allProfiles
+      : allProfiles.filter((p) => visibleIds.has(p.id));
 
   const aggregatesByUser = new Map<string, (typeof aggregatesRes.data)[number]>();
   for (const row of aggregatesRes.data ?? []) {
@@ -308,7 +315,7 @@ export const getLeaderboard = cache(async function getLeaderboardImpl(): Promise
     );
   }
 
-  return (profilesRes.data ?? []).map((p): LeaderboardRow => {
+  return profiles.map((p): LeaderboardRow => {
     const agg = aggregatesByUser.get(p.id);
     const aggregates: Record<Dimension, number | null> = agg
       ? {
@@ -339,6 +346,30 @@ export const getLeaderboard = cache(async function getLeaderboardImpl(): Promise
 });
 
 /* ─── Internal helpers ──────────────────────────────────────────── */
+
+/**
+ * Returns the set of user_ids opted into the leaderboard, or null if
+ * the leaderboard_visible column doesn't exist yet (i.e. migration
+ * 016 has not been run). Returning null tells the caller "don't
+ * filter" so the app degrades gracefully in the pre-migration state.
+ */
+async function getVisibleUserIds(
+  admin: ReturnType<typeof createAdminClient>,
+): Promise<Set<string> | null> {
+  const { data, error } = await admin
+    .from("profiles")
+    .select("id")
+    .eq("leaderboard_visible", true);
+  if (error) {
+    // Most likely cause: column does not exist (pre-migration).
+    // Log once so we know, but don't fail the request.
+    console.warn(
+      "[getVisibleUserIds] visibility filter unavailable — falling back to all users. Run migration 016 to enable.",
+    );
+    return null;
+  }
+  return new Set((data ?? []).map((p) => p.id));
+}
 
 function percentileFor(
   rows: Array<{ user_id: string } & Record<Dimension, number | string>>,
