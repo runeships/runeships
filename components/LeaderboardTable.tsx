@@ -20,16 +20,26 @@ type SortKey =
   | "creativity"
   | "activity";
 
-const SORT_OPTIONS: Array<{ key: SortKey; label: string }> = [
-  { key: "overall", label: "Overall" },
-  { key: "avg", label: "Avg per task" },
-  { key: "strategy", label: "Strategy" },
-  { key: "execution", label: "Execution" },
-  { key: "communication", label: "Communication" },
-  { key: "technical", label: "Technical" },
-  { key: "creativity", label: "Creativity" },
-  { key: "activity", label: "Most active" },
+// Three editorial groups. Aggregate metrics (avg, overall) are the
+// primary cluster — avg-per-task is now the headline metric used by
+// the dashboard hero. Dimension metrics in the middle. Volume on the
+// far right. Rendered with hairline separators between groups.
+const SORT_GROUPS: Array<Array<{ key: SortKey; label: string }>> = [
+  [
+    { key: "avg", label: "Avg per task" },
+    { key: "overall", label: "Overall" },
+  ],
+  [
+    { key: "strategy", label: "Strategy" },
+    { key: "execution", label: "Execution" },
+    { key: "communication", label: "Communication" },
+    { key: "technical", label: "Technical" },
+    { key: "creativity", label: "Creativity" },
+  ],
+  [{ key: "activity", label: "Most active" }],
 ];
+
+const DEFAULT_SORT: SortKey = "avg";
 
 const VALID_SORT_KEYS = new Set<SortKey>([
   "overall",
@@ -81,7 +91,7 @@ export function LeaderboardTable({
   // ─── Seed local state from URL on mount ─────────────────────
   const [sortKey, setSortKeyState] = useState<SortKey>(() => {
     const v = sp?.get("sort");
-    return v && VALID_SORT_KEYS.has(v as SortKey) ? (v as SortKey) : "overall";
+    return v && VALID_SORT_KEYS.has(v as SortKey) ? (v as SortKey) : DEFAULT_SORT;
   });
   const [taskSlug, setTaskSlugState] = useState<string>(() => {
     const v = sp?.get("task");
@@ -112,7 +122,7 @@ export function LeaderboardTable({
   const setSortKey = useCallback(
     (k: SortKey) => {
       setSortKeyState(k);
-      updateUrl("sort", k, "overall");
+      updateUrl("sort", k, DEFAULT_SORT);
     },
     [updateUrl],
   );
@@ -235,34 +245,44 @@ export function LeaderboardTable({
         />
       </div>
 
-      {/* Sort chips */}
+      {/* Sort chips — three groups with hairline dividers between. */}
       <nav
         aria-label="Sort options"
-        className="mt-6 flex flex-wrap gap-2"
+        className="mt-6 flex flex-wrap items-center gap-y-2"
       >
-        {SORT_OPTIONS.map((opt) => {
-          const active = opt.key === sortKey;
-          return (
-            <button
-              key={opt.key}
-              type="button"
-              onClick={() => setSortKey(opt.key)}
-              aria-pressed={active}
-              className={`
-                inline-flex items-center
-                min-h-[36px] px-4
-                border text-[13px] tracking-[-0.005em]
-                transition-colors duration-150 ease-out
-                ${active
-                  ? "bg-oxblood text-cream border-oxblood"
-                  : "bg-cream text-oxblood border-oxblood/50 hover:border-oxblood"
-                }
-              `}
-            >
-              {opt.label}
-            </button>
-          );
-        })}
+        {SORT_GROUPS.map((group, groupIdx) => (
+          <div key={groupIdx} className="flex flex-wrap items-center gap-2">
+            {groupIdx > 0 && (
+              <span
+                aria-hidden
+                className="inline-block h-5 w-px bg-ink/20 mx-2"
+              />
+            )}
+            {group.map((opt) => {
+              const active = opt.key === sortKey;
+              return (
+                <button
+                  key={opt.key}
+                  type="button"
+                  onClick={() => setSortKey(opt.key)}
+                  aria-pressed={active}
+                  className={`
+                    inline-flex items-center
+                    min-h-[36px] px-4
+                    border text-[13px] tracking-[-0.005em]
+                    transition-colors duration-150 ease-out
+                    ${active
+                      ? "bg-oxblood text-cream border-oxblood"
+                      : "bg-cream text-oxblood border-oxblood/50 hover:border-oxblood"
+                    }
+                  `}
+                >
+                  {opt.label}
+                </button>
+              );
+            })}
+          </div>
+        ))}
       </nav>
 
       {/* Filter caption */}

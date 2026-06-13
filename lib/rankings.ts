@@ -35,15 +35,19 @@ export type RankingsResult = {
   strongestDimension: Dimension | null;
   weakestDimension: Dimension | null;
   /**
-   * Sum of the user's 5 dimension aggregates. Null when the user has
-   * no feedback. Used as the single number that drives the hero
-   * longship's fill on the dashboard "Where you stand" panel.
+   * The user's average best-total-score per task (mean of the
+   * max(total_score) per task across all tasks they've submitted to).
+   * Null when the user has no feedback. Drives the dashboard hero
+   * longship — this is the primary "overall standing" metric.
+   *
+   * Was previously the sum across 5 dimensions; switched to
+   * avg-per-task because it normalizes by task count (volume doesn't
+   * inflate rank).
    */
   overallAggregate: number | null;
   /**
-   * The user's percentile when the cohort is ranked by overall
-   * aggregate (sum across the 5 dims). Null when the user has no
-   * feedback.
+   * The user's percentile when the cohort is ranked by avg-per-task.
+   * Null when the user has no feedback.
    */
   overallPercentile: number | null;
 };
@@ -65,10 +69,17 @@ export const getRankings = cache(async function getRankingsImpl(
   userId: string,
 ): Promise<RankingsResult> {
   const admin = createAdminClient();
-  const [aggregatesRes, visibleIds] = await Promise.all([
-    admin.rpc("get_user_aggregates"),
-    getVisibleUserIds(admin),
-  ]);
+  // submissions + feedback are needed to compute avg-per-task per
+  // user — the metric that drives `overallAggregate` /
+  // `overallPercentile`. RPC stays the source of truth for the
+  // per-dimension aggregates.
+  const [aggregatesRes, submissionsRes, feedbackRes, visibleIds] =
+    await Promise.all([
+      admin.rpc("get_user_aggregates"),
+      admin.from("submissions").select("id, user_id, task_id"),
+      admin.from("feedback").select("submission_id, total_score"),
+      getVisibleUserIds(admin),
+    ]);
 
   if (aggregatesRes.error) {
     console.error("[getRankings rpc]", aggregatesRes.error);
@@ -173,27 +184,57 @@ export const getRankings = cache(async function getRankingsImpl(
     }, dims[0]);
   }
 
-  // Overall standing: sum of the user's 5 dimension aggregates,
-  // ranked against the same sum for every other user in the cohort.
-  // Used by the dashboard hero longship.
-  const overallAggregate =
-    userAggregates.strategy! +
-    userAggregates.execution! +
-    userAggregates.communication! +
-    userAggregates.technical! +
-    userAggregates.creativity!;
-  const cohortOverall = rows.map(
-    (r) =>
-      Number(r.strategy) +
-      Number(r.execution) +
-      Number(r.communication) +
-      Number(r.technical) +
-      Number(r.creativity),
-  );
-  // ≤ for the same "rank includes self" reason as the per-dimension
-  // percentiles above. Solo cohort → 100.
-  const atOrBelow = cohortOverall.filter((v) => v <= overallAggregate).length;
-  const overallPercentile = Math.round((atOrBelow / cohortSize) * 100);
+  // Overall standing — now driven by avg-per-task instead of
+  // sum-of-dimensions. Compute by joining submissions → feedback in
+  // JS: pick the best total_score per (user, task), then average per
+  // user. Sum-of-dimensions rewarded breadth (more dims → higher
+  // sum); avg-per-task is more about per-task quality.
+  const submissionsById = new Map<
+    string,
+    { user_id: string; task_id: string }
+  >();
+  for (const s of submissionsRes.data ?? []) {
+    submissionsById.set(s.id, { user_id: s.user_id, task_id: s.task_id });
+  }
+  const bestTotalByUserTask = new Map<string, Map<string, number>>();
+  for (const fb of feedbackRes.data ?? []) {
+    const sub = submissionsById.get(fb.submission_id);
+    if (!sub) continue;
+    let userMap = bestTotalByUserTask.get(sub.user_id);
+    if (!userMap) {
+      userMap = new Map();
+      bestTotalByUserTask.set(sub.user_id, userMap);
+    }
+    const existing = userMap.get(sub.task_id);
+    userMap.set(
+      sub.task_id,
+      existing === undefined ? fb.total_score : Math.max(existing, fb.total_score),
+    );
+  }
+  const avgPerTaskByUser = new Map<string, number>();
+  for (const [uid, taskMap] of bestTotalByUserTask) {
+    const totals = Array.from(taskMap.values());
+    if (totals.length === 0) continue;
+    avgPerTaskByUser.set(
+      uid,
+      totals.reduce((s, n) => s + n, 0) / totals.length,
+    );
+  }
+
+  // Caller's avg-per-task. They might not have any feedback yet
+  // (e.g. their aggregates came in through the early-return branch)
+  // — guard with null.
+  const overallAggregate = avgPerTaskByUser.get(userId) ?? null;
+  // Cohort to rank against = visible users with at least one
+  // submission (i.e. they have an avg-per-task entry).
+  const cohortAvgs = Array.from(avgPerTaskByUser.entries())
+    .filter(([uid]) => visibleIds === null || visibleIds.has(uid))
+    .map(([, avg]) => avg);
+  let overallPercentile: number | null = null;
+  if (overallAggregate !== null && cohortAvgs.length > 0) {
+    const atOrBelow = cohortAvgs.filter((v) => v <= overallAggregate).length;
+    overallPercentile = Math.round((atOrBelow / cohortAvgs.length) * 100);
+  }
 
   return {
     cohortSize,
