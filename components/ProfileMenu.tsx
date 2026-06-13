@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
-import { User, LogOut } from "lucide-react";
+import { User, LogOut, ClipboardCheck } from "lucide-react";
 import { createClient } from "@/lib/supabase-browser";
 import { signOut } from "@/app/actions/signOut";
 
@@ -23,7 +23,7 @@ function initialsFrom(name: string | null | undefined): string {
  * The profile lookup mirrors the old UserMenu — lazy fetch on mount
  * so the nav stays skeleton-free if the request is slow.
  */
-export function ProfileMenu() {
+export function ProfileMenu({ isAdmin = false }: { isAdmin?: boolean }) {
   const [initials, setInitials] = useState<string>("•");
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -116,6 +116,23 @@ export function ProfileMenu() {
             <User aria-hidden size={16} strokeWidth={1.6} />
             Profile
           </Link>
+          {isAdmin && (
+            <Link
+              href="/admin"
+              role="menuitem"
+              onClick={() => setOpen(false)}
+              className="
+                flex items-center gap-3 px-4 py-3
+                text-[14px] tracking-[-0.005em] text-ink
+                transition-colors duration-200 ease-out
+                hover:bg-parchment hover:text-oxblood
+                focus-visible:outline-none focus-visible:bg-parchment focus-visible:text-oxblood
+              "
+            >
+              <ClipboardCheck aria-hidden size={16} strokeWidth={1.6} />
+              Review queue
+            </Link>
+          )}
           <button
             type="button"
             role="menuitem"

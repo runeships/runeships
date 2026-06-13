@@ -6,6 +6,7 @@ import { Toast } from "@/components/Toast";
 import { CookieBanner } from "@/components/CookieBanner";
 import { Footer } from "@/components/Footer";
 import { createClient } from "@/lib/supabase-server";
+import { isAdminEmail } from "@/lib/admin";
 
 // Editorial display serif. The opsz axis lets us scale optical sizing for
 // the very large hero headline vs. smaller section titles.
@@ -66,13 +67,29 @@ export default async function RootLayout({
   } = await supabase.auth.getUser();
   const isAuthed = Boolean(user);
 
+  // Admin check — combines the env-var path with the profiles.is_admin
+  // DB flag so the nav surfaces the Review queue item for either.
+  let isAdmin = false;
+  if (user) {
+    if (isAdminEmail(user.email)) {
+      isAdmin = true;
+    } else {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("is_admin")
+        .eq("id", user.id)
+        .maybeSingle();
+      isAdmin = Boolean(profile?.is_admin);
+    }
+  }
+
   return (
     <html
       lang="en"
       className={`${fraunces.variable} ${instrumentSans.variable} ${notoSansRunic.variable}`}
     >
       <body className="min-h-dvh bg-cream text-ink font-body antialiased selection:bg-oxblood selection:text-cream">
-        <StickyNav isAuthed={isAuthed} />
+        <StickyNav isAuthed={isAuthed} isAdmin={isAdmin} />
         {children}
         <Footer />
         <CookieBanner />

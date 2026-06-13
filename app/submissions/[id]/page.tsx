@@ -49,7 +49,7 @@ export default async function SubmissionDetailPage({
 
   const { data: task } = await supabase
     .from("tasks")
-    .select("id, slug, title, company_id")
+    .select("id, slug, title, company_id, evaluation_mode")
     .eq("id", submission.task_id)
     .maybeSingle();
 
@@ -191,7 +191,9 @@ export default async function SubmissionDetailPage({
 
         {/* AI feedback */}
         <section className="mt-20 sm:mt-24">
-          <SectionHeading>AI feedback</SectionHeading>
+          <SectionHeading>
+            {task?.evaluation_mode === "human" ? "Feedback" : "AI feedback"}
+          </SectionHeading>
 
           {feedback ? (
             <FeedbackContent
@@ -202,6 +204,30 @@ export default async function SubmissionDetailPage({
               userId={user.id}
               taskId={submission.task_id}
             />
+          ) : task?.evaluation_mode === "human" ? (
+            <div className="mt-8 sm:mt-10 mx-auto max-w-[680px]">
+              <div className="pl-6 sm:pl-8 border-l-2 border-oxblood">
+                <p className="text-[11px] tracking-[0.18em] uppercase text-oxblood">
+                  Awaiting human review
+                </p>
+                <p className="mt-4 font-display font-light text-[24px] sm:text-[28px] leading-[1.15] tracking-[-0.014em] text-ink">
+                  Your work is in the queue.
+                </p>
+                <p className="mt-4 text-[16px] leading-[1.65] text-ink/85">
+                  This task is reviewed by the RuneShips founding team
+                  rather than AI. You&rsquo;ll get an email at{" "}
+                  <span className="text-ink font-medium">
+                    {user.email ?? "your account email"}
+                  </span>{" "}
+                  when your feedback is ready — typically within 3–5
+                  business days of submission. The reviewer will score
+                  across the same five dimensions as the AI does.
+                </p>
+                <p className="mt-5 text-[12px] tracking-[0.02em] text-muted">
+                  Submitted {timeAgo(submission.created_at)}
+                </p>
+              </div>
+            </div>
           ) : (
             <div className="mt-8 sm:mt-10 mx-auto max-w-[680px]">
               <div className="pl-6 sm:pl-8 border-l-2 border-oxblood">

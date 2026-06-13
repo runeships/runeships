@@ -44,7 +44,13 @@ const SCROLL_THRESHOLD = 80;
  * - On mobile, the desktop link list collapses into a hamburger that
  *   opens a full-screen takeover menu.
  */
-export function StickyNav({ isAuthed = false }: { isAuthed?: boolean }) {
+export function StickyNav({
+  isAuthed = false,
+  isAdmin = false,
+}: {
+  isAuthed?: boolean;
+  isAdmin?: boolean;
+}) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const reducedMotion = useReducedMotion();
@@ -165,7 +171,7 @@ export function StickyNav({ isAuthed = false }: { isAuthed?: boolean }) {
           {isAppAuthed && (
             <div className="flex items-center gap-7">
               <NavLink href="/dashboard">Dashboard</NavLink>
-              <ProfileMenu />
+              <ProfileMenu isAdmin={isAdmin} />
             </div>
           )}
 

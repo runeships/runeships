@@ -24,6 +24,7 @@
  * - 017_grant_service_role_writes       → GRANTs only, no schema change
  * - 018_update_veganuno_task            → content swap, no schema change
  * - 019_add_task_dataset_url            → tasks.dataset_url + .dataset_label
+ * - 022_add_evaluation_mode             → tasks.evaluation_mode
  */
 
 export type Json =
@@ -227,6 +228,7 @@ export interface Database {
           category: TaskCategory;
           dataset_url: string | null;
           dataset_label: string | null;
+          evaluation_mode: "ai" | "human";
           created_at: string;
         };
         Insert: {
@@ -247,6 +249,7 @@ export interface Database {
           category?: TaskCategory;
           dataset_url?: string | null;
           dataset_label?: string | null;
+          evaluation_mode?: "ai" | "human";
           created_at?: string;
         };
         Relationships: [];
@@ -268,6 +271,7 @@ export interface Database {
           category?: TaskCategory;
           dataset_url?: string | null;
           dataset_label?: string | null;
+          evaluation_mode?: "ai" | "human";
           created_at?: string;
         };
       };

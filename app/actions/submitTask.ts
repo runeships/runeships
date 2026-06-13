@@ -1,8 +1,10 @@
 "use server";
 
 import { createClient } from "@/lib/supabase-server";
+import { createAdminClient } from "@/lib/supabase-admin";
 import { COOLDOWN_MS } from "@/lib/format";
 import { generateFeedback } from "./generateFeedback";
+import { notifyAdminOfNewSubmission } from "@/lib/emails";
 import type { SubmissionMode } from "@/lib/database.types";
 
 // Note: `maxDuration` cannot live in a "use server" file. The 60s
@@ -17,6 +19,8 @@ export type SubmitTaskState =
       status: "success";
       submissionId: string;
       feedbackGenerated: boolean;
+      awaitingHumanReview: boolean;
+      companyName: string | null;
     }
   | {
       status: "error";
@@ -25,12 +29,6 @@ export type SubmitTaskState =
       nextAllowedAt?: string;
     };
 
-/**
- * Server action: validate + persist a submission. Does NOT trigger AI
- * feedback — that lands in Prompt 4. Cooldown is enforced server-side
- * here too even though the page renders the cooldown notice instead of
- * the form when active; this is the load-bearing check.
- */
 export async function submitTask(
   _prev: SubmitTaskState,
   formData: FormData,
@@ -60,10 +58,12 @@ export async function submitTask(
     formData.get("link_access_confirmed") === "on" ||
     formData.get("link_access_confirmed") === "true";
 
-  // Resolve the task's submission_mode so we can validate the right shape.
+  // Load both the submission shape AND the evaluation_mode + company
+  // info needed for the post-insert routing (AI feedback vs human
+  // review notification email).
   const { data: task, error: taskError } = await supabase
     .from("tasks")
-    .select("id, submission_mode")
+    .select("id, title, submission_mode, evaluation_mode, company_id")
     .eq("id", taskId)
     .maybeSingle();
 
@@ -151,7 +151,7 @@ export async function submitTask(
       supporting_link: needsLink ? supportingLink : null,
       link_access_confirmed: needsLink ? linkAccessConfirmed : false,
     })
-    .select("id")
+    .select("id, created_at")
     .single();
 
   if (insertError || !inserted) {
@@ -162,10 +162,47 @@ export async function submitTask(
     };
   }
 
-  // Submission saved — now generate feedback synchronously so the
-  // student lands on /submissions/[id] with scores already rendered.
-  // If generation fails, the submission stays put; the detail page
-  // surfaces a retry button.
+  // Look up company name for the success-state copy and the admin
+  // notification email. Service-role bypasses RLS so we get the
+  // record regardless of policy.
+  const admin = createAdminClient();
+  const { data: company } = await admin
+    .from("companies")
+    .select("name")
+    .eq("id", task.company_id)
+    .maybeSingle();
+  const companyName = company?.name ?? null;
+
+  // ─── Branch on evaluation_mode ─────────────────────────────────
+  if (task.evaluation_mode === "human") {
+    // No AI run. Notify admins and return a state the form can
+    // render as "your work is in the queue."
+    const { data: studentProfile } = await admin
+      .from("profiles")
+      .select("full_name, school, graduation_year")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    await notifyAdminOfNewSubmission({
+      submissionId: inserted.id,
+      taskTitle: task.title,
+      companyName: companyName ?? "(unknown)",
+      studentName: studentProfile?.full_name ?? user.email ?? "(unnamed)",
+      studentSchool: studentProfile?.school ?? null,
+      studentGradYear: studentProfile?.graduation_year ?? null,
+      submittedAt: inserted.created_at,
+    });
+
+    return {
+      status: "success",
+      submissionId: inserted.id,
+      feedbackGenerated: false,
+      awaitingHumanReview: true,
+      companyName,
+    };
+  }
+
+  // AI path — existing flow.
   const feedback = await generateFeedback(inserted.id);
   if (!feedback.success) {
     console.error("[submitTask generateFeedback]", feedback.error);
@@ -175,5 +212,7 @@ export async function submitTask(
     status: "success",
     submissionId: inserted.id,
     feedbackGenerated: feedback.success,
+    awaitingHumanReview: false,
+    companyName,
   };
 }

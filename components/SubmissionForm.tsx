@@ -44,21 +44,43 @@ export function SubmissionForm({
 
   if (state.status === "success") {
     const ready = state.feedbackGenerated;
+    const human = state.awaitingHumanReview;
+    const reviewerName = state.companyName ?? "The RuneShips founding team";
+
+    // Three success variants:
+    //   - human review: scoring goes to /admin queue, student waits
+    //   - AI feedback ready: scores are live
+    //   - AI feedback failed: stays put, retry available on detail page
+    const kicker = human
+      ? "Submission received"
+      : ready
+      ? "Feedback ready"
+      : "Submission received";
+    const headline = human
+      ? "Your work is in the queue."
+      : ready
+      ? "Your scores are in."
+      : "Your work has been saved.";
+    const body = human
+      ? `${reviewerName} reviews this task personally. You'll get an email when your feedback is ready — typically within 3–5 business days.`
+      : ready
+      ? "Per-dimension scores and written feedback are on the submission page."
+      : "Feedback generation hit a snag — you can retry from the submission page.";
+    const linkLabel = human
+      ? "View your submission"
+      : ready
+      ? "View it"
+      : "View your submission";
+
     return (
       <div className="pl-6 sm:pl-8 border-l-2 border-oxblood max-w-[60ch] mx-auto">
         <p className="text-[11px] tracking-[0.18em] uppercase text-oxblood">
-          {ready ? "Feedback ready" : "Submission received"}
+          {kicker}
         </p>
         <p className="mt-4 font-display font-light text-[26px] sm:text-[30px] leading-[1.15] tracking-[-0.014em] text-ink">
-          {ready
-            ? "Your scores are in."
-            : "Your work has been saved."}
+          {headline}
         </p>
-        <p className="mt-4 text-[16px] leading-[1.6] text-ink/85">
-          {ready
-            ? "Per-dimension scores and written feedback are on the submission page."
-            : "Feedback generation hit a snag — you can retry from the submission page."}
-        </p>
+        <p className="mt-4 text-[16px] leading-[1.6] text-ink/85">{body}</p>
         <Link
           href={`/submissions/${state.submissionId}`}
           className="
@@ -68,8 +90,7 @@ export function SubmissionForm({
             text-[15px] tracking-[0.005em]
           "
         >
-          {ready ? "View it" : "View your submission"}{" "}
-          <span aria-hidden>→</span>
+          {linkLabel} <span aria-hidden>→</span>
         </Link>
       </div>
     );

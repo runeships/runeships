@@ -16,7 +16,11 @@ export const dynamic = "force-dynamic";
  * the regrade_requests SELECT policy is scoped to the requester.
  */
 export default async function AdminRegradesPage() {
-  const { profile } = await requireAdmin();
+  const { user, profile } = await requireAdmin();
+  // profile may be null when admin is granted purely via ADMIN_EMAILS
+  // (env-only admins don't necessarily have a profiles row). Fall
+  // back to the auth user's email.
+  const adminEmail = profile?.email ?? user.email ?? "(admin)";
 
   const admin = createAdminClient();
 
@@ -46,7 +50,7 @@ export default async function AdminRegradesPage() {
       <div className="mx-auto max-w-[1080px]">
         {/* Header */}
         <p className="text-[11px] tracking-[0.20em] uppercase text-oxblood">
-          Admin · Signed in as {profile.email}
+          Admin · Signed in as {adminEmail}
         </p>
         <h1
           className="mt-4 font-display font-light tracking-[-0.022em] leading-[1.02] text-ink"
