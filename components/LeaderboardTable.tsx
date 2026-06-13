@@ -169,8 +169,18 @@ export function LeaderboardTable({
     }));
   }, [filtered, sortKey, activeTask]);
 
-  const userOnFilteredList = sorted.some((r) => r.row.userId === currentUserId);
+  const userIndex = sorted.findIndex((r) => r.row.userId === currentUserId);
+  const userOnFilteredList = userIndex !== -1;
   const showTaskNotice = activeTask && !userOnFilteredList;
+
+  // ─── Compact view: top 3 + (gap indicator) + caller's row ────
+  // Picks up the user wherever they rank. If they're already in
+  // top 3 we don't render a second copy. Adjacent (rank 4) skips
+  // the ellipsis. Rank 5+ shows the "N between" separator.
+  const topThree = sorted.slice(0, Math.min(3, sorted.length));
+  const userOutsideTop = userIndex >= 3;
+  const userEntry = userOutsideTop ? sorted[userIndex] : null;
+  const gapCount = userIndex > 3 ? userIndex - 3 : 0;
 
   // ─── Footer caption ─────────────────────────────────────────
   const footerCaption = useMemo(() => {
@@ -276,89 +286,14 @@ export function LeaderboardTable({
         </p>
       )}
 
-      {/* Table */}
+      {/* Table — top 3 + ellipsis + caller */}
       <ul className="mt-6 divide-y divide-ink/10 border-y border-ink/10">
-        {sorted.map(({ row, stat, rank, topPct }) => {
-          const isMe = row.userId === currentUserId;
-          return (
-            <li
-              key={row.userId}
-              className={`
-                grid grid-cols-[40px_44px_1fr_auto_auto] gap-x-5 items-center
-                py-5
-                transition-colors duration-200 ease-out
-                ${isMe
-                  ? "bg-parchment/60 border-l-2 border-oxblood pl-3 -ml-3"
-                  : "hover:bg-parchment/40"
-                }
-              `}
-            >
-              <span className="text-right text-[13px] tabular-nums text-muted">
-                {rank}
-              </span>
-
-              <span
-                aria-hidden
-                className="
-                  w-9 h-9 rounded-full
-                  inline-flex items-center justify-center
-                  border border-oxblood bg-parchment
-                  font-display text-[12px] tracking-[0.04em] text-oxblood
-                "
-              >
-                {initialsFor(row.fullName)}
-              </span>
-
-              <div className="min-w-0">
-                <p className="text-[15px] tracking-[-0.005em] text-ink font-medium truncate">
-                  {row.fullName}
-                  {isMe && (
-                    <span className="ml-2 text-[11px] tracking-[0.16em] uppercase text-oxblood">
-                      You
-                    </span>
-                  )}
-                </p>
-                <p className="mt-0.5 text-[13px] text-muted truncate">
-                  {row.school ?? "(no school listed)"}
-                  {row.graduationYear && (
-                    <>
-                      <span aria-hidden className="mx-2 text-muted/50">·</span>
-                      Class of {row.graduationYear}
-                    </>
-                  )}
-                </p>
-              </div>
-
-              <div className="text-right shrink-0">
-                {stat === null ? (
-                  <span className="text-[12px] text-muted">No submissions yet</span>
-                ) : (
-                  <p
-                    className="font-display text-[18px] leading-[1] text-oxblood tabular-nums"
-                    style={{ fontVariationSettings: '"opsz" 96' }}
-                  >
-                    {formatStat(stat, sortKey)}
-                  </p>
-                )}
-                {stat !== null && (
-                  <p className="mt-1 text-[10px] tracking-[0.04em] text-muted">
-                    {statLabel(stat, sortKey, activeTask)}
-                  </p>
-                )}
-              </div>
-
-              <div className="text-right shrink-0 w-[80px]">
-                {topPct === null ? (
-                  <span aria-hidden className="text-muted">—</span>
-                ) : (
-                  <span className="text-[11px] tracking-[0.16em] uppercase text-oxblood">
-                    Top {topPct}%
-                  </span>
-                )}
-              </div>
-            </li>
-          );
-        })}
+        {topThree.map((entry) =>
+          renderRow(entry, sortKey, activeTask, currentUserId),
+        )}
+        {gapCount > 0 && <EllipsisRow count={gapCount} />}
+        {userEntry &&
+          renderRow(userEntry, sortKey, activeTask, currentUserId)}
       </ul>
 
       {/* Footer caption */}
@@ -366,6 +301,123 @@ export function LeaderboardTable({
         {footerCaption}
       </p>
     </>
+  );
+}
+
+/* ─── Row renderers ─────────────────────────────────────────────── */
+
+type RankedEntry = {
+  row: LeaderboardRow;
+  stat: number | null;
+  rank: number;
+  topPct: number | null;
+};
+
+function renderRow(
+  entry: RankedEntry,
+  sortKey: SortKey,
+  activeTask: LeaderboardTaskOption | null,
+  currentUserId: string,
+) {
+  const { row, stat, rank, topPct } = entry;
+  const isMe = row.userId === currentUserId;
+  return (
+    <li
+      key={row.userId}
+      className={`
+        grid grid-cols-[40px_44px_1fr_auto_auto] gap-x-5 items-center
+        py-5
+        transition-colors duration-200 ease-out
+        ${isMe
+          ? "bg-oxblood/[0.08] border-l-[3px] border-oxblood pl-3 -ml-3 hover:bg-oxblood/[0.12]"
+          : "hover:bg-parchment/40"
+        }
+      `}
+    >
+      <span
+        className={`text-right text-[13px] tabular-nums ${isMe ? "text-oxblood font-medium" : "text-muted"}`}
+      >
+        {rank}
+      </span>
+
+      <span
+        aria-hidden
+        className={`
+          w-9 h-9 rounded-full
+          inline-flex items-center justify-center
+          border font-display text-[12px] tracking-[0.04em]
+          ${isMe
+            ? "border-oxblood bg-oxblood text-cream"
+            : "border-oxblood bg-parchment text-oxblood"
+          }
+        `}
+      >
+        {initialsFor(row.fullName)}
+      </span>
+
+      <div className="min-w-0">
+        <p
+          className={`text-[15px] tracking-[-0.005em] font-medium truncate ${isMe ? "text-oxblood" : "text-ink"}`}
+        >
+          {row.fullName}
+          {isMe && (
+            <span className="ml-2 text-[11px] tracking-[0.16em] uppercase text-oxblood">
+              You
+            </span>
+          )}
+        </p>
+        <p className="mt-0.5 text-[13px] text-muted truncate">
+          {row.school ?? "(no school listed)"}
+          {row.graduationYear && (
+            <>
+              <span aria-hidden className="mx-2 text-muted/50">·</span>
+              Class of {row.graduationYear}
+            </>
+          )}
+        </p>
+      </div>
+
+      <div className="text-right shrink-0">
+        {stat === null ? (
+          <span className="text-[12px] text-muted">No submissions yet</span>
+        ) : (
+          <p
+            className="font-display text-[18px] leading-[1] text-oxblood tabular-nums"
+            style={{ fontVariationSettings: '"opsz" 96' }}
+          >
+            {formatStat(stat, sortKey)}
+          </p>
+        )}
+        {stat !== null && (
+          <p className="mt-1 text-[10px] tracking-[0.04em] text-muted">
+            {statLabel(stat, sortKey, activeTask)}
+          </p>
+        )}
+      </div>
+
+      <div className="text-right shrink-0 w-[80px]">
+        {topPct === null ? (
+          <span aria-hidden className="text-muted">—</span>
+        ) : (
+          <span className="text-[11px] tracking-[0.16em] uppercase text-oxblood">
+            Top {topPct}%
+          </span>
+        )}
+      </div>
+    </li>
+  );
+}
+
+function EllipsisRow({ count }: { count: number }) {
+  return (
+    <li className="py-4 flex items-center justify-center gap-3 text-muted">
+      <span aria-hidden className="text-[16px] tracking-[0.4em] leading-none">
+        ···
+      </span>
+      <span className="text-[11px] tracking-[0.04em]">
+        {count} {count === 1 ? "student" : "students"} between
+      </span>
+    </li>
   );
 }
 
