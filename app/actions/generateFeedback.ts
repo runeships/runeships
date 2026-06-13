@@ -222,6 +222,8 @@ QUALITATIVE FEEDBACK (200-400 words) must cover:
 - Whether their reasoning was sound or if you spotted holes/gaps
 - For link-only or text+link submissions where you can't see the linked artifact: acknowledge what you could and couldn't evaluate, score conservatively, focus feedback on what they did describe.
 
+FORMATTING — your qualitative_feedback string is rendered as markdown. You may use light formatting: **bold** for emphasis on key terms or concepts, bullet lists (using - dashes) for multi-point recommendations, and blank lines between paragraphs. Don't overdo it — most of the feedback should be flowing prose. Reserve bold for 2–3 truly important phrases, and only use bullets when listing 3+ discrete points. Headings (# / ##) are unnecessary at this length; just use paragraphs.
+
 OUTPUT FORMAT — respond with ONLY this JSON object, no other text, no markdown fences:
 
 {

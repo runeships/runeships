@@ -10,6 +10,7 @@ import {
 } from "@/components/RegradeButton";
 import { SubmissionContext } from "@/components/SubmissionContext";
 import { PercentileTally } from "@/components/PercentileTally";
+import { EditorialMarkdown } from "@/components/EditorialMarkdown";
 import { hypotheticalPercentile, type Dimension } from "@/lib/rankings";
 
 export const dynamic = "force-dynamic";
@@ -457,9 +458,10 @@ async function FeedbackContent({
         <p className="text-[11px] tracking-[0.18em] uppercase text-oxblood">
           Written feedback
         </p>
-        <div className="mt-5 text-[17px] leading-[1.7] text-ink/85 whitespace-pre-line">
-          {feedback.qualitative_feedback}
-        </div>
+        <EditorialMarkdown
+          content={feedback.qualitative_feedback}
+          className="mt-5"
+        />
       </div>
 
       {/* Footer */}

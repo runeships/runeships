@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { EditorialMarkdown } from "@/components/EditorialMarkdown";
 
 export const metadata: Metadata = {
   title: "Terms — RuneShips",
@@ -7,6 +8,46 @@ export const metadata: Metadata = {
 };
 
 const LAST_UPDATED = "June 12, 2026";
+
+const TERMS_BODY = `
+## About
+
+RuneShips is a skill assessment platform operated by Diego Marjotie. By using the platform, you agree to these terms.
+
+## Your account
+
+You're responsible for keeping your sign-in email secure. We assume submissions are made by the account holder.
+
+## Your submissions
+
+You retain ownership of work you submit. By submitting, you grant us a non-exclusive license to evaluate it via AI and (with your opt-in) display it to prospective recruiters. We will not republish your work outside the platform.
+
+## Acceptable use
+
+- Don't submit work that isn't yours unless properly attributed
+- Don't submit illegal, harassing, or hateful content
+- Don't attempt to game scores through automated submissions or coordinated inauthentic activity
+
+## AI feedback
+
+AI-generated scores and feedback are advisory. They reflect one model's evaluation at one point in time. They are not a guarantee of skill, employability, or suitability for any specific role.
+
+## Account termination
+
+We may suspend or terminate accounts that violate these terms. You may delete your account at any time from [/profile?tab=account](/profile?tab=account).
+
+## Limitation of liability
+
+RuneShips is provided "as is." We aren't liable for indirect or consequential damages from use of the platform.
+
+## Changes
+
+We'll post updates here and notify active users of material changes.
+
+## Contact
+
+Questions to [hello@runeships.com](mailto:hello@runeships.com).
+`.trim();
 
 export default function TermsPage() {
   return (
@@ -25,86 +66,7 @@ export default function TermsPage() {
           Terms of service.
         </h1>
 
-        <Section title="About">
-          <p>
-            RuneShips is a skill assessment platform operated by Diego Marjotie.
-            By using the platform, you agree to these terms.
-          </p>
-        </Section>
-
-        <Section title="Your account">
-          <p>
-            You&rsquo;re responsible for keeping your sign-in email secure. We
-            assume submissions are made by the account holder.
-          </p>
-        </Section>
-
-        <Section title="Your submissions">
-          <p>
-            You retain ownership of work you submit. By submitting, you grant
-            us a non-exclusive license to evaluate it via AI and (with your
-            opt-in) display it to prospective recruiters. We will not republish
-            your work outside the platform.
-          </p>
-        </Section>
-
-        <Section title="Acceptable use">
-          <ul>
-            <li>
-              Don&rsquo;t submit work that isn&rsquo;t yours unless properly
-              attributed
-            </li>
-            <li>Don&rsquo;t submit illegal, harassing, or hateful content</li>
-            <li>
-              Don&rsquo;t attempt to game scores through automated submissions
-              or coordinated inauthentic activity
-            </li>
-          </ul>
-        </Section>
-
-        <Section title="AI feedback">
-          <p>
-            AI-generated scores and feedback are advisory. They reflect one
-            model&rsquo;s evaluation at one point in time. They are not a
-            guarantee of skill, employability, or suitability for any specific
-            role.
-          </p>
-        </Section>
-
-        <Section title="Account termination">
-          <p>
-            We may suspend or terminate accounts that violate these terms. You
-            may delete your account at any time from{" "}
-            <Link href="/profile?tab=account" className={linkCls}>
-              /profile?tab=account
-            </Link>
-            .
-          </p>
-        </Section>
-
-        <Section title="Limitation of liability">
-          <p>
-            RuneShips is provided &ldquo;as is.&rdquo; We aren&rsquo;t liable
-            for indirect or consequential damages from use of the platform.
-          </p>
-        </Section>
-
-        <Section title="Changes">
-          <p>
-            We&rsquo;ll post updates here and notify active users of material
-            changes.
-          </p>
-        </Section>
-
-        <Section title="Contact">
-          <p>
-            Questions to{" "}
-            <a href="mailto:hello@runeships.com" className={linkCls}>
-              hello@runeships.com
-            </a>
-            .
-          </p>
-        </Section>
+        <EditorialMarkdown content={TERMS_BODY} className="mt-10" />
 
         <p className="mt-16 text-[12px] tracking-[0.04em] text-muted">
           Last updated: {LAST_UPDATED}
@@ -118,34 +80,14 @@ export default function TermsPage() {
         </div>
 
         <div className="mt-16 pt-10 border-t border-rule">
-          <Link href="/" className="link-anim text-[14px] tracking-[0.01em] text-ink transition-colors duration-200 ease-out">
+          <Link
+            href="/"
+            className="link-anim text-[14px] tracking-[0.01em] text-ink transition-colors duration-200 ease-out"
+          >
             <span aria-hidden>←</span> Back to RuneShips
           </Link>
         </div>
       </article>
     </main>
-  );
-}
-
-const linkCls =
-  "link-anim text-oxblood hover:text-oxblood-hover transition-colors duration-200 ease-out";
-
-function Section({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <section className="mt-14 sm:mt-16">
-      <h2 className="font-display font-light text-[22px] sm:text-[24px] leading-[1.2] tracking-[-0.018em] text-ink">
-        {title}
-      </h2>
-      <hr className="mt-3 border-0 border-t border-ink/10" />
-      <div className="mt-6 prose-editorial text-[16px] sm:text-[17px] leading-[1.7] text-ink/85 space-y-4 [&_ul]:list-disc [&_ul]:pl-6 [&_ul]:space-y-2 [&_li]:leading-[1.6]">
-        {children}
-      </div>
-    </section>
   );
 }

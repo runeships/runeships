@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase-server";
 import { SubmissionForm } from "@/components/SubmissionForm";
+import { EditorialMarkdown } from "@/components/EditorialMarkdown";
 import {
   COOLDOWN_MS,
   formatNextAllowed,
@@ -179,9 +180,10 @@ export default async function TaskDetailPage({
         {/* Brief */}
         <section className="mt-16 sm:mt-20">
           <SectionHeading>The brief</SectionHeading>
-          <div className="mt-8 sm:mt-10 mx-auto max-w-[680px] text-[17px] leading-[1.7] text-ink/85 whitespace-pre-line">
-            {task.brief.trim()}
-          </div>
+          <EditorialMarkdown
+            content={task.brief.trim()}
+            className="mt-8 sm:mt-10 mx-auto max-w-[680px]"
+          />
         </section>
 
         {/* Past submissions (only if any) */}
