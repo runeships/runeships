@@ -112,8 +112,12 @@ export const getRankings = cache(async function getRankingsImpl(
     creativity: Number(userRow.creativity),
   };
 
-  // Percentile per dimension: % of cohort strictly below the user.
-  // Ties get the same percentile (we use strict <, not ≤).
+  // Percentile per dimension: % of cohort at or below the user
+  // (≤, not strict <). Counting the user themselves means the solo
+  // cohort case resolves to 100 — "rank 1 of 1" — instead of 0,
+  // which keeps the tally visual and the "Top X%" caption in sync.
+  // Ties resolve to the max of the tied group, which is the standard
+  // "best rank" tie-handling for percentile rank.
   const userPercentiles: Record<Dimension, number | null> = {
     strategy: percentileFor(rows, "strategy", userAggregates.strategy),
     execution: percentileFor(rows, "execution", userAggregates.execution),
@@ -172,8 +176,10 @@ export const getRankings = cache(async function getRankingsImpl(
       Number(r.technical) +
       Number(r.creativity),
   );
-  const below = cohortOverall.filter((v) => v < overallAggregate).length;
-  const overallPercentile = Math.round((below / cohortSize) * 100);
+  // ≤ for the same "rank includes self" reason as the per-dimension
+  // percentiles above. Solo cohort → 100.
+  const atOrBelow = cohortOverall.filter((v) => v <= overallAggregate).length;
+  const overallPercentile = Math.round((atOrBelow / cohortSize) * 100);
 
   return {
     cohortSize,
@@ -216,8 +222,10 @@ export async function hypotheticalPercentile(
 
   const cohortSize = aggregates.length;
   if (cohortSize === 0) return null;
-  const below = aggregates.filter((a) => a < value).length;
-  return Math.round((below / cohortSize) * 100);
+  // ≤ to match the main percentileFor() formula — counterfactual
+  // and cohort percentiles share the same semantics.
+  const atOrBelow = aggregates.filter((a) => a <= value).length;
+  return Math.round((atOrBelow / cohortSize) * 100);
 }
 
 /* ─── Internal helpers ──────────────────────────────────────────── */
@@ -230,8 +238,10 @@ function percentileFor(
   if (userValue === null) return null;
   const cohortSize = rows.length;
   if (cohortSize === 0) return null;
-  const below = rows.filter((r) => Number(r[dim]) < userValue).length;
-  return Math.round((below / cohortSize) * 100);
+  // ≤ so the user counts themselves in their own rank — solo cohort
+  // resolves to 100, ties resolve to the top of the tied group.
+  const atOrBelow = rows.filter((r) => Number(r[dim]) <= userValue).length;
+  return Math.round((atOrBelow / cohortSize) * 100);
 }
 
 function avg(arr: number[]): number {
