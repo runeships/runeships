@@ -227,9 +227,12 @@ const COMPONENTS: Components = {
   ),
 
   // ─── Image ────────────────────────────────────────────────────
-  /* eslint-disable-next-line @next/next/no-img-element */
+  // Plain <img> — markdown images aren't routed through next/image
+  // because their dimensions aren't known at parse time. Disabling
+  // the next/image lint rule explicitly because react-markdown sends
+  // remote-or-local URLs that next/image can't always handle.
   img: ({ src, alt, ...props }) => (
-    /* eslint-disable-next-line @next/next/no-img-element */
+    // eslint-disable-next-line @next/next/no-img-element
     <img
       src={typeof src === "string" ? src : undefined}
       alt={alt ?? ""}
