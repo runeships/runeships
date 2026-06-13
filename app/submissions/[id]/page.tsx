@@ -9,9 +9,8 @@ import {
   RegradeRequestedPanel,
 } from "@/components/RegradeButton";
 import { SubmissionContext } from "@/components/SubmissionContext";
-import { PercentileTally } from "@/components/PercentileTally";
 import { EditorialMarkdown } from "@/components/EditorialMarkdown";
-import { hypotheticalPercentile, type Dimension } from "@/lib/rankings";
+import { type Dimension } from "@/lib/rankings";
 
 export const dynamic = "force-dynamic";
 
@@ -345,19 +344,6 @@ async function FeedbackContent({
     creativity: feedback.score_creativity,
   };
 
-  // Strongest dimension on THIS submission specifically — the score
-  // breakdown gets a small inline ship beside that row. Hypothetical
-  // percentile reads "if this score were your aggregate, where would
-  // you rank?"
-  const strongestHere = DIMENSION_ROWS.reduce((best, row) =>
-    feedback[row.scoreKey] > feedback[best.scoreKey] ? row : best,
-  );
-  const hypoPercentile = await hypotheticalPercentile(
-    userId,
-    strongestHere.dim,
-    feedback[strongestHere.scoreKey],
-  );
-
   const generatedDate = new Date(feedback.generated_at);
   const generatedFormatted = generatedDate.toLocaleString("en-US", {
     month: "long",
@@ -403,11 +389,10 @@ async function FeedbackContent({
               {DIMENSION_ROWS.map((d) => {
                 const score = feedback[d.scoreKey];
                 const weight = weights ? weights[d.weightKey] : null;
-                const isStrongestHere = d.dim === strongestHere.dim;
                 return (
                   <li
                     key={d.name}
-                    className="grid grid-cols-[1fr_auto_auto] gap-3 items-center py-3"
+                    className="grid grid-cols-[1fr_auto] gap-4 items-baseline py-3"
                   >
                     <div>
                       <p className="text-[14px] tracking-[-0.005em] text-ink">
@@ -419,21 +404,6 @@ async function FeedbackContent({
                         </p>
                       )}
                     </div>
-                    {/* Subtle visual heartbeat — the strongest dim
-                        here gets a small inline percentile tally
-                        based on the hypothetical "if this score were
-                        your aggregate" rank. */}
-                    {isStrongestHere ? (
-                      <div className="w-[200px]">
-                        <PercentileTally
-                          percentile={hypoPercentile}
-                          width={200}
-                          showLabel={false}
-                        />
-                      </div>
-                    ) : (
-                      <span aria-hidden />
-                    )}
                     <p
                       className="font-display text-[18px] leading-[1] text-ink tabular-nums"
                       style={{ fontVariationSettings: '"opsz" 96' }}
