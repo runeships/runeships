@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useRef, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Upload, X } from "lucide-react";
 import { createClient as createBrowserSupabase } from "@/lib/supabase-browser";
@@ -74,6 +74,22 @@ export function CreateTaskForm({ companyId }: { companyId: string }) {
     weights.communication +
     weights.technical +
     weights.creativity;
+
+  // Reset the upload spinner on mount AND whenever the browser
+  // restores the page from BFCache (back-button after a successful
+  // redirect). Without this, the button stays "Uploading…" forever
+  // because React state was frozen mid-upload before the redirect.
+  useEffect(() => {
+    setUploading(false);
+    const onShow = (e: PageTransitionEvent) => {
+      if (e.persisted) {
+        setUploading(false);
+        setUploadError(null);
+      }
+    };
+    window.addEventListener("pageshow", onShow);
+    return () => window.removeEventListener("pageshow", onShow);
+  }, []);
 
   function addFiles(list: FileList | null) {
     if (!list) return;
@@ -187,8 +203,11 @@ export function CreateTaskForm({ companyId }: { companyId: string }) {
     fd.set("category", category);
     fd.set("evaluation_mode", evaluationMode);
 
-    // React 19 form actions don't take a synthetic event submit; we
-    // dispatch through the useActionState formAction directly.
+    // Hand off to the server action. From here, the `pending` flag
+    // from useActionState drives the button text ("Posting…"). Drop
+    // our upload flag explicitly so the button never gets stuck on
+    // "Uploading…" if the transition state hiccups.
+    setUploading(false);
     formAction(fd);
   }
 
