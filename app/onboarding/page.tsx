@@ -99,6 +99,7 @@ export default function OnboardingPage() {
   const [otherTrack, setOtherTrack] = useState("");
   const [tools, setTools] = useState<Set<string>>(new Set());
   const [otherTool, setOtherTool] = useState("");
+  const [confirmedAge, setConfirmedAge] = useState(false);
   const [skills, setSkills] = useState<RadarValues>({
     strategy: 50,
     execution: 50,
@@ -147,6 +148,7 @@ export default function OnboardingPage() {
     school.trim().length > 0 &&
     graduationYear !== "" &&
     (tracks.size > 0 || otherTrack.trim().length > 0) &&
+    confirmedAge &&
     !isPending;
 
   function handleSubmit(e: FormEvent<HTMLFormElement>) {
@@ -215,16 +217,22 @@ export default function OnboardingPage() {
                   disabled={isPending}
                   required
                 />
-                <TextInput
-                  id={schoolId}
-                  name="school"
-                  type="text"
-                  autoComplete="organization"
-                  value={school}
-                  onChange={(e) => setSchool(e.target.value)}
-                  disabled={isPending}
-                  required
-                />
+                <div>
+                  <TextInput
+                    id={schoolId}
+                    name="school"
+                    type="text"
+                    autoComplete="organization"
+                    value={school}
+                    onChange={(e) => setSchool(e.target.value)}
+                    disabled={isPending}
+                    required
+                  />
+                  <p className="mt-2 text-[12px] leading-[1.5] text-muted">
+                    Write N/A if you&rsquo;re not currently enrolled in
+                    education.
+                  </p>
+                </div>
 
                 <div className="sm:col-span-2">
                   <FieldLabel htmlFor={yearId}>Graduation year</FieldLabel>
@@ -422,6 +430,38 @@ export default function OnboardingPage() {
 
             {/* ─── Submit ───────────────────────────────────────────── */}
             <section>
+              <div className="max-w-[560px] mx-auto mb-8">
+                <label className="flex items-start gap-3 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={confirmedAge}
+                    onChange={(e) => setConfirmedAge(e.target.checked)}
+                    disabled={isPending}
+                    className="mt-1 accent-oxblood shrink-0"
+                    aria-describedby="age-confirm-hint"
+                  />
+                  <span className="text-[14px] leading-[1.55] text-ink">
+                    I confirm I am at least 16 years old, and I&rsquo;ve read
+                    the{" "}
+                    <a
+                      href="/privacy"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="link-anim text-oxblood hover:text-oxblood-hover transition-colors duration-200 ease-out"
+                    >
+                      Privacy Policy
+                    </a>
+                    .
+                  </span>
+                </label>
+                <p
+                  id="age-confirm-hint"
+                  className="mt-2 ml-8 text-[12px] leading-[1.5] text-muted"
+                >
+                  RuneShips is only available to users aged 16 or older.
+                </p>
+              </div>
+
               {state.status === "error" && (
                 <p
                   role="alert"
