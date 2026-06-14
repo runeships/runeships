@@ -272,6 +272,7 @@ export interface Database {
           deletion_request_note: string | null;
           ai_token_budget: number;
           ai_tokens_used: number;
+          cv_summary: string | null;
           created_at: string;
         };
         Insert: {
@@ -300,6 +301,7 @@ export interface Database {
           deletion_request_note?: string | null;
           ai_token_budget?: number;
           ai_tokens_used?: number;
+          cv_summary?: string | null;
           created_at?: string;
         };
         Relationships: [];
@@ -329,6 +331,7 @@ export interface Database {
           deletion_request_note?: string | null;
           ai_token_budget?: number;
           ai_tokens_used?: number;
+          cv_summary?: string | null;
           created_at?: string;
         };
       };

@@ -16,14 +16,22 @@ export default async function ResumeVerificationPage({
   params: Promise<{ resumeCode: string }>;
 }) {
   const { resumeCode } = await params;
+  // Strip trailing sentence-end punctuation that might get swept into
+  // the URL by mail clients, link parsers, or copy-paste — turns
+  // 'hg9sgj2a.' or 'hg9sgj2a),' back into 'hg9sgj2a'.
+  const normalizedCode = resumeCode
+    .toLowerCase()
+    .replace(/[^a-z0-9]+$/g, "");
   const admin = createAdminClient();
-  const { data: profile } = await admin
-    .from("profiles")
-    .select(
-      "id, full_name, school, graduation_year, last_resume_at, resume_code, is_seed",
-    )
-    .eq("resume_code", resumeCode.toLowerCase())
-    .maybeSingle();
+  const { data: profile } = normalizedCode
+    ? await admin
+        .from("profiles")
+        .select(
+          "id, full_name, school, graduation_year, last_resume_at, resume_code, is_seed",
+        )
+        .eq("resume_code", normalizedCode)
+        .maybeSingle()
+    : { data: null };
 
   // Treat seed accounts as "not found" so demo personas don't
   // leak as verifiable resumes.

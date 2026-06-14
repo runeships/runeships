@@ -28,10 +28,16 @@ export function ResumeSection({
 
       {!resumeCode ? (
         <p className="mt-6 text-[14px] leading-[1.6] text-muted max-w-[58ch]">
-          Use the &ldquo;Get CV bullet&rdquo; button in the navigation to
-          generate a 2-sentence snippet you can paste into your existing CV.
-          It includes a verification link recruiters can use to confirm your
-          RuneShips standing.
+          Use the{" "}
+          <Link
+            href="/cv-builder"
+            className="link-anim text-oxblood hover:text-oxblood-hover transition-colors duration-200 ease-out"
+          >
+            CV builder
+          </Link>{" "}
+          to pick which tasks to feature and generate a paste-ready block for
+          your existing CV. It includes a verification link recruiters can use
+          to confirm your RuneShips standing.
         </p>
       ) : (
         <dl className="mt-6 grid grid-cols-1 sm:grid-cols-[160px_1fr] gap-y-3 gap-x-6 max-w-[640px]">
