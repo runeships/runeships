@@ -212,6 +212,7 @@ export interface Database {
           website: string | null;
           owner_email: string | null;
           task_categories: string[] | null;
+          storage_bytes_used: number;
           created_at: string;
         };
         Insert: {
@@ -227,6 +228,7 @@ export interface Database {
           website?: string | null;
           owner_email?: string | null;
           task_categories?: string[] | null;
+          storage_bytes_used?: number;
           created_at?: string;
         };
         Relationships: [];
@@ -243,6 +245,7 @@ export interface Database {
           website?: string | null;
           owner_email?: string | null;
           task_categories?: string[] | null;
+          storage_bytes_used?: number;
           created_at?: string;
         };
       };

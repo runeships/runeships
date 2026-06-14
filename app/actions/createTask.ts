@@ -120,30 +120,68 @@ export async function createTask(
   }
 
   // Attachments (pre-uploaded by the client).
-  let attachments: Attachment[] = [];
+  const attachments: Attachment[] = [];
   const attachmentsJson = String(formData.get("attachments_json") ?? "[]");
   try {
     const parsed = JSON.parse(attachmentsJson);
     if (Array.isArray(parsed)) {
-      attachments = parsed
-        .filter(
-          (a): a is Attachment =>
-            typeof a === "object" &&
-            a !== null &&
-            typeof a.filename === "string" &&
-            typeof a.url === "string" &&
-            typeof a.size === "number" &&
-            typeof a.content_type === "string" &&
-            typeof a.storage_path === "string",
-        )
-        .slice(0, 5);
+      attachments.push(
+        ...parsed
+          .filter(
+            (a): a is Attachment =>
+              typeof a === "object" &&
+              a !== null &&
+              typeof a.filename === "string" &&
+              typeof a.url === "string" &&
+              typeof a.size === "number" &&
+              typeof a.content_type === "string" &&
+              typeof a.storage_path === "string",
+          )
+          .slice(0, 5),
+      );
     }
   } catch (err) {
     console.error("[createTask attachments parse]", err);
   }
 
-  // Generate a unique slug scoped within the company's tasks.
   const admin = createAdminClient();
+
+  // ─── Storage quota check ─────────────────────────────────────────
+  // Files are already in Supabase Storage at this point (the client
+  // uploads direct to the bucket before posting the form). If this
+  // task would push the company over MAX_COMPANY_STORAGE_BYTES, we
+  // delete the freshly-uploaded files and reject. Otherwise we
+  // increment the counter after the task insert succeeds.
+  const MAX_COMPANY_STORAGE_BYTES = 500 * 1024 * 1024; // 500 MB
+  const incomingBytes = attachments.reduce((s, a) => s + a.size, 0);
+  if (incomingBytes > 0) {
+    const { data: companyRow } = await admin
+      .from("companies")
+      .select("storage_bytes_used")
+      .eq("id", profile.company_id)
+      .maybeSingle();
+    const currentBytes = companyRow?.storage_bytes_used ?? 0;
+    if (currentBytes + incomingBytes > MAX_COMPANY_STORAGE_BYTES) {
+      // Orphan cleanup — the files in storage are now wasted; pull
+      // them back out so the bucket doesn't bloat.
+      const paths = attachments
+        .map((a) => a.storage_path)
+        .filter(Boolean);
+      if (paths.length > 0) {
+        await admin.storage.from("task-attachments").remove(paths);
+      }
+      const remainingMb = Math.max(
+        0,
+        Math.floor((MAX_COMPANY_STORAGE_BYTES - currentBytes) / (1024 * 1024)),
+      );
+      return {
+        status: "error",
+        message: `Storage quota reached. Your company has ${remainingMb} MB left of the 500 MB limit — drop the attachments or shrink them and try again.`,
+      };
+    }
+  }
+
+  // Generate a unique slug scoped within the company's tasks.
   const { data: existingSlugs } = await admin
     .from("tasks")
     .select("slug")
@@ -174,6 +212,26 @@ export async function createTask(
     })
     .select("id")
     .single();
+
+  // Stamp company storage usage so the quota engages for future
+  // uploads. Best-effort — if this errors the task still ships;
+  // worst case is the bucket fills faster than the counter says.
+  if (incomingBytes > 0) {
+    try {
+      const { data: companyRow } = await admin
+        .from("companies")
+        .select("storage_bytes_used")
+        .eq("id", profile.company_id)
+        .maybeSingle();
+      const newTotal = (companyRow?.storage_bytes_used ?? 0) + incomingBytes;
+      await admin
+        .from("companies")
+        .update({ storage_bytes_used: newTotal })
+        .eq("id", profile.company_id);
+    } catch (err) {
+      console.error("[createTask storage stamp]", err);
+    }
+  }
 
   if (insertErr || !inserted) {
     console.error("[createTask insert]", insertErr);

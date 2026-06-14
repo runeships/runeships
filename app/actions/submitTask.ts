@@ -18,7 +18,14 @@ const URL_RE = /^https?:\/\/.+/i;
 // thoughtful work, blocks pasting an entire book to chew through
 // the AI budget.
 const MAX_TITLE_CHARS = 200;
-const MAX_BODY_CHARS = 30_000;
+// 8,000 chars ≈ 1,200 words ≈ 2,000 tokens. Forces long-form work
+// to be submitted as a link (Google Doc, GitHub, etc.) where the
+// fetcher cap controls the spend, instead of through the body field
+// where a single submission could otherwise eat an entire task's
+// budget alone. The homework-helper abuse case largely collapses
+// here too — 1,200 words isn't enough to dump a 5-page essay for
+// free AI review.
+const MAX_BODY_CHARS = 8_000;
 const MAX_LINK_CHARS = 2_000;
 
 // Global per-user daily cap. Per-task 24h cooldown stops re-submits
@@ -115,7 +122,7 @@ export async function submitTask(
   if (submissionBody.length > MAX_BODY_CHARS) {
     return {
       status: "error",
-      message: `Your submission is too long — keep it under ${MAX_BODY_CHARS.toLocaleString()} characters (about 5,000 words). If your work is longer, link to it instead.`,
+      message: `Your submission is too long — keep it under ${MAX_BODY_CHARS.toLocaleString()} characters (about 1,200 words). If your work is longer, link to it instead (Google Doc, GitHub repo, hosted page).`,
     };
   }
   if (needsLink) {
