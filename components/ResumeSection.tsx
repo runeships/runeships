@@ -1,14 +1,10 @@
 import Link from "next/link";
 import { timeAgo } from "@/lib/format";
-import {
-  daysUntilNextResume,
-  isInResumeCooldown,
-} from "@/lib/resumeCode";
 
-/** Profile tab section showing the user's resume status:
- *  - never generated → explain when to generate
- *  - has code + in cooldown → countdown + verification link
- *  - has code + ready → 'ready to regenerate' + verification link */
+/** Profile tab section showing the user's verification status:
+ *  - never generated → explain when to use the button
+ *  - has code → verification code + link to /v/[code] + last
+ *    generated relative timestamp */
 export function ResumeSection({
   lastResumeAt,
   resumeCode,
@@ -16,29 +12,26 @@ export function ResumeSection({
   lastResumeAt: string | null;
   resumeCode: string | null;
 }) {
-  const inCooldown = isInResumeCooldown(lastResumeAt);
-  const daysLeft = daysUntilNextResume(lastResumeAt);
-
   return (
     <section className="mt-16 sm:mt-20 pt-10 border-t border-ink/10">
       <header>
         <p className="text-[11px] tracking-[0.20em] uppercase text-oxblood">
-          Resume
+          CV bullet
         </p>
         <h2
           className="mt-3 font-display font-light tracking-[-0.018em] leading-[1.05] text-ink"
           style={{ fontSize: "clamp(1.5rem, 1.4vw + 1rem, 1.75rem)" }}
         >
-          Your RuneShips resume
+          Add RuneShips to your CV
         </h2>
       </header>
 
       {!resumeCode ? (
         <p className="mt-6 text-[14px] leading-[1.6] text-muted max-w-[58ch]">
-          You haven&rsquo;t generated your RuneShips resume yet. Use the
-          &ldquo;Convert to resume&rdquo; button in the navigation once
-          you&rsquo;ve completed at least two tasks — that gives the resume
-          enough data to mean something.
+          Use the &ldquo;Get CV bullet&rdquo; button in the navigation to
+          generate a 2-sentence snippet you can paste into your existing CV.
+          It includes a verification link recruiters can use to confirm your
+          RuneShips standing.
         </p>
       ) : (
         <dl className="mt-6 grid grid-cols-1 sm:grid-cols-[160px_1fr] gap-y-3 gap-x-6 max-w-[640px]">
@@ -49,21 +42,16 @@ export function ResumeSection({
             {resumeCode}
           </dd>
 
-          <dt className="text-[11px] tracking-[0.16em] uppercase text-muted">
-            Last generated
-          </dt>
-          <dd className="text-[14px] tracking-[-0.005em] text-ink">
-            {lastResumeAt ? timeAgo(lastResumeAt) : "—"}
-          </dd>
-
-          <dt className="text-[11px] tracking-[0.16em] uppercase text-muted">
-            Next available
-          </dt>
-          <dd className="text-[14px] tracking-[-0.005em] text-ink">
-            {inCooldown
-              ? `In ${daysLeft} day${daysLeft === 1 ? "" : "s"}`
-              : "Ready to regenerate"}
-          </dd>
+          {lastResumeAt && (
+            <>
+              <dt className="text-[11px] tracking-[0.16em] uppercase text-muted">
+                Last generated
+              </dt>
+              <dd className="text-[14px] tracking-[-0.005em] text-ink">
+                {timeAgo(lastResumeAt)}
+              </dd>
+            </>
+          )}
 
           <dt className="text-[11px] tracking-[0.16em] uppercase text-muted">
             Public verification page
@@ -80,9 +68,9 @@ export function ResumeSection({
       )}
 
       <p className="mt-7 text-[12px] leading-[1.6] text-muted max-w-[58ch]">
-        Resumes can be generated once per week. Each PDF prints the same
-        verification URL — recruiters can confirm the resume reflects an
-        active profile at any time.
+        Regenerate the bullet anytime — it always reflects your current
+        standing. The verification URL stays the same so a CV in circulation
+        still works.
       </p>
     </section>
   );

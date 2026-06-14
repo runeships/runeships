@@ -52,14 +52,10 @@ export function StickyNav({
   isAuthed = false,
   isAdmin = false,
   accountType = null,
-  lastResumeAt = null,
-  hasCompletedTasks = false,
 }: {
   isAuthed?: boolean;
   isAdmin?: boolean;
   accountType?: "student" | "company" | null;
-  lastResumeAt?: string | null;
-  hasCompletedTasks?: boolean;
 }) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -188,10 +184,7 @@ export function StickyNav({
           {isAppAuthed && accountType !== "company" && (
             <div className="flex items-center gap-5">
               <NavLink href="/dashboard">Dashboard</NavLink>
-              <ConvertToResumeButton
-                initialLastResumeAt={lastResumeAt}
-                hasCompletedTasks={hasCompletedTasks}
-              />
+              <ConvertToResumeButton />
               <ProfileMenu isAdmin={isAdmin} />
             </div>
           )}
