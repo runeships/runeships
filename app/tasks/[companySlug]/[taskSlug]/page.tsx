@@ -3,9 +3,9 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase-server";
 import { SubmissionForm } from "@/components/SubmissionForm";
 import { EditorialMarkdown } from "@/components/EditorialMarkdown";
+import { LocalTime } from "@/components/LocalTime";
 import {
   COOLDOWN_MS,
-  formatNextAllowed,
   submissionModeLabel,
   testedDimensions,
   timeAgo,
@@ -236,7 +236,7 @@ export default async function TaskDetailPage({
                 <p className="mt-4 text-[17px] leading-[1.6] text-ink/85">
                   You can submit again at{" "}
                   <span className="text-ink font-medium">
-                    {formatNextAllowed(cooldownUntil.toISOString())}
+                    <LocalTime iso={cooldownUntil.toISOString()} />
                   </span>
                   . The 24-hour cooldown is there to encourage real iteration,
                   not rapid re-attempts.
