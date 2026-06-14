@@ -70,16 +70,38 @@ export default async function RootLayout({
   const isAuthed = Boolean(user);
 
   // Admin check + account-type fetch in one round trip when authed.
+  // Also resume-button context so StickyNav can render the locked/
+  // ready state without an extra round trip on every page.
   let isAdmin = false;
   let accountType: AccountType = null;
+  let lastResumeAt: string | null = null;
+  let hasCompletedTasks = false;
   if (user) {
     const { data: profile } = await supabase
       .from("profiles")
-      .select("is_admin, account_type")
+      .select("is_admin, account_type, last_resume_at")
       .eq("id", user.id)
       .maybeSingle();
     isAdmin = Boolean(profile?.is_admin) || isAdminEmail(user.email);
     accountType = (profile?.account_type as AccountType) ?? null;
+    lastResumeAt = profile?.last_resume_at ?? null;
+    // "Has completed tasks" = at least one feedback row exists for
+    // a submission the user owns. Cheapest path: subquery via the
+    // user's submissions, head-only count.
+    if (accountType !== "company") {
+      const { data: subs } = await supabase
+        .from("submissions")
+        .select("id")
+        .eq("user_id", user.id);
+      const subIds = (subs ?? []).map((s) => s.id);
+      if (subIds.length > 0) {
+        const { count } = await supabase
+          .from("feedback")
+          .select("id", { count: "exact", head: true })
+          .in("submission_id", subIds);
+        hasCompletedTasks = (count ?? 0) > 0;
+      }
+    }
   }
 
   return (
@@ -92,6 +114,8 @@ export default async function RootLayout({
           isAuthed={isAuthed}
           isAdmin={isAdmin}
           accountType={accountType}
+          lastResumeAt={lastResumeAt}
+          hasCompletedTasks={hasCompletedTasks}
         />
         {children}
         <Footer />

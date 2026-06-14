@@ -10,6 +10,7 @@ import {
   useReducedMotion,
 } from "motion/react";
 import { ProfileMenu } from "./ProfileMenu";
+import { ConvertToResumeButton } from "./ConvertToResumeButton";
 
 // App routes that should render the minimal "in-app" nav (no marketing
 // links). Authenticated routes additionally render <UserMenu />.
@@ -51,10 +52,14 @@ export function StickyNav({
   isAuthed = false,
   isAdmin = false,
   accountType = null,
+  lastResumeAt = null,
+  hasCompletedTasks = false,
 }: {
   isAuthed?: boolean;
   isAdmin?: boolean;
   accountType?: "student" | "company" | null;
+  lastResumeAt?: string | null;
+  hasCompletedTasks?: boolean;
 }) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -181,8 +186,12 @@ export function StickyNav({
             </div>
           )}
           {isAppAuthed && accountType !== "company" && (
-            <div className="flex items-center gap-7">
+            <div className="flex items-center gap-5">
               <NavLink href="/dashboard">Dashboard</NavLink>
+              <ConvertToResumeButton
+                initialLastResumeAt={lastResumeAt}
+                hasCompletedTasks={hasCompletedTasks}
+              />
               <ProfileMenu isAdmin={isAdmin} />
             </div>
           )}

@@ -8,6 +8,7 @@ import {
 import { AccountTab } from "@/components/AccountTab";
 import { PrivacyTab } from "@/components/PrivacyTab";
 import { EarnedStanding } from "@/components/EarnedStanding";
+import { ResumeSection } from "@/components/ResumeSection";
 import { getRankings } from "@/lib/rankings";
 
 export const dynamic = "force-dynamic";
@@ -60,6 +61,24 @@ export default async function ProfilePage({
     .maybeSingle();
   if (!visErr && visRow && visRow.leaderboard_visible !== null) {
     leaderboardVisible = visRow.leaderboard_visible;
+  }
+
+  // Resume status — post-031. Same defensive read so a pre-migration
+  // schema doesn't crash the profile page.
+  let lastResumeAt: string | null = null;
+  let resumeCode: string | null = null;
+  try {
+    const { data: resumeRow } = await supabase
+      .from("profiles")
+      .select("last_resume_at, resume_code")
+      .eq("id", user.id)
+      .maybeSingle();
+    if (resumeRow) {
+      lastResumeAt = resumeRow.last_resume_at ?? null;
+      resumeCode = resumeRow.resume_code ?? null;
+    }
+  } catch (err) {
+    console.error("[profile resume fetch]", err);
   }
 
   const tab = parseTab((await searchParams).tab);
@@ -123,6 +142,10 @@ export default async function ProfilePage({
           {tab === "profile" && (
             <>
               <ProfileTabForm initialValues={initialValues} />
+              <ResumeSection
+                lastResumeAt={lastResumeAt}
+                resumeCode={resumeCode}
+              />
               {/* Read-only earned standing — fetched server-side so we
                   don't ship rankings logic to the client form. */}
               <EarnedStanding rankings={await getRankings(user.id)} />

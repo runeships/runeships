@@ -132,6 +132,8 @@ export interface Database {
           company_id: string | null;
           is_seed: boolean;
           leaderboard_visible: boolean;
+          last_resume_at: string | null;
+          resume_code: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -157,6 +159,8 @@ export interface Database {
           company_id?: string | null;
           is_seed?: boolean;
           leaderboard_visible?: boolean;
+          last_resume_at?: string | null;
+          resume_code?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -183,6 +187,8 @@ export interface Database {
           company_id?: string | null;
           is_seed?: boolean;
           leaderboard_visible?: boolean;
+          last_resume_at?: string | null;
+          resume_code?: string | null;
           created_at?: string;
           updated_at?: string;
         };
