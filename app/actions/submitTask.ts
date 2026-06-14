@@ -13,6 +13,20 @@ import type { SubmissionMode } from "@/lib/database.types";
 
 const URL_RE = /^https?:\/\/.+/i;
 
+// Length caps to keep abuse cheap on our end and submissions
+// reasonable. Body cap of 30k chars ≈ 7.5k tokens — generous for
+// thoughtful work, blocks pasting an entire book to chew through
+// the AI budget.
+const MAX_TITLE_CHARS = 200;
+const MAX_BODY_CHARS = 30_000;
+const MAX_LINK_CHARS = 2_000;
+
+// Global per-user daily cap. Per-task 24h cooldown stops re-submits
+// to one task; this stops a single user from churning through every
+// task in a day. Tasks max ~7-10; 5/day = engaged but not farming.
+const DAILY_SUBMISSION_CAP = 5;
+const DAILY_WINDOW_MS = 24 * 60 * 60 * 1000;
+
 export type SubmitTaskState =
   | { status: "idle" }
   | {
@@ -86,10 +100,22 @@ export async function submitTask(
       message: "Please add a title for your submission.",
     };
   }
+  if (submissionTitle.length > MAX_TITLE_CHARS) {
+    return {
+      status: "error",
+      message: `Title is too long — keep it under ${MAX_TITLE_CHARS} characters.`,
+    };
+  }
   if (needsText && !submissionBody) {
     return {
       status: "error",
       message: "Please add your written work in the body field.",
+    };
+  }
+  if (submissionBody.length > MAX_BODY_CHARS) {
+    return {
+      status: "error",
+      message: `Your submission is too long — keep it under ${MAX_BODY_CHARS.toLocaleString()} characters (about 5,000 words). If your work is longer, link to it instead.`,
     };
   }
   if (needsLink) {
@@ -97,6 +123,12 @@ export async function submitTask(
       return {
         status: "error",
         message: "Please add a supporting link.",
+      };
+    }
+    if (supportingLink.length > MAX_LINK_CHARS) {
+      return {
+        status: "error",
+        message: "That URL is unusually long. Try shortening it.",
       };
     }
     if (!URL_RE.test(supportingLink)) {
@@ -113,6 +145,22 @@ export async function submitTask(
           "Please confirm the link is viewable by anyone with the link.",
       };
     }
+  }
+
+  // ─── Global daily cap ───────────────────────────────────────────
+  // Per-task cooldown blocks re-submits to one task. This blocks a
+  // single user from blowing through every available task in a day.
+  const windowStart = new Date(Date.now() - DAILY_WINDOW_MS).toISOString();
+  const { count: recentCount } = await supabase
+    .from("submissions")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", user.id)
+    .gte("created_at", windowStart);
+  if ((recentCount ?? 0) >= DAILY_SUBMISSION_CAP) {
+    return {
+      status: "error",
+      message: `You've hit the ${DAILY_SUBMISSION_CAP}-submission daily limit. Come back tomorrow — quality over quantity beats grinding through every task in one sitting.`,
+    };
   }
 
   // ─── Cooldown ───────────────────────────────────────────────────
