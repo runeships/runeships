@@ -36,6 +36,8 @@ type TaskShape = {
   evaluation_mode: string;
   is_published: boolean;
   has_deletion_request: boolean;
+  ai_token_budget: number;
+  ai_tokens_used: number;
 };
 
 export function AdminEditTaskForm({ task }: { task: TaskShape }) {
@@ -128,6 +130,39 @@ export function AdminEditTaskForm({ task }: { task: TaskShape }) {
             Published (visible to students)
           </span>
         </label>
+
+        <Field label="AI token budget (shared across all submissions to this task)">
+          <input
+            name="ai_token_budget"
+            type="number"
+            min={0}
+            step={1000}
+            defaultValue={task.ai_token_budget}
+            disabled={pending}
+            className={inputCls}
+          />
+          <p className="mt-2 text-[12px] text-muted">
+            Used so far: <span className="tabular-nums">{task.ai_tokens_used.toLocaleString()}</span>{" "}
+            / <span className="tabular-nums">{task.ai_token_budget.toLocaleString()}</span>{" "}
+            ({task.ai_token_budget > 0
+              ? Math.round((task.ai_tokens_used / task.ai_token_budget) * 100)
+              : 0}
+            %). Bump the budget if you want more AI-graded submissions on this
+            task; otherwise overflow falls to your manual review queue.
+          </p>
+          <label className="mt-3 flex items-center gap-3 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              name="reset_ai_tokens_used"
+              disabled={pending}
+              className="accent-oxblood"
+            />
+            <span className="text-[13px] text-ink">
+              Reset usage counter to 0 (use after bumping the budget if you
+              want previous spend not to count).
+            </span>
+          </label>
+        </Field>
 
         {task.has_deletion_request && (
           <label className="flex items-center gap-3 cursor-pointer select-none">

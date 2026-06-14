@@ -20,7 +20,7 @@ export default async function AdminEditTaskPage({
   const { data: task } = await admin
     .from("tasks")
     .select(
-      "id, title, brief, category, submission_mode, evaluation_mode, is_published, deletion_requested_at, deletion_request_note, company_id, created_at",
+      "id, title, brief, category, submission_mode, evaluation_mode, is_published, deletion_requested_at, deletion_request_note, company_id, created_at, ai_token_budget, ai_tokens_used",
     )
     .eq("id", id)
     .maybeSingle();
@@ -103,6 +103,8 @@ export default async function AdminEditTaskPage({
               evaluation_mode: task.evaluation_mode,
               is_published: task.is_published,
               has_deletion_request: Boolean(task.deletion_requested_at),
+              ai_token_budget: task.ai_token_budget,
+              ai_tokens_used: task.ai_tokens_used,
             }}
           />
         </div>

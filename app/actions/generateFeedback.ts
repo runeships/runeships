@@ -4,6 +4,15 @@ import { createClient } from "@/lib/supabase-server";
 import { createAdminClient } from "@/lib/supabase-admin";
 import { anthropic, DEFAULT_MODEL } from "@/lib/anthropic";
 import { notifyStudentOfFeedback } from "@/lib/emails";
+import { parseGithubUrl, fetchRepoForPrompt } from "@/lib/githubFetch";
+
+// Output budget for the Anthropic call. Used both to size the
+// max_tokens request and to estimate cost before we start.
+const OUTPUT_TOKEN_BUDGET = 1500;
+// Rough char→token ratio for English + code. Conservative enough
+// for budget gating without being so generous it lets the budget
+// silently slip past.
+const CHARS_PER_TOKEN = 3.5;
 
 // Note: `maxDuration` cannot be exported from a "use server" file —
 // it's a Route Segment Config and must live on the page/route that
@@ -13,6 +22,7 @@ import { notifyStudentOfFeedback } from "@/lib/emails";
 
 export type GenerateFeedbackResult =
   | { success: true; feedbackId: string; reused: boolean }
+  | { success: false; error: "budget_exhausted" }
   | {
       success: false;
       error:
@@ -74,7 +84,7 @@ export async function generateFeedback(
   const { data: task, error: taskErr } = await supabase
     .from("tasks")
     .select(
-      "title, brief, submission_mode, estimated_time, company_id, weight_strategy, weight_execution, weight_communication, weight_technical, weight_creativity",
+      "id, title, brief, submission_mode, estimated_time, company_id, weight_strategy, weight_execution, weight_communication, weight_technical, weight_creativity, ai_token_budget, ai_tokens_used",
     )
     .eq("id", submission.task_id)
     .maybeSingle();
@@ -90,7 +100,22 @@ export async function generateFeedback(
     .eq("id", task.company_id)
     .maybeSingle();
 
-  // ─── Build prompt + call Anthropic ────────────────────────────────
+  // ─── Optional GitHub repo fetch ──────────────────────────────────
+  // If the supporting link is a public github.com/{owner}/{repo}
+  // URL, pull the README + top-level tree + a handful of source
+  // files. Capped at 50k chars by the fetcher itself.
+  let repoBlock: string | null = null;
+  if (submission.supporting_link) {
+    const parsed = parseGithubUrl(submission.supporting_link);
+    if (parsed) {
+      const repoRes = await fetchRepoForPrompt(parsed);
+      if (repoRes.ok && repoRes.charCount > 0) {
+        repoBlock = repoRes.formatted;
+      }
+    }
+  }
+
+  // ─── Build prompt ─────────────────────────────────────────────────
   const prompt = buildPrompt({
     submissionTitle: submission.submission_title,
     submissionBody: submission.submission_body,
@@ -99,15 +124,35 @@ export async function generateFeedback(
     submissionMode: task.submission_mode,
     estimatedTime: task.estimated_time,
     companyName: company?.name ?? "Unknown",
+    repoBlock,
   });
 
+  // ─── Token budget gate ───────────────────────────────────────────
+  // Estimate this run's cost (input chars / ~3.5 + output buffer).
+  // If used + estimate > budget, skip the AI call entirely and let
+  // the submission fall through to admin manual review.
+  const estimatedInputTokens = Math.ceil(prompt.length / CHARS_PER_TOKEN);
+  const estimatedCallCost = estimatedInputTokens + OUTPUT_TOKEN_BUDGET;
+  if (task.ai_tokens_used + estimatedCallCost > task.ai_token_budget) {
+    console.warn("[generateFeedback budget_exhausted]", {
+      taskId: task.id,
+      used: task.ai_tokens_used,
+      budget: task.ai_token_budget,
+      estimatedCallCost,
+    });
+    return { success: false, error: "budget_exhausted" };
+  }
+
+  // ─── Anthropic call ───────────────────────────────────────────────
   let modelUsed = "claude-haiku-4-5-20251001";
   let rawText = "";
+  let actualInputTokens = estimatedInputTokens;
+  let actualOutputTokens = OUTPUT_TOKEN_BUDGET;
 
   try {
     const response = await anthropic.messages.create({
       model: DEFAULT_MODEL,
-      max_tokens: 1500,
+      max_tokens: OUTPUT_TOKEN_BUDGET,
       messages: [{ role: "user", content: prompt }],
     });
     modelUsed = response.model || modelUsed;
@@ -115,9 +160,29 @@ export async function generateFeedback(
       .filter((b) => b.type === "text")
       .map((b) => (b as { text: string }).text)
       .join("");
+    if (response.usage) {
+      actualInputTokens = response.usage.input_tokens;
+      actualOutputTokens = response.usage.output_tokens;
+    }
   } catch (err) {
     console.error("[generateFeedback anthropic]", err);
     return { success: false, error: "api_failed" };
+  }
+
+  // Best-effort: bump task token usage so the budget gate stays
+  // accurate for the next submission. Failure here doesn't block
+  // delivery of the feedback row we already have.
+  try {
+    const adminUsageClient = createAdminClient();
+    await adminUsageClient
+      .from("tasks")
+      .update({
+        ai_tokens_used:
+          task.ai_tokens_used + actualInputTokens + actualOutputTokens,
+      })
+      .eq("id", task.id);
+  } catch (err) {
+    console.error("[generateFeedback budget update]", err);
   }
 
   // ─── Parse JSON (strip fences if present, then JSON.parse) ────────
@@ -209,6 +274,7 @@ type PromptCtx = {
   submissionMode: string;
   estimatedTime: string | null;
   companyName: string;
+  repoBlock: string | null;
 };
 
 function buildPrompt(ctx: PromptCtx): string {
@@ -216,7 +282,12 @@ function buildPrompt(ctx: PromptCtx): string {
     ? `Body:\n${ctx.submissionBody}\n\n`
     : "";
   const linkSection = ctx.supportingLink
-    ? `Supporting link: ${ctx.supportingLink}\n(Note: you cannot fetch this link's contents — evaluate only what's described in the title/body and the link's apparent type from its URL.)\n\n`
+    ? ctx.repoBlock
+      ? `Supporting link: ${ctx.supportingLink}\n(We fetched this repo for you — its contents are below.)\n\n`
+      : `Supporting link: ${ctx.supportingLink}\n(Note: you cannot fetch this link's contents — evaluate only what's described in the title/body and the link's apparent type from its URL.)\n\n`
+    : "";
+  const repoSection = ctx.repoBlock
+    ? `\nREPOSITORY CONTENTS (auto-fetched from the supporting link — README, file tree, key files):\n\n${ctx.repoBlock}\n\n`
     : "";
 
   return `You are evaluating a student's submission for an early-career skill assessment platform called RuneShips. Be direct and useful. No corporate softening. This feedback is meant to genuinely help the student improve.
@@ -230,7 +301,7 @@ Posted by: ${ctx.companyName}
 
 STUDENT'S SUBMISSION:
 Title: ${ctx.submissionTitle}
-${bodySection}${linkSection}SCORE the submission on these five dimensions, each 0-100:
+${bodySection}${linkSection}${repoSection}SCORE the submission on these five dimensions, each 0-100:
 
 1. Strategy — analytical thinking, problem framing, decision logic
 2. Execution — quality, completeness, attention to detail

@@ -264,6 +264,8 @@ export interface Database {
           is_demo: boolean;
           deletion_requested_at: string | null;
           deletion_request_note: string | null;
+          ai_token_budget: number;
+          ai_tokens_used: number;
           created_at: string;
         };
         Insert: {
@@ -290,6 +292,8 @@ export interface Database {
           is_demo?: boolean;
           deletion_requested_at?: string | null;
           deletion_request_note?: string | null;
+          ai_token_budget?: number;
+          ai_tokens_used?: number;
           created_at?: string;
         };
         Relationships: [];
@@ -317,6 +321,8 @@ export interface Database {
           is_demo?: boolean;
           deletion_requested_at?: string | null;
           deletion_request_note?: string | null;
+          ai_token_budget?: number;
+          ai_tokens_used?: number;
           created_at?: string;
         };
       };
@@ -331,6 +337,8 @@ export interface Database {
           submission_body: string | null;
           supporting_link: string | null;
           link_access_confirmed: boolean;
+          released_to_company: boolean;
+          released_at: string | null;
           created_at: string;
         };
         Insert: {
@@ -341,6 +349,8 @@ export interface Database {
           submission_body?: string | null;
           supporting_link?: string | null;
           link_access_confirmed?: boolean;
+          released_to_company?: boolean;
+          released_at?: string | null;
           created_at?: string;
         };
         Relationships: [];
@@ -352,6 +362,8 @@ export interface Database {
           submission_body?: string | null;
           supporting_link?: string | null;
           link_access_confirmed?: boolean;
+          released_to_company?: boolean;
+          released_at?: string | null;
           created_at?: string;
         };
       };

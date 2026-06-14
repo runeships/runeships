@@ -42,7 +42,17 @@ export default async function CompanyTaskDetailPage({
       "id, user_id, submission_title, supporting_link, created_at",
     )
     .eq("task_id", task.id)
+    .eq("released_to_company", true)
     .order("created_at", { ascending: false });
+
+  // Count of submissions still waiting on admin release — shown
+  // as a small "N pending RuneShips review" note so the company
+  // knows work is in flight even when the table looks empty.
+  const { count: pendingReviewCount } = await admin
+    .from("submissions")
+    .select("id", { count: "exact", head: true })
+    .eq("task_id", task.id)
+    .eq("released_to_company", false);
 
   const submissionIds = (submissions ?? []).map((s) => s.id);
   const userIds = Array.from(
@@ -223,11 +233,20 @@ export default async function CompanyTaskDetailPage({
                 Your task is live.
               </p>
               <p className="mt-3 text-[14px] leading-[1.55] text-muted max-w-[60ch]">
-                Submissions will appear here as students complete it.
+                {(pendingReviewCount ?? 0) > 0
+                  ? `${pendingReviewCount} submission${(pendingReviewCount ?? 0) === 1 ? "" : "s"} pending RuneShips review — they'll appear here once vetted.`
+                  : "Submissions will appear here as students complete it."}
               </p>
             </div>
           ) : (
-            <CompanySubmissionsTable rows={ranked} pending={pending} />
+            <>
+              <CompanySubmissionsTable rows={ranked} pending={pending} />
+              {(pendingReviewCount ?? 0) > 0 && (
+                <p className="mt-6 text-[12px] text-muted">
+                  + {pendingReviewCount} more pending RuneShips review.
+                </p>
+              )}
+            </>
           )}
         </section>
 

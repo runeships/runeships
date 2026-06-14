@@ -4,10 +4,7 @@ import { createClient } from "@/lib/supabase-server";
 import { createAdminClient } from "@/lib/supabase-admin";
 import { COOLDOWN_MS } from "@/lib/format";
 import { generateFeedback } from "./generateFeedback";
-import {
-  notifyAdminOfNewSubmission,
-  notifyCompanyOfNewSubmission,
-} from "@/lib/emails";
+import { notifyAdminOfNewSubmission } from "@/lib/emails";
 import type { SubmissionMode } from "@/lib/database.types";
 
 // Note: `maxDuration` cannot live in a "use server" file. The 60s
@@ -176,76 +173,48 @@ export async function submitTask(
     .maybeSingle();
   const companyName = company?.name ?? null;
 
-  // AI feedback always runs, regardless of evaluation_mode. The
-  // 'human' value now means "AI + RuneShips team gets a heads-up
-  // email," not "skip AI." This keeps the student experience
-  // identical (instant scoring) and just adds a notification to
-  // the admin queue when companies opt into human oversight.
+  // AI feedback runs unless the task's per-task token budget is
+  // exhausted (or the company picked 'human'-only at the task
+  // level — though now both modes still run AI; 'human' just means
+  // additional eyes-on). When budget is exhausted, AI is skipped
+  // entirely and the submission falls through to admin review.
   const feedback = await generateFeedback(inserted.id);
   if (!feedback.success) {
-    console.error("[submitTask generateFeedback]", feedback.error);
+    console.warn("[submitTask generateFeedback]", feedback.error);
   }
+  const awaitingHumanReview =
+    !feedback.success && feedback.error === "budget_exhausted";
 
-  // Heads-up email to RuneShips admin when companies asked for
-  // human oversight. Best-effort — never block the student flow.
-  if (task.evaluation_mode === "human") {
-    try {
-      const { data: studentProfile } = await admin
-        .from("profiles")
-        .select("full_name, school, graduation_year")
-        .eq("id", user.id)
-        .maybeSingle();
-      await notifyAdminOfNewSubmission({
-        submissionId: inserted.id,
-        taskTitle: task.title,
-        companyName: companyName ?? "(unknown)",
-        studentName: studentProfile?.full_name ?? user.email ?? "(unnamed)",
-        studentSchool: studentProfile?.school ?? null,
-        studentGradYear: studentProfile?.graduation_year ?? null,
-        submittedAt: inserted.created_at,
-      });
-    } catch (err) {
-      console.error("[submitTask notify admin]", err);
-    }
-  }
-
-  // Notify the task's owning company if they opted in. Best-effort —
-  // failure must not block the student's submission flow.
+  // Always notify admin — every submission goes through admin
+  // release gating before the company sees it. Best-effort.
   try {
-    const { data: ownerProfile } = await admin
+    const { data: studentProfile } = await admin
       .from("profiles")
-      .select("email, notify_on_new_submission")
-      .eq("company_id", task.company_id)
-      .eq("account_type", "company")
+      .select("full_name, school, graduation_year")
+      .eq("id", user.id)
       .maybeSingle();
-    if (ownerProfile?.notify_on_new_submission && ownerProfile.email) {
-      const { data: studentProfile } = await admin
-        .from("profiles")
-        .select("full_name")
-        .eq("id", user.id)
-        .maybeSingle();
-      const { data: totalScoreRow } = await admin
-        .from("feedback")
-        .select("total_score")
-        .eq("submission_id", inserted.id)
-        .maybeSingle();
-      await notifyCompanyOfNewSubmission({
-        recipientEmail: ownerProfile.email,
-        studentName: studentProfile?.full_name ?? user.email ?? "(unnamed)",
-        taskTitle: task.title,
-        taskId: task.id,
-        totalScore: totalScoreRow?.total_score ?? null,
-      });
-    }
+    await notifyAdminOfNewSubmission({
+      submissionId: inserted.id,
+      taskTitle: task.title,
+      companyName: companyName ?? "(unknown)",
+      studentName: studentProfile?.full_name ?? user.email ?? "(unnamed)",
+      studentSchool: studentProfile?.school ?? null,
+      studentGradYear: studentProfile?.graduation_year ?? null,
+      submittedAt: inserted.created_at,
+    });
   } catch (err) {
-    console.error("[submitTask notify company]", err);
+    console.error("[submitTask notify admin]", err);
   }
+
+  // Companies are NOT notified at submission time anymore. Admin
+  // releases each submission individually from /admin/submissions,
+  // and the release action fires the company email.
 
   return {
     status: "success",
     submissionId: inserted.id,
     feedbackGenerated: feedback.success,
-    awaitingHumanReview: false,
+    awaitingHumanReview,
     companyName,
   };
 }

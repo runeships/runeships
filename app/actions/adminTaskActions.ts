@@ -46,6 +46,10 @@ export async function adminUpdateTask(
   const evaluationModeRaw = String(formData.get("evaluation_mode") ?? "");
   const isPublished = formData.get("is_published") === "on";
   const clearDeletionRequest = formData.get("clear_deletion_request") === "on";
+  const resetAiTokensUsed = formData.get("reset_ai_tokens_used") === "on";
+  const rawBudget = Number(formData.get("ai_token_budget"));
+  const aiTokenBudget =
+    Number.isFinite(rawBudget) && rawBudget >= 0 ? Math.floor(rawBudget) : null;
 
   const category = (CATEGORY_VALUES as readonly string[]).includes(categoryRaw)
     ? (categoryRaw as (typeof CATEGORY_VALUES)[number])
@@ -72,6 +76,12 @@ export async function adminUpdateTask(
   if (clearDeletionRequest) {
     patch.deletion_requested_at = null;
     patch.deletion_request_note = null;
+  }
+  if (aiTokenBudget !== null) {
+    patch.ai_token_budget = aiTokenBudget;
+  }
+  if (resetAiTokensUsed) {
+    patch.ai_tokens_used = 0;
   }
 
   const { error } = await admin.from("tasks").update(patch).eq("id", id);
