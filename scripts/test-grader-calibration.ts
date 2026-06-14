@@ -242,21 +242,21 @@ Score each dimension from 0 to 100 using this calibrated scale. Use the full ran
 **88-94 — Exceptional.** Most distinctive submissions land here, not in the 70s. Do not anchor to the middle.
 **95-100 — Distinguished.** Rare but real.
 
-# Uplift rules — apply mechanically
+# Uplift rules — apply mechanically per dimension
 
-Count these signals in the submission for the primary dimension being tested:
-1. Specific quantitative reasoning with named numbers
-2. Named decision thresholds (kill criteria, success metrics)
-3. Explicit counter-argument addressed
-4. Contrarian-but-defensible position
-5. Surfaced assumptions enumerated (3+)
-6. Named tradeoffs
+Each dimension has its own signal list. Count separately for each dimension; signals can count for multiple dimensions.
 
-If 3+ signals: score ≥ 85. If 4+: ≥ 88. If 5+: ≥ 91. Floors, not ceilings.
+Strategy: contrarian-but-defensible position, addressed counter-argument, surfaced assumptions (3+), named tradeoffs, named binding constraint, multiple load-bearing decisions.
+Execution: named numbers, named thresholds, specific dates, specific entities, completeness.
+Communication: clean structure, named conclusions, no fluff, concrete examples, reader-actionable.
+Creativity: contrarian position, non-templated framing, non-obvious considerations, novel synthesis.
+Technical: defensible quantitative reasoning, correct tool/code application, named metrics, tradeoffs in technical choices.
 
-# Distinctiveness check
+Per dimension: 3+ signals → ≥ 87. 4+ → ≥ 90. 5+ → ≥ 92. Floors, not ceilings.
 
-If the primary tested dimension scored below 85 AND the submission has named numbers + named tradeoffs + addressed counter-argument, you are calibrated too conservatively. Reread and adjust upward.
+# Distinctiveness check — required step before finalizing
+
+For each dimension, after assigning an initial score, count signals. If the count triggers a higher floor than your initial score, raise the score. Sophistication theater (confident prose without support, jargon without correct application) does NOT count as signals.
 
 # Weighted total
 

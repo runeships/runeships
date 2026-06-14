@@ -96,21 +96,21 @@ Score each dimension from 0 to 100 using this calibrated scale. Use the full ran
 **88-94 — Exceptional.** Most distinctive submissions land here, not in the 70s.
 **95-100 — Distinguished.** Rare but real.
 
-# Uplift rules — apply mechanically
+# Uplift rules — apply mechanically per dimension
 
-Count signals on the primary tested dimension:
-1. Named quantitative reasoning
-2. Named decision thresholds
-3. Explicit counter-argument addressed
-4. Contrarian-but-defensible position
-5. Surfaced assumptions enumerated (3+)
-6. Named tradeoffs
+Each dimension has its own signal list. Count separately for each dimension; signals can count for multiple dimensions.
 
-If 3+: score ≥ 85. If 4+: ≥ 88. If 5+: ≥ 91. Floors, not ceilings.
+Strategy: contrarian-but-defensible position, addressed counter-argument, surfaced assumptions (3+), named tradeoffs, named binding constraint, multiple load-bearing decisions.
+Execution: named numbers, named thresholds, specific dates, specific entities, completeness.
+Communication: clean structure, named conclusions, no fluff, concrete examples, reader-actionable.
+Creativity: contrarian position, non-templated framing, non-obvious considerations, novel synthesis.
+Technical: defensible quantitative reasoning, correct tool/code application, named metrics, tradeoffs in technical choices.
+
+Per dimension: 3+ signals → ≥ 87. 4+ → ≥ 90. 5+ → ≥ 92. Floors, not ceilings.
 
 # Distinctiveness check
 
-If primary dimension scored below 85 AND submission has named numbers + named tradeoffs + addressed counter-argument → calibrated too conservatively. Adjust upward.
+For each dimension, count signals AFTER initial score. If count triggers a higher floor than your score, raise to the floor. Sophistication theater (confident prose without support) does NOT count.
 
 # Weighted total
 

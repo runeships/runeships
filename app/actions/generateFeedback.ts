@@ -384,32 +384,59 @@ Score each dimension from 0 to 100 using this calibrated scale. Use the full ran
 
 **95-100 — Distinguished.** Instructive to a senior practitioner. Rare but real.
 
-# Uplift rules — apply mechanically
+# Uplift rules — apply mechanically per dimension
 
-Count these signals in the submission for the **primary dimension being tested by the task** (Strategy for analysis tasks, Technical for code tasks, etc.):
+Each dimension has its own signal list. Count signals separately for each dimension. Signals can count for multiple dimensions — named numbers count for both Strategy and Execution, contrarian framing counts for both Strategy and Creativity, etc.
 
-1. Specific quantitative reasoning with named numbers ($X cost, Y% margin, Z timeline)
-2. Named decision thresholds (kill criteria, success metrics, gates)
-3. Explicit counter-argument addressed (not "some might disagree" — a specific counter the writer engages with)
-4. Contrarian-but-defensible position (not the default obvious answer everyone would give)
-5. Surfaced assumptions enumerated (3+ named)
-6. Named tradeoffs with reasoning for the chosen side
+**Strategy signals:**
+1. Contrarian-but-defensible position (not the default obvious answer)
+2. Addressed counter-argument (specific counter the writer engages with)
+3. Surfaced assumptions enumerated (3+ named)
+4. Named tradeoffs with reasoning for the chosen side
+5. Named binding constraint correctly identified
+6. Multiple load-bearing decisions with explicit reasoning
 
-**If the primary dimension shows 3+ of these signals: score ≥ 85 on that dimension.**
-**If 4+: score ≥ 88.**
-**If 5+: score ≥ 91.**
+**Execution signals:**
+1. Named numbers ($X cost, Y% margin, Z deals)
+2. Named decision thresholds (kill criteria, success metrics)
+3. Specific dates / timelines (Q2 2026, 14-month payback)
+4. Specific named entities (not "a competitor" but "Competitor X")
+5. Completeness — task fully addressed end-to-end
 
-These are floors, not ceilings. Score higher if the signals are exceptionally well-executed. These rules exist because distinctive work historically gets compressed into the 75-82 range — that's wrong. The 85-92 band is where distinctive work belongs.
+**Communication signals:**
+1. Clean scannable structure (headings, hierarchy)
+2. Named conclusions (not buried)
+3. No fluff (tight word economy)
+4. Concrete examples / specifics over abstractions
+5. Reader could act on it without follow-up clarification
 
-# Distinctiveness check
+**Creativity signals:**
+1. Contrarian-but-defensible position
+2. Non-templated framing (not the obvious answer everyone gives)
+3. Specific non-obvious considerations surfaced
+4. Novel synthesis of inputs
 
-After producing per-dimension scores, ask:
+**Technical signals (for code/quant tasks):**
+1. Defensible quantitative reasoning
+2. Correct tool/library/code application
+3. Specific named metrics
+4. Tradeoffs in technical choices articulated
 
-- Does this submission make moves a baseline competent submission would NOT make?
-- Did the uplift rules above apply, and do the scores reflect them?
-- Or conversely: is there confident-sounding prose without specific support, structural complexity without substantive depth, or technical jargon without correct application? Don't reward sophistication theater.
+**Scoring floors — apply per dimension:**
 
-Calibration check before finalizing: if the primary tested dimension scored below 85 AND the submission has named numbers + named tradeoffs + addressed counter-argument, you are scoring too conservatively. Reread and adjust upward.
+- **3+ signals on a dimension → that dimension scores ≥ 87.**
+- **4+ signals → ≥ 90.**
+- **5+ signals → ≥ 92.**
+
+These are floors, not ceilings. Score higher if the signals are exceptionally well-executed. These rules exist because distinctive work historically gets compressed into the 75-82 range — that is wrong. The 88-94 band is where distinctive work belongs.
+
+# Distinctiveness check — required step before finalizing
+
+For each dimension, after assigning an initial score, count signals from the list above. If the count would trigger a floor higher than your initial score, raise the score to the floor.
+
+If a dimension scored below 87 AND its signal count is 3+, you are scoring too conservatively. Adjust upward to the floor before finalizing.
+
+Conversely: confident-sounding prose without specific support, structural complexity without substantive depth, or technical jargon without correct application is sophistication theater — those don't count as signals. Be honest about what is actually present in the work.
 
 # Weighted total
 
@@ -438,19 +465,31 @@ OUTPUT FORMAT — respond with ONLY this JSON object, no other text, no markdown
   "qualitative_feedback": "<your 200-400 word feedback as a single string with proper line breaks using \\n\\n between paragraphs>"
 }
 
-# Calibration example — this is what 89 looks like
+# Calibration example — work through this BEFORE scoring
 
-A strategy-task submission recommending Toronto (contrarian) over London for a B2B SaaS expansion, with: named numbers ($52K validation cost, $420K full commitment, $1.4M ARR breakeven), three named kill thresholds (pipeline count, sales-cycle delta, closed-won deals), named pricing position (USD no discount, defended), five named assumptions, and an addressed counter-argument (wait until 2027).
+A strategy task: international expansion recommendation for a B2B SaaS company. The submission recommends Toronto over the default London pick, with specific financials and structured thresholds.
 
-This submission has 6/6 uplift signals on Strategy. Scores:
-- Strategy: 91
-- Communication: 89
-- Execution: 88
-- Creativity: 90
-- Technical: 78
-- **Weighted total ≈ 89**
+**Signal count per dimension:**
 
-**If you are scoring a submission with comparable signals at less than 85 on the primary dimension, you are calibrated too conservatively.** This example is not the ceiling — it is the middle of the 88-94 band. Better-executed work of this shape should score higher.`;
+Strategy signals: contrarian pick (1), addressed counter-argument about waiting (2), 5 surfaced assumptions (3), named tradeoffs around pricing (4), named binding constraint of CEO attention (5), multiple load-bearing decisions (6). → **6 signals → floor 92.**
+
+Execution signals: named numbers $52K/$420K/$1.4M (1), 3 named kill thresholds (2), specific Q2 2026 dates (3), named ACV $26K + payback 14 months (4), completeness — pricing + counter-argument + assumptions all addressed (5). → **5 signals → floor 92.**
+
+Communication signals: clean structure with headings (1), bolded conclusion ("Toronto in Q2 2026, not London") (2), no fluff (3), concrete examples throughout (4), reader-actionable (5). → **5 signals → floor 92.**
+
+Creativity signals: contrarian Toronto pick (1), non-templated USD-no-discount pricing argument (2), non-obvious binding-constraint framing (3). → **3 signals → floor 87.**
+
+Technical signals: defensible quantitative reasoning (1), named LTV/CAC ratio (2). → **2 signals → no floor (score on quality).**
+
+**Calibrated scores:**
+- Strategy: 92 (floor)
+- Execution: 92 (floor)
+- Communication: 90 (above floor — clean but not award-winning prose)
+- Creativity: 88 (just above floor)
+- Technical: 78 (no floor; credible quantitative work, not the dimension being tested)
+- **Weighted total ≈ 91**
+
+When scoring an arbitrary submission: count signals per dimension first, apply floors, then adjust upward only if execution quality merits it. If you find yourself below the floor for a dimension, you missed signals or you are calibrated too conservatively.`;
 }
 
 type ValidatedPayload = {
