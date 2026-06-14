@@ -54,6 +54,7 @@ export async function requireStudentUser() {
     .eq("id", user.id)
     .maybeSingle();
   if (!profile) redirect("/onboarding/select-type");
+  if (!profile.account_type) redirect("/onboarding/select-type");
   if (profile.account_type === "company") redirect("/companies/dashboard");
   if (!profile.onboarding_completed) redirect("/onboarding");
   return { user, profile };

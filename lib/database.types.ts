@@ -128,7 +128,7 @@ export interface Database {
           notify_on_feedback: boolean;
           notify_on_new_tasks: boolean;
           notify_on_new_submission: boolean;
-          account_type: "student" | "company";
+          account_type: "student" | "company" | null;
           company_id: string | null;
           is_seed: boolean;
           leaderboard_visible: boolean;
@@ -153,7 +153,7 @@ export interface Database {
           notify_on_feedback?: boolean;
           notify_on_new_tasks?: boolean;
           notify_on_new_submission?: boolean;
-          account_type?: "student" | "company";
+          account_type?: "student" | "company" | null;
           company_id?: string | null;
           is_seed?: boolean;
           leaderboard_visible?: boolean;
@@ -179,7 +179,7 @@ export interface Database {
           notify_on_feedback?: boolean;
           notify_on_new_tasks?: boolean;
           notify_on_new_submission?: boolean;
-          account_type?: "student" | "company";
+          account_type?: "student" | "company" | null;
           company_id?: string | null;
           is_seed?: boolean;
           leaderboard_visible?: boolean;

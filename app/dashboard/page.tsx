@@ -92,7 +92,7 @@ export default async function DashboardPage() {
     school: string | null;
     graduation_year: number | null;
     onboarding_completed: boolean;
-    account_type: "student" | "company";
+    account_type: "student" | "company" | null;
     self_rated_strategy: number;
     self_rated_execution: number;
     self_rated_communication: number;
@@ -126,6 +126,11 @@ export default async function DashboardPage() {
   // surface it inline — don't silent-redirect into a loop.
   if (!profile && !profileError) {
     redirect("/onboarding");
+  }
+  // Brand-new signup that never picked a type: route them to the
+  // type chooser (the auto-create trigger leaves account_type NULL).
+  if (profile && !profile.account_type) {
+    redirect("/onboarding/select-type");
   }
   // Company users belong on /companies/dashboard, not the student
   // dashboard. Bounce them before any of the student-side queries fire.

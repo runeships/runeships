@@ -49,9 +49,10 @@ export async function GET(request: NextRequest) {
     .eq("id", user.id)
     .maybeSingle();
 
-  // Brand-new signup: no profile row yet or no account_type chosen.
-  // Send them to the type-selection screen.
-  if (!profile) {
+  // Brand-new signup: no profile row yet, or the auto-create trigger
+  // made one but they haven't chosen an account_type. Send them to
+  // the type-selection screen.
+  if (!profile || !profile.account_type) {
     return NextResponse.redirect(`${origin}/onboarding/select-type`);
   }
 
