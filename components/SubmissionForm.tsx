@@ -45,10 +45,10 @@ export function SubmissionForm({
   if (state.status === "success") {
     const ready = state.feedbackGenerated;
     const human = state.awaitingHumanReview;
-    const reviewerName = state.companyName ?? "The RuneShips founding team";
+    const companyName = state.companyName ?? null;
 
     // Three success variants:
-    //   - human review: scoring goes to /admin queue, student waits
+    //   - human review: task's AI budget exhausted → manual review queue
     //   - AI feedback ready: scores are live
     //   - AI feedback failed: stays put, retry available on detail page
     const kicker = human
@@ -57,12 +57,12 @@ export function SubmissionForm({
       ? "Feedback ready"
       : "Submission received";
     const headline = human
-      ? "Your work is in the queue."
+      ? "Your submission is in the human review queue."
       : ready
       ? "Your scores are in."
       : "Your work has been saved.";
     const body = human
-      ? `${reviewerName} reviews this task personally. You'll get an email when your feedback is ready — typically within 3–5 business days.`
+      ? `This task's automated grading capacity has been reached for the period — your submission is in the human review queue and will be graded within a couple of hours.${companyName ? ` ${companyName} has been notified.` : ""} You'll get an email when your feedback is ready.`
       : ready
       ? "Per-dimension scores and written feedback are on the submission page."
       : "Feedback generation hit a snag — you can retry from the submission page.";

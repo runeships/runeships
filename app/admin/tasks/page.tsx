@@ -23,7 +23,7 @@ export default async function AdminTasksPage({
     admin
       .from("tasks")
       .select(
-        "id, title, slug, category, submission_mode, evaluation_mode, is_published, is_demo, company_id, deletion_requested_at, deletion_request_note, created_at",
+        "id, title, slug, category, submission_mode, evaluation_mode, is_published, is_demo, company_id, deletion_requested_at, deletion_request_note, created_at, ai_token_budget, ai_tokens_used",
       )
       .order("deletion_requested_at", { ascending: false, nullsFirst: false })
       .order("created_at", { ascending: false }),
@@ -120,12 +120,20 @@ function Row({
     deletion_requested_at: string | null;
     deletion_request_note: string | null;
     created_at: string;
+    ai_token_budget: number;
+    ai_tokens_used: number;
   };
   companyName: string;
   isPracticeCompany: boolean;
   submissions: number;
 }) {
   const isDemoTask = task.is_demo || isPracticeCompany;
+  const budgetPct =
+    task.ai_token_budget > 0
+      ? Math.round((task.ai_tokens_used / task.ai_token_budget) * 100)
+      : 0;
+  const budgetExhausted = task.ai_tokens_used >= task.ai_token_budget;
+  const budgetWarn = !budgetExhausted && budgetPct >= 75;
   return (
     <li className="py-4 flex items-start justify-between gap-6">
       <div className="min-w-0 flex-1">
@@ -159,6 +167,42 @@ function Row({
           <span aria-hidden className="mx-2 text-muted/50">·</span>
           Posted {timeAgo(task.created_at)}
         </p>
+
+        {/* AI budget meter — surfaces consumption before students hit
+            the gate. Color shifts at 75% (warn) / 100% (exhausted) so
+            you can bump proactively instead of reactively. */}
+        <div className="mt-2 max-w-[420px]">
+          <div className="flex items-baseline justify-between gap-3">
+            <p className="text-[11px] tracking-[0.06em] uppercase text-muted">
+              AI budget
+            </p>
+            <p
+              className={`text-[11px] tabular-nums ${
+                budgetExhausted
+                  ? "text-oxblood font-medium"
+                  : budgetWarn
+                  ? "text-oxblood"
+                  : "text-muted"
+              }`}
+            >
+              {task.ai_tokens_used.toLocaleString()} /{" "}
+              {task.ai_token_budget.toLocaleString()} ({budgetPct}%)
+            </p>
+          </div>
+          <div className="mt-1.5 h-[3px] bg-ink/10 overflow-hidden">
+            <div
+              className={`h-full transition-all duration-300 ease-out ${
+                budgetExhausted
+                  ? "bg-oxblood"
+                  : budgetWarn
+                  ? "bg-oxblood/60"
+                  : "bg-ink/30"
+              }`}
+              style={{ width: `${Math.min(100, budgetPct)}%` }}
+            />
+          </div>
+        </div>
+
         {task.deletion_request_note && (
           <p className="mt-2 text-[12px] text-muted italic max-w-[80ch]">
             &ldquo;{task.deletion_request_note}&rdquo;
