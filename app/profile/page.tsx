@@ -67,15 +67,17 @@ export default async function ProfilePage({
   // schema doesn't crash the profile page.
   let lastResumeAt: string | null = null;
   let resumeCode: string | null = null;
+  let termsAcceptedAt: string | null = null;
   try {
     const { data: resumeRow } = await supabase
       .from("profiles")
-      .select("last_resume_at, resume_code")
+      .select("last_resume_at, resume_code, terms_accepted_at")
       .eq("id", user.id)
       .maybeSingle();
     if (resumeRow) {
       lastResumeAt = resumeRow.last_resume_at ?? null;
       resumeCode = resumeRow.resume_code ?? null;
+      termsAcceptedAt = resumeRow.terms_accepted_at ?? null;
     }
   } catch (err) {
     console.error("[profile resume fetch]", err);
@@ -159,7 +161,9 @@ export default async function ProfilePage({
               leaderboardVisible={leaderboardVisible}
             />
           )}
-          {tab === "privacy" && <PrivacyTab />}
+          {tab === "privacy" && (
+            <PrivacyTab termsAcceptedAt={termsAcceptedAt} />
+          )}
         </div>
 
         {/* Footer back-link */}

@@ -430,19 +430,28 @@ export default function OnboardingPage() {
 
             {/* ─── Submit ───────────────────────────────────────────── */}
             <section>
-              <div className="max-w-[560px] mx-auto mb-8">
+              <div className="max-w-[560px] mx-auto mb-8 pt-6 border-t border-ink/10">
                 <label className="flex items-start gap-3 cursor-pointer select-none">
                   <input
                     type="checkbox"
                     checked={confirmedAge}
                     onChange={(e) => setConfirmedAge(e.target.checked)}
                     disabled={isPending}
+                    name="terms_accepted"
                     className="mt-1 accent-oxblood shrink-0"
                     aria-describedby="age-confirm-hint"
                   />
                   <span className="text-[14px] leading-[1.55] text-ink">
-                    I confirm I am at least 16 years old, and I&rsquo;ve read
-                    the{" "}
+                    I confirm I am at least 16 years old, and I agree to the{" "}
+                    <a
+                      href="/terms"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="link-anim text-oxblood hover:text-oxblood-hover transition-colors duration-200 ease-out"
+                    >
+                      Terms of Service
+                    </a>
+                    ,{" "}
                     <a
                       href="/privacy"
                       target="_blank"
@@ -450,6 +459,15 @@ export default function OnboardingPage() {
                       className="link-anim text-oxblood hover:text-oxblood-hover transition-colors duration-200 ease-out"
                     >
                       Privacy Policy
+                    </a>
+                    , and{" "}
+                    <a
+                      href="/cookies"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="link-anim text-oxblood hover:text-oxblood-hover transition-colors duration-200 ease-out"
+                    >
+                      Cookies Policy
                     </a>
                     .
                   </span>

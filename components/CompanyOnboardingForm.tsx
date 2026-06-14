@@ -22,6 +22,7 @@ export function CompanyOnboardingForm() {
   const [state, formAction, pending] = useActionState(createCompany, initial);
   const [sizeBand, setSizeBand] = useState<string>("");
   const [categories, setCategories] = useState<string[]>([]);
+  const [termsAccepted, setTermsAccepted] = useState(false);
 
   function toggleCategory(c: string) {
     setCategories((prev) =>
@@ -119,10 +120,53 @@ export function CompanyOnboardingForm() {
         </p>
       )}
 
-      <div className="pt-4 border-t border-ink/10">
+      <div className="pt-6 border-t border-ink/10">
+        <label className="flex items-start gap-3 cursor-pointer select-none max-w-[560px]">
+          <input
+            type="checkbox"
+            checked={termsAccepted}
+            onChange={(e) => setTermsAccepted(e.target.checked)}
+            disabled={pending}
+            name="terms_accepted"
+            className="mt-1 accent-oxblood shrink-0"
+          />
+          <span className="text-[14px] leading-[1.55] text-ink">
+            I agree to the{" "}
+            <a
+              href="/terms"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="link-anim text-oxblood hover:text-oxblood-hover transition-colors duration-200 ease-out"
+            >
+              Terms of Service
+            </a>
+            ,{" "}
+            <a
+              href="/privacy"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="link-anim text-oxblood hover:text-oxblood-hover transition-colors duration-200 ease-out"
+            >
+              Privacy Policy
+            </a>
+            , and{" "}
+            <a
+              href="/cookies"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="link-anim text-oxblood hover:text-oxblood-hover transition-colors duration-200 ease-out"
+            >
+              Cookies Policy
+            </a>
+            , including the Company Users additional terms in Section 8.
+          </span>
+        </label>
+      </div>
+
+      <div>
         <button
           type="submit"
-          disabled={pending}
+          disabled={pending || !termsAccepted}
           className={`
             inline-flex items-center
             min-h-[56px] px-9

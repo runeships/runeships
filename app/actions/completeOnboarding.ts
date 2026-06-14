@@ -58,6 +58,13 @@ export async function completeOnboarding(
     return error("Your session expired. Sign in again to continue.");
   }
 
+  const termsAccepted = formData.get("terms_accepted");
+  if (termsAccepted !== "on" && termsAccepted !== "true") {
+    return error(
+      "You must accept the Terms of Service, Privacy Policy, and Cookies Policy to continue.",
+    );
+  }
+
   const { error: updateError } = await supabase
     .from("profiles")
     .update({
@@ -72,6 +79,7 @@ export async function completeOnboarding(
       self_rated_technical: skills.technical,
       self_rated_creativity: skills.creativity,
       onboarding_completed: true,
+      terms_accepted_at: new Date().toISOString(),
     })
     .eq("id", user.id);
 

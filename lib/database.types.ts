@@ -134,6 +134,7 @@ export interface Database {
           leaderboard_visible: boolean;
           last_resume_at: string | null;
           resume_code: string | null;
+          terms_accepted_at: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -161,6 +162,7 @@ export interface Database {
           leaderboard_visible?: boolean;
           last_resume_at?: string | null;
           resume_code?: string | null;
+          terms_accepted_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -189,6 +191,7 @@ export interface Database {
           leaderboard_visible?: boolean;
           last_resume_at?: string | null;
           resume_code?: string | null;
+          terms_accepted_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };

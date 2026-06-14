@@ -63,6 +63,15 @@ export async function createCompany(
     };
   }
 
+  const termsAccepted = formData.get("terms_accepted");
+  if (termsAccepted !== "on" && termsAccepted !== "true") {
+    return {
+      status: "error",
+      message:
+        "You must accept the Terms of Service, Privacy Policy, and Cookies Policy to continue.",
+    };
+  }
+
   // Generate a unique slug for the new company.
   const admin = createAdminClient();
   const { data: existing } = await admin.from("companies").select("slug");
@@ -98,6 +107,7 @@ export async function createCompany(
       company_id: company.id,
       full_name: user.email?.split("@")[0] ?? "Company user",
       onboarding_completed: true,
+      terms_accepted_at: new Date().toISOString(),
     })
     .eq("id", user.id);
   if (profileErr) {
