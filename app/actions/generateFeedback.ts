@@ -5,6 +5,10 @@ import { createAdminClient } from "@/lib/supabase-admin";
 import { anthropic, DEFAULT_MODEL } from "@/lib/anthropic";
 import { notifyStudentOfFeedback } from "@/lib/emails";
 import { parseGithubUrl, fetchRepoForPrompt } from "@/lib/githubFetch";
+import {
+  parseGoogleDocsUrl,
+  fetchGoogleDocForPrompt,
+} from "@/lib/googleDocsFetch";
 
 // Output budget for the Anthropic call. Used both to size the
 // max_tokens request and to estimate cost before we start.
@@ -100,17 +104,34 @@ export async function generateFeedback(
     .eq("id", task.company_id)
     .maybeSingle();
 
-  // ─── Optional GitHub repo fetch ──────────────────────────────────
-  // If the supporting link is a public github.com/{owner}/{repo}
-  // URL, pull the README + top-level tree + a handful of source
-  // files. Capped at 50k chars by the fetcher itself.
-  let repoBlock: string | null = null;
+  // ─── Optional external doc fetch ─────────────────────────────────
+  // GitHub: pull README + tree + key files (~50k char cap).
+  // Google Docs / Sheets / Slides: export as text/CSV via the
+  // public export endpoint (~30k char cap). Private docs return
+  // attemptedButPrivate=true so the prompt knows to soften.
+  let externalDocBlock: string | null = null;
+  let externalDocKind: "github" | "google_docs" | null = null;
+  let attemptedButInaccessible = false;
   if (submission.supporting_link) {
-    const parsed = parseGithubUrl(submission.supporting_link);
-    if (parsed) {
-      const repoRes = await fetchRepoForPrompt(parsed);
-      if (repoRes.ok && repoRes.charCount > 0) {
-        repoBlock = repoRes.formatted;
+    const gh = parseGithubUrl(submission.supporting_link);
+    if (gh) {
+      const res = await fetchRepoForPrompt(gh);
+      if (res.ok && res.charCount > 0) {
+        externalDocBlock = res.formatted;
+        externalDocKind = "github";
+      } else {
+        attemptedButInaccessible = true;
+      }
+    } else {
+      const gd = parseGoogleDocsUrl(submission.supporting_link);
+      if (gd) {
+        const res = await fetchGoogleDocForPrompt(gd);
+        if (res.ok && res.charCount > 0) {
+          externalDocBlock = res.formatted;
+          externalDocKind = "google_docs";
+        } else if (res.attemptedButPrivate) {
+          attemptedButInaccessible = true;
+        }
       }
     }
   }
@@ -124,7 +145,9 @@ export async function generateFeedback(
     submissionMode: task.submission_mode,
     estimatedTime: task.estimated_time,
     companyName: company?.name ?? "Unknown",
-    repoBlock,
+    externalDocBlock,
+    externalDocKind,
+    attemptedButInaccessible,
   });
 
   // ─── Token budget gate ───────────────────────────────────────────
@@ -274,20 +297,33 @@ type PromptCtx = {
   submissionMode: string;
   estimatedTime: string | null;
   companyName: string;
-  repoBlock: string | null;
+  externalDocBlock: string | null;
+  externalDocKind: "github" | "google_docs" | null;
+  attemptedButInaccessible: boolean;
 };
 
 function buildPrompt(ctx: PromptCtx): string {
   const bodySection = ctx.submissionBody
     ? `Body:\n${ctx.submissionBody}\n\n`
     : "";
-  const linkSection = ctx.supportingLink
-    ? ctx.repoBlock
-      ? `Supporting link: ${ctx.supportingLink}\n(We fetched this repo for you — its contents are below.)\n\n`
-      : `Supporting link: ${ctx.supportingLink}\n(Note: you cannot fetch this link's contents — evaluate only what's described in the title/body and the link's apparent type from its URL.)\n\n`
-    : "";
-  const repoSection = ctx.repoBlock
-    ? `\nREPOSITORY CONTENTS (auto-fetched from the supporting link — README, file tree, key files):\n\n${ctx.repoBlock}\n\n`
+
+  let linkSection = "";
+  if (ctx.supportingLink) {
+    if (ctx.externalDocBlock) {
+      const kindLabel =
+        ctx.externalDocKind === "github"
+          ? "repo"
+          : "linked document";
+      linkSection = `Supporting link: ${ctx.supportingLink}\n(We fetched this ${kindLabel} for you — its contents are included below.)\n\n`;
+    } else if (ctx.attemptedButInaccessible) {
+      linkSection = `Supporting link: ${ctx.supportingLink}\n(We tried to fetch this link's contents but it is not publicly accessible — the student likely shared it with restricted permissions. This is a tooling limitation, NOT the student's fault. The student followed the submission format correctly by providing a link; they may simply not have realized the share settings needed to be open.)\n\n`;
+    } else {
+      linkSection = `Supporting link: ${ctx.supportingLink}\n(We don't have a fetcher for this link type. Evaluate based on the title/body and any context you can infer.)\n\n`;
+    }
+  }
+
+  const externalSection = ctx.externalDocBlock
+    ? `\nFETCHED LINK CONTENTS (auto-pulled from the supporting link):\n\n${ctx.externalDocBlock}\n\n`
     : "";
 
   return `You are evaluating a student's submission for an early-career skill assessment platform called RuneShips. Be direct and useful. No corporate softening. This feedback is meant to genuinely help the student improve.
@@ -301,7 +337,7 @@ Posted by: ${ctx.companyName}
 
 STUDENT'S SUBMISSION:
 Title: ${ctx.submissionTitle}
-${bodySection}${linkSection}${repoSection}SCORE the submission on these five dimensions, each 0-100:
+${bodySection}${linkSection}${externalSection}SCORE the submission on these five dimensions, each 0-100:
 
 1. Strategy — analytical thinking, problem framing, decision logic
 2. Execution — quality, completeness, attention to detail
@@ -315,7 +351,11 @@ QUALITATIVE FEEDBACK (200-400 words) must cover:
 - One specific strength they demonstrated (with evidence from their submission)
 - One specific area for improvement (with concrete advice they can act on next time)
 - Whether their reasoning was sound or if you spotted holes/gaps
-- For link-only or text+link submissions where you can't see the linked artifact: acknowledge what you could and couldn't evaluate, score conservatively, focus feedback on what they did describe.
+
+IMPORTANT — handling link accessibility:
+- If we couldn't fetch the linked content (private doc, restricted share settings): DO NOT penalize the student for using a link, and DO NOT lecture them about submission format. Submitting a link IS a valid choice if the task accepts it. The inability to fetch is a platform limitation, not their failure. In this case: explicitly note in the feedback that we couldn't access the linked content, mention they should double-check sharing permissions next time, then evaluate fairly on whatever IS available (title, body, link type signals). Score charitably — assume the linked work is competent unless the title/body suggests otherwise. Lean toward middle-of-range scores (45-65) by default rather than dragging them down.
+- If the brief explicitly requires plain text and the student linked a doc anyway: note the format mismatch as a small execution gap (lose a few points on Execution), but don't make it the centerpiece of the feedback. Most of the qualitative feedback should still be about the actual work.
+- If we DID fetch the linked content: evaluate it directly. The fetched content is authoritative — judge the actual work, not the format.
 
 FORMATTING — your qualitative_feedback string is rendered as markdown. You may use light formatting: **bold** for emphasis on key terms or concepts, bullet lists (using - dashes) for multi-point recommendations, and blank lines between paragraphs. Don't overdo it — most of the feedback should be flowing prose. Reserve bold for 2–3 truly important phrases, and only use bullets when listing 3+ discrete points. Headings (# / ##) are unnecessary at this length; just use paragraphs.
 
