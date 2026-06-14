@@ -366,41 +366,50 @@ ${bodySection}${linkSection}${externalSection}SCORE the submission on these five
 
 # Per-dimension scoring anchors
 
-Score each dimension from 0 to 100 using this calibrated scale. Use the full range. Do not compress scores toward the middle.
+Score each dimension from 0 to 100 using this calibrated scale. Use the full range. The bands are deliberately wide at the top — distinctive work belongs in 85+, not compressed into the 70s.
 
-**0-15 — Broken or absent.** The submission fails to engage with this dimension. Gibberish input, complete absence of relevant content, or fundamental misunderstanding of what was asked. Example: a strategy task where the response is unrelated to the question.
+**0-15 — Broken or absent.** Gibberish, complete absence of relevant content, or fundamental misunderstanding of what was asked.
 
-**16-35 — Severely underdeveloped.** Some engagement with the dimension but it falls apart on inspection. Critical errors of reasoning, structure, or judgment. A reader would not trust the work product.
+**16-35 — Severely underdeveloped.** Engagement falls apart on inspection. Critical errors of reasoning, structure, or judgment.
 
-**36-55 — Below average.** Recognizable attempt but materially weaker than what an averagely competent person would produce. Lacks specificity, makes unforced errors, or misses the core of what the task demands.
+**36-55 — Below average.** Recognizable attempt but materially weaker than averagely competent.
 
-**56-70 — Average to competent.** Solid baseline work. Addresses the task adequately. No major errors but no distinctive moves either. This is what a careful but unremarkable submission looks like — including most well-prompted AI-generated baseline output. A capable person on a tired day produces work in this range.
+**56-67 — Competent baseline.** Addresses the task adequately. No major errors, no distinctive moves. Floor for engaged work.
 
-**71-82 — Above average / solid.** Clearly thoughtful work that demonstrates real engagement with the problem. Specific reasoning, some hidden assumptions surfaced, clean structure. The kind of work a strong early-career professional would produce on a focused day.
+**68-78 — Above average / solid.** Clearly thoughtful. Specific reasoning, cleanly structured. Where a well-prompted AI baseline lands (do not score below 65 without specific identified failures).
 
-**83-90 — Strong / impressive.** Work that goes beyond competent execution into genuine insight. Demonstrates judgment, specificity in quantitative reasoning where relevant, addresses counter-considerations, names tradeoffs the average submission ignores. Could be presented directly to senior stakeholders.
+**79-87 — Strong / impressive.** Goes beyond competent execution into genuine insight. Demonstrates judgment, names tradeoffs the average submission ignores.
 
-**91-95 — Exceptional.** Work that displays clear strategic or craft maturity beyond the typical early-career level. Contrarian framings supported by rigorous reasoning. Quantitative work that holds up to scrutiny. Risk analysis ordered by actual business impact rather than templated categories. Surfaces non-obvious considerations a thoughtful expert would notice but most practitioners would miss.
+**88-94 — Exceptional.** Contrarian framings supported by rigor. Quantitative work that holds up. Surfaces non-obvious considerations. **Most distinctive submissions land here, not in the 70s. Do not anchor to the middle.**
 
-**96-100 — Distinguished.** Reserve for work that would be genuinely instructive to a senior practitioner. Rare. A submission scoring here should display all of: novel framing, defensible quantitative rigor, surfaced and addressed counter-arguments, tactical specificity at the level of named numbers and named thresholds, and craft (writing, structure, code organization) that itself models best practice. If you find yourself wanting to give 95+ on a regular basis, recalibrate downward.
+**95-100 — Distinguished.** Instructive to a senior practitioner. Rare but real.
 
-**Calibration discipline.**
+# Uplift rules — apply mechanically
 
-- Most submissions cluster in the 56-82 range. Resist the temptation to inflate scores toward the upper half just because a submission is "well-written." Structure and prose quality count toward Communication, not toward all dimensions.
-- An AI-generated baseline response (well-prompted, no editing) typically lands in the 65-75 range. Score it there.
-- A careful human response that addresses the task without distinctive insight should land in the 73-82 range.
-- A response that demonstrates contrarian insight, quantitative rigor, and surfacing of non-obvious considerations is what 88-92 looks like. Don't penalize it for not being "perfect" — score it for what it is.
-- 95+ should feel like exception, not pattern. If you would honestly score multiple submissions in a cohort at 95+, your calibration is too generous.
+Count these signals in the submission for the **primary dimension being tested by the task** (Strategy for analysis tasks, Technical for code tasks, etc.):
 
-# Distinctiveness check (apply before finalizing scores)
+1. Specific quantitative reasoning with named numbers ($X cost, Y% margin, Z timeline)
+2. Named decision thresholds (kill criteria, success metrics, gates)
+3. Explicit counter-argument addressed (not "some might disagree" — a specific counter the writer engages with)
+4. Contrarian-but-defensible position (not the default obvious answer everyone would give)
+5. Surfaced assumptions enumerated (3+ named)
+6. Named tradeoffs with reasoning for the chosen side
 
-After producing initial per-dimension scores, review the submission once more and ask:
+**If the primary dimension shows 3+ of these signals: score ≥ 85 on that dimension.**
+**If 4+: score ≥ 88.**
+**If 5+: score ≥ 91.**
 
-1. What moves does this submission make that a baseline competent submission would NOT make? List them mentally.
-2. Are those moves recognized in your scores? If the submission surfaces a non-obvious assumption, picks a contrarian-but-defensible position, includes specific quantitative reasoning, or addresses a counter-argument explicitly, those are signals that warrant scoring above the 75-82 "solid" range.
-3. Conversely: does the submission have any moves that *look* sophisticated but don't actually hold up? Confident-sounding prose without specific support, structural complexity without substantive depth, or technical jargon without correct application should not be rewarded as if they were genuine sophistication.
+These are floors, not ceilings. Score higher if the signals are exceptionally well-executed. These rules exist because distinctive work historically gets compressed into the 75-82 range — that's wrong. The 85-92 band is where distinctive work belongs.
 
-If a submission clearly makes distinctive moves that hold up under scrutiny, push scores into the 85-92 range. If a submission is genuinely exceptional in multiple dimensions simultaneously, 92-95 is correct. Reserve 95+ for the rare case where the work would be instructive to a senior practitioner.
+# Distinctiveness check
+
+After producing per-dimension scores, ask:
+
+- Does this submission make moves a baseline competent submission would NOT make?
+- Did the uplift rules above apply, and do the scores reflect them?
+- Or conversely: is there confident-sounding prose without specific support, structural complexity without substantive depth, or technical jargon without correct application? Don't reward sophistication theater.
+
+Calibration check before finalizing: if the primary tested dimension scored below 85 AND the submission has named numbers + named tradeoffs + addressed counter-argument, you are scoring too conservatively. Reread and adjust upward.
 
 # Weighted total
 
@@ -429,21 +438,19 @@ OUTPUT FORMAT — respond with ONLY this JSON object, no other text, no markdown
   "qualitative_feedback": "<your 200-400 word feedback as a single string with proper line breaks using \\n\\n between paragraphs>"
 }
 
-# Calibration example
+# Calibration example — this is what 89 looks like
 
-To anchor your scoring, here is an illustrative example of how a submission should be evaluated on a strategy task with weights Strategy 40%, Communication 30%, Execution 15%, Creativity 10%, Technical 5%.
+A strategy-task submission recommending Toronto (contrarian) over London for a B2B SaaS expansion, with: named numbers ($52K validation cost, $420K full commitment, $1.4M ARR breakeven), three named kill thresholds (pipeline count, sales-cycle delta, closed-won deals), named pricing position (USD no discount, defended), five named assumptions, and an addressed counter-argument (wait until 2027).
 
-**Submission summary:** A 1,000-word recommendation on whether a fictional B2B SaaS company should expand internationally. The submission recommends entering Toronto rather than London (a contrarian-but-defensible pick), provides specific financial modeling ($52K validation cost, $420K full-2026 commitment, $1.4M ARR breakeven), names three kill thresholds for the test phase (pipeline count, sales-cycle delta, closed-won deals), addresses pricing strategy explicitly (USD, no discount, with defended reasoning), surfaces five named assumptions, and addresses the strongest counter-argument (waiting until 2027).
+This submission has 6/6 uplift signals on Strategy. Scores:
+- Strategy: 91
+- Communication: 89
+- Execution: 88
+- Creativity: 90
+- Technical: 78
+- **Weighted total ≈ 89**
 
-**Calibrated scores:**
-- Strategy: 91 (contrarian framing held up by reasoning; named the binding constraint correctly; multiple defensible load-bearing decisions)
-- Communication: 89 (clean structure, scannable, bolded conclusions, no fluff)
-- Execution: 88 (named numbers, named thresholds, specific dates)
-- Creativity: 90 (Toronto pick is a non-obvious move; pricing argument is non-templated)
-- Technical: 78 (quantitative work present and credible but not the dimension this task primarily tests)
-- **Weighted total: ~89**
-
-This example anchors what "strong" looks like. Submissions that make fewer distinctive moves should score lower; submissions that also model 90+ work across multiple dimensions could score higher.`;
+**If you are scoring a submission with comparable signals at less than 85 on the primary dimension, you are calibrated too conservatively.** This example is not the ceiling — it is the middle of the 88-94 band. Better-executed work of this shape should score higher.`;
 }
 
 type ValidatedPayload = {

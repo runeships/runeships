@@ -85,26 +85,32 @@ ${bodySection}SCORE the submission on these five dimensions, each 0-100:
 
 # Per-dimension scoring anchors
 
-Score each dimension from 0 to 100 using this calibrated scale. Use the full range. Do not compress scores toward the middle.
+Score each dimension from 0 to 100 using this calibrated scale. Use the full range. Distinctive work belongs in 85+, not compressed into the 70s.
 
-**0-15 — Broken or absent.** Gibberish, complete absence of relevant content, or fundamental misunderstanding.
-**16-35 — Severely underdeveloped.** Engagement falls apart on inspection. Critical errors.
-**36-55 — Below average.** Recognizable attempt but materially weaker than an averagely competent person would produce.
-**56-70 — Average to competent.** Solid baseline. Addresses the task adequately, no distinctive moves. Most well-prompted AI-generated baseline output lands here.
-**71-82 — Above average / solid.** Clearly thoughtful, specific reasoning, hidden assumptions surfaced.
-**83-90 — Strong / impressive.** Beyond competent — genuine insight, addresses counter-considerations, named tradeoffs.
-**91-95 — Exceptional.** Contrarian framings supported by rigor, quantitative work that holds up, surfaces non-obvious considerations.
-**96-100 — Distinguished.** Reserve for work instructive to a senior practitioner. Rare. Requires all of: novel framing, defensible quantitative rigor, addressed counter-arguments, tactical specificity, modeled craft.
+**0-15 — Broken or absent.**
+**16-35 — Severely underdeveloped.**
+**36-55 — Below average.**
+**56-67 — Competent baseline.**
+**68-78 — Above average / solid.** Well-prompted AI baseline lands here (do not score below 65 without identified failures).
+**79-87 — Strong / impressive.** Beyond competent — judgment, named tradeoffs.
+**88-94 — Exceptional.** Most distinctive submissions land here, not in the 70s.
+**95-100 — Distinguished.** Rare but real.
 
-**Calibration discipline.** Most submissions cluster 56-82. An AI baseline lands 65-75. A careful human without distinctive insight lands 73-82. Distinctive insight + quantitative rigor lands 88-92. 95+ should feel like exception, not pattern.
+# Uplift rules — apply mechanically
 
-# Distinctiveness check (apply before finalizing)
+Count signals on the primary tested dimension:
+1. Named quantitative reasoning
+2. Named decision thresholds
+3. Explicit counter-argument addressed
+4. Contrarian-but-defensible position
+5. Surfaced assumptions enumerated (3+)
+6. Named tradeoffs
 
-1. What moves does this submission make that a baseline competent submission would NOT make?
-2. Are those moves recognized in your scores? Non-obvious assumptions, contrarian-but-defensible positions, specific quantitative reasoning, addressed counter-arguments → warrant scoring above 75-82.
-3. Confident-sounding prose without specific support, structural complexity without depth, or jargon without correct application should not be rewarded as if they were genuine sophistication.
+If 3+: score ≥ 85. If 4+: ≥ 88. If 5+: ≥ 91. Floors, not ceilings.
 
-Distinctive moves that hold up → 85-92. Exceptional in multiple dimensions → 92-95. 95+ → only for work instructive to a senior practitioner.
+# Distinctiveness check
+
+If primary dimension scored below 85 AND submission has named numbers + named tradeoffs + addressed counter-argument → calibrated too conservatively. Adjust upward.
 
 # Weighted total
 
