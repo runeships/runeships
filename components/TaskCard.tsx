@@ -65,15 +65,17 @@ export function TaskCard({
   return (
     <Link
       href={`/tasks/${companySlug}/${taskSlug}`}
-      className="
+      className={`
         group flex flex-col h-full
-        border border-ink/15 bg-cream
-        rounded-[2px]
+        border rounded-[2px]
         p-6
         transition-colors duration-200 ease-out
-        hover:bg-parchment hover:border-ink/25
         focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-oxblood
-      "
+        ${isPractice
+          ? "bg-parchment/60 border-oxblood/30 hover:bg-parchment hover:border-oxblood/55"
+          : "bg-cream border-ink/15 hover:bg-parchment hover:border-ink/25"
+        }
+      `}
     >
       {/* Row 1: category icon + label */}
       <div className="flex items-center justify-between">

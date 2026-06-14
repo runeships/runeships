@@ -33,6 +33,7 @@ type TaskRowRaw = {
   weight_communication: number;
   weight_technical: number;
   weight_creativity: number;
+  created_at: string;
   company: CompanyMin | CompanyMin[] | null;
 };
 
@@ -150,7 +151,7 @@ export default async function DashboardPage() {
       .from("tasks")
       .select(
         `
-          id, slug, title, brief, submission_mode, estimated_time, order_index, category,
+          id, slug, title, brief, submission_mode, estimated_time, order_index, category, created_at,
           weight_strategy, weight_execution, weight_communication, weight_technical, weight_creativity,
           company:companies (slug, name, is_practice)
         `,
@@ -163,7 +164,7 @@ export default async function DashboardPage() {
     } else {
       const raw = (result.data ?? []) as unknown as TaskRowRaw[];
       const normalized = raw.map(
-        (t): TaskForGrid & { order_index: number } => ({
+        (t): TaskForGrid & { order_index: number; created_at: string } => ({
           id: t.id,
           slug: t.slug,
           title: t.title,
@@ -178,27 +179,33 @@ export default async function DashboardPage() {
           weight_creativity: t.weight_creativity,
           company: normalizeRelation(t.company),
           order_index: t.order_index,
+          created_at: t.created_at,
         }),
       );
-      // Sort once on the server (practice first, then alphabetical
-      // by company, then by order_index inside a company). TaskGrid
-      // preserves this order while filtering.
-      normalized.sort((a, b) => {
-        const aPractice = a.company?.is_practice ?? false;
-        const bPractice = b.company?.is_practice ?? false;
-        if (aPractice && !bPractice) return -1;
-        if (!aPractice && bPractice) return 1;
-        if (!aPractice && !bPractice) {
-          const aName = a.company?.name ?? "";
-          const bName = b.company?.name ?? "";
-          const diff = aName.localeCompare(bName);
-          if (diff !== 0) return diff;
-        }
-        return a.order_index - b.order_index;
-      });
-      tasks = normalized.map((t) => {
-        const { order_index: _orderIndex, ...rest } = t;
+      // Dashboard shows a curated preview: up to 4 practice tasks
+      // (stable order via order_index) plus up to 4 most-recent
+      // real-company tasks. The full set is reachable via the
+      // 'View all tasks →' link in the section header → /tasks.
+      const practiceTasks = normalized
+        .filter((t) => t.company?.is_practice === true)
+        .sort((a, b) => a.order_index - b.order_index)
+        .slice(0, 4);
+      const realTasks = normalized
+        .filter((t) => t.company?.is_practice !== true)
+        .sort(
+          (a, b) =>
+            new Date(b.created_at).getTime() -
+            new Date(a.created_at).getTime(),
+        )
+        .slice(0, 4);
+      tasks = [...practiceTasks, ...realTasks].map((t) => {
+        const {
+          order_index: _orderIndex,
+          created_at: _createdAt,
+          ...rest
+        } = t;
         void _orderIndex;
+        void _createdAt;
         return rest;
       });
     }
@@ -343,7 +350,9 @@ export default async function DashboardPage() {
 
         {/* ─── Section 2: Available tasks ─────────────────────────── */}
         <section className="mt-20 sm:mt-24">
-          <DashboardSectionHeading>Available tasks</DashboardSectionHeading>
+          <DashboardSectionHeading trailing={<ViewAllLink href="/tasks" />}>
+            Available tasks
+          </DashboardSectionHeading>
 
           {tasks.length === 0 ? (
             <p className="mt-8 text-[15px] leading-[1.55] text-muted">
@@ -360,7 +369,13 @@ export default async function DashboardPage() {
 
         {/* ─── Section 3: Your submissions ────────────────────────── */}
         <section className="mt-20 sm:mt-24">
-          <DashboardSectionHeading>Your submissions</DashboardSectionHeading>
+          <DashboardSectionHeading
+            trailing={
+              submissions.length > 3 ? <ViewAllLink href="/submissions" /> : null
+            }
+          >
+            Your submissions
+          </DashboardSectionHeading>
 
           {submissions.length === 0 ? (
             <p className="mt-8 text-[15px] leading-[1.55] text-muted max-w-[44ch]">
@@ -370,7 +385,7 @@ export default async function DashboardPage() {
             </p>
           ) : (
             <ul className="mt-2 divide-y divide-ink/10">
-              {submissions.map((s) => (
+              {submissions.slice(0, 3).map((s) => (
                 <li key={s.id}>
                   <SubmissionRow submission={s} />
                 </li>
@@ -385,19 +400,35 @@ export default async function DashboardPage() {
 
 function DashboardSectionHeading({
   children,
+  trailing = null,
 }: {
   children: React.ReactNode;
+  trailing?: React.ReactNode;
 }) {
   return (
     <div>
-      <h2
-        className="font-display font-light tracking-[-0.018em] leading-[1.04] text-ink"
-        style={{ fontSize: "clamp(1.75rem, 1.4vw + 1rem, 2rem)" }}
-      >
-        {children}
-      </h2>
+      <div className="flex items-baseline justify-between gap-6 flex-wrap">
+        <h2
+          className="font-display font-light tracking-[-0.018em] leading-[1.04] text-ink"
+          style={{ fontSize: "clamp(1.75rem, 1.4vw + 1rem, 2rem)" }}
+        >
+          {children}
+        </h2>
+        {trailing}
+      </div>
       <hr className="mt-5 border-0 border-t border-ink/10" />
     </div>
+  );
+}
+
+function ViewAllLink({ href }: { href: string }) {
+  return (
+    <Link
+      href={href}
+      className="link-anim text-[13px] tracking-[0.005em] text-oxblood hover:text-oxblood-hover transition-colors duration-200 ease-out shrink-0"
+    >
+      View all <span aria-hidden>→</span>
+    </Link>
   );
 }
 
