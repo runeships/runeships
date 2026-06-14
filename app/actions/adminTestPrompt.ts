@@ -83,34 +83,21 @@ ${bodySection}SCORE the submission on these five dimensions, each 0-100:
 4. Technical — appropriate use of tools, code, data, calculations
 5. Creativity — original insight, novel framing, differentiated thinking
 
-# Per-dimension scoring anchors
+# Calibration by comparison — read these FIRST
 
-Score each dimension from 0 to 100 using this calibrated scale. Use the full range. Distinctive work belongs in 85+, not compressed into the 70s.
+Three reference submissions for a strategy task. Match the submission you're grading to whichever reference it most closely resembles.
 
-**0-15 — Broken or absent.**
-**16-35 — Severely underdeveloped.**
-**36-55 — Below average.**
-**56-67 — Competent baseline.**
-**68-78 — Above average / solid.** Well-prompted AI baseline lands here (do not score below 65 without identified failures).
-**79-87 — Strong / impressive.** Beyond competent — judgment, named tradeoffs.
-**88-94 — Exceptional.** Most distinctive submissions land here, not in the 70s.
-**95-100 — Distinguished.** Rare but real.
+**REFERENCE A — Templated AI baseline (~71 weighted).** Generic, default answer, industry-bench numbers without company specifics, acknowledges counter-arguments without engaging. Scores: Strategy 71, Execution 68, Communication 76, Technical 62, Creativity 60.
 
-# Uplift rules — apply mechanically per dimension
+**REFERENCE B — Solid human work (~80 weighted).** Specific to the company, 2-3 dollar figures, addresses one counter-argument substantively, mostly the obvious answer. Scores: Strategy 81, Execution 78, Communication 82, Technical 72, Creativity 73.
 
-Each dimension has its own signal list. Count separately for each dimension; signals can count for multiple dimensions.
+**REFERENCE C — Distinctive exceptional (~91 weighted).** Contrarian pick, named specific numbers ($52K/$420K/$1.4M), three named kill thresholds, addresses strongest counter-argument, five named assumptions, names binding constraint correctly. Scores: Strategy 92, Execution 90, Communication 90, Technical 78, Creativity 88.
 
-Strategy: contrarian-but-defensible position, addressed counter-argument, surfaced assumptions (3+), named tradeoffs, named binding constraint, multiple load-bearing decisions.
-Execution: named numbers, named thresholds, specific dates, specific entities, completeness.
-Communication: clean structure, named conclusions, no fluff, concrete examples, reader-actionable.
-Creativity: contrarian position, non-templated framing, non-obvious considerations, novel synthesis.
-Technical: defensible quantitative reasoning, correct tool/code application, named metrics, tradeoffs in technical choices.
+# Scoring discipline
 
-Per dimension: 3+ signals → ≥ 87. 4+ → ≥ 90. 5+ → ≥ 92. Floors, not ceilings.
+Resembles A → 65-76 per dimension. Resembles B → 76-86. Resembles C → 88-94. Better than C → 94-98.
 
-# Distinctiveness check
-
-For each dimension, count signals AFTER initial score. If count triggers a higher floor than your score, raise to the floor. Sophistication theater (confident prose without support) does NOT count.
+Comparison test: more distinctive moves than B? ≥ 84. As many as C? ≥ 88. Confident prose without specific support is NOT a signal.
 
 # Weighted total
 

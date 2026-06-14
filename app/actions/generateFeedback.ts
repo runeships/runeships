@@ -364,79 +364,51 @@ ${bodySection}${linkSection}${externalSection}SCORE the submission on these five
 4. Technical — appropriate use of tools, code, data, calculations
 5. Creativity — original insight, novel framing, differentiated thinking
 
-# Per-dimension scoring anchors
+# Calibration by comparison — read these FIRST
 
-Score each dimension from 0 to 100 using this calibrated scale. Use the full range. The bands are deliberately wide at the top — distinctive work belongs in 85+, not compressed into the 70s.
+Below are three reference submissions for a strategy task asking whether a B2B SaaS company should expand internationally. These calibrate where the bands actually live. Match the submission you're grading to whichever reference it most closely resembles in depth and specificity.
 
-**0-15 — Broken or absent.** Gibberish, complete absence of relevant content, or fundamental misunderstanding of what was asked.
+---
 
-**16-35 — Severely underdeveloped.** Engagement falls apart on inspection. Critical errors of reasoning, structure, or judgment.
+**REFERENCE A — Templated AI baseline (~71 weighted).** A well-structured but generic recommendation. Picks the default obvious answer (UK). Uses industry-bench numbers without naming specific ones tied to the company ("CAC likely 1.3-1.5x baseline"). Lists kill thresholds as standard ranges ("less than 10 opportunities in 6 months"). Acknowledges counter-arguments but doesn't engage with them ("focus on US first; however, I believe expansion..."). Clean prose, but every paragraph could appear in any pitch deck.
 
-**36-55 — Below average.** Recognizable attempt but materially weaker than averagely competent.
+Calibrated scores: Strategy 71, Execution 68, Communication 76, Technical 62, Creativity 60. Weighted total ≈ 71.
 
-**56-67 — Competent baseline.** Addresses the task adequately. No major errors, no distinctive moves. Floor for engaged work.
+This is what well-prompted AI output looks like. It executes the form but makes no distinctive moves.
 
-**68-78 — Above average / solid.** Clearly thoughtful. Specific reasoning, cleanly structured. Where a well-prompted AI baseline lands (do not score below 65 without specific identified failures).
+---
 
-**79-87 — Strong / impressive.** Goes beyond competent execution into genuine insight. Demonstrates judgment, names tradeoffs the average submission ignores.
+**REFERENCE B — Solid human work (~80 weighted).** A thoughtful recommendation that mostly picks the obvious answer but engages with it specifically. Names 2-3 actual dollar figures tied to the company's stage. Discusses 1-2 specific competitor moves. Surfaces 1-2 assumptions. Addresses one counter-argument with substance. Clean structure, no fluff.
 
-**88-94 — Exceptional.** Contrarian framings supported by rigor. Quantitative work that holds up. Surfaces non-obvious considerations. **Most distinctive submissions land here, not in the 70s. Do not anchor to the middle.**
+Calibrated scores: Strategy 81, Execution 78, Communication 82, Technical 72, Creativity 73. Weighted total ≈ 79.
 
-**95-100 — Distinguished.** Instructive to a senior practitioner. Rare but real.
+This is what a careful but unremarkable submission looks like.
 
-# Uplift rules — apply mechanically per dimension
+---
 
-Each dimension has its own signal list. Count signals separately for each dimension. Signals can count for multiple dimensions — named numbers count for both Strategy and Execution, contrarian framing counts for both Strategy and Creativity, etc.
+**REFERENCE C — Distinctive exceptional work (~91 weighted).** A recommendation that makes the contrarian-but-defensible pick (Toronto instead of London) with specific reasoning. Names $52K validation cost, $420K full commitment, $1.4M ARR breakeven. Specifies three kill thresholds tied to pipeline / cycle / closed-won. Addresses the strongest counter-argument (wait until 2027) substantively. Surfaces five named assumptions. Names binding constraint correctly (CEO attention, not market size). Pricing strategy non-templated (USD no discount, with defended reasoning).
 
-**Strategy signals:**
-1. Contrarian-but-defensible position (not the default obvious answer)
-2. Addressed counter-argument (specific counter the writer engages with)
-3. Surfaced assumptions enumerated (3+ named)
-4. Named tradeoffs with reasoning for the chosen side
-5. Named binding constraint correctly identified
-6. Multiple load-bearing decisions with explicit reasoning
+Calibrated scores: Strategy 92, Execution 90, Communication 90, Technical 78, Creativity 88. Weighted total ≈ 91.
 
-**Execution signals:**
-1. Named numbers ($X cost, Y% margin, Z deals)
-2. Named decision thresholds (kill criteria, success metrics)
-3. Specific dates / timelines (Q2 2026, 14-month payback)
-4. Specific named entities (not "a competitor" but "Competitor X")
-5. Completeness — task fully addressed end-to-end
+This is what work in the 88-94 band looks like. It is not perfect — Technical scored 78 because quantitative work, while credible, isn't the dimension the task primarily tests. The 88-94 band is reached through DISTINCTIVE depth, not perfection.
 
-**Communication signals:**
-1. Clean scannable structure (headings, hierarchy)
-2. Named conclusions (not buried)
-3. No fluff (tight word economy)
-4. Concrete examples / specifics over abstractions
-5. Reader could act on it without follow-up clarification
+---
 
-**Creativity signals:**
-1. Contrarian-but-defensible position
-2. Non-templated framing (not the obvious answer everyone gives)
-3. Specific non-obvious considerations surfaced
-4. Novel synthesis of inputs
+# Scoring discipline
 
-**Technical signals (for code/quant tasks):**
-1. Defensible quantitative reasoning
-2. Correct tool/library/code application
-3. Specific named metrics
-4. Tradeoffs in technical choices articulated
+Pick the reference your submission most closely resembles, then adjust 2-5 points up or down based on quality of execution.
 
-**Scoring floors — apply per dimension:**
+- Submission resembles A (templated, default answer, generic numbers, acknowledges-but-doesn't-engage with counter-args) → score in **65-76** band per dimension.
+- Submission resembles B (engaged, specific to the company, addresses counter-arg, some surfaced assumptions, but mostly the obvious answer) → score in **76-86** band per dimension.
+- Submission resembles C (contrarian-or-non-obvious pick, named specific numbers, named thresholds, multiple surfaced assumptions, addressed counter-argument substantively) → score in **88-94** band per dimension on the dimensions where these features matter (Strategy, Execution, Communication for written analysis; Technical/Creativity slot in based on the work).
 
-- **3+ signals on a dimension → that dimension scores ≥ 87.**
-- **4+ signals → ≥ 90.**
-- **5+ signals → ≥ 92.**
+If the submission is BETTER than Reference C — more specificity, multiple contrarian moves, novel framing across multiple dimensions — score in **94-98**.
 
-These are floors, not ceilings. Score higher if the signals are exceptionally well-executed. These rules exist because distinctive work historically gets compressed into the 75-82 range — that is wrong. The 88-94 band is where distinctive work belongs.
+**Direct comparison test.** Before finalizing each dimension, ask: "Does this submission make more distinctive moves than Reference B?" If yes, the dimension scores ≥ 84. "Does it make as many distinctive moves as Reference C?" If yes, ≥ 88.
 
-# Distinctiveness check — required step before finalizing
+Don't anchor scores toward the middle when the submission clearly exceeds the middle reference. Don't anchor toward the top reference when the submission clearly falls short. The bands are wide for a reason.
 
-For each dimension, after assigning an initial score, count signals from the list above. If the count would trigger a floor higher than your initial score, raise the score to the floor.
-
-If a dimension scored below 87 AND its signal count is 3+, you are scoring too conservatively. Adjust upward to the floor before finalizing.
-
-Conversely: confident-sounding prose without specific support, structural complexity without substantive depth, or technical jargon without correct application is sophistication theater — those don't count as signals. Be honest about what is actually present in the work.
+Sophistication theater (confident prose without specific support, structural complexity without substantive depth, jargon without correct application) does NOT count as signal. Compare honestly.
 
 # Weighted total
 
@@ -465,31 +437,11 @@ OUTPUT FORMAT — respond with ONLY this JSON object, no other text, no markdown
   "qualitative_feedback": "<your 200-400 word feedback as a single string with proper line breaks using \\n\\n between paragraphs>"
 }
 
-# Calibration example — work through this BEFORE scoring
+# Final reminder
 
-A strategy task: international expansion recommendation for a B2B SaaS company. The submission recommends Toronto over the default London pick, with specific financials and structured thresholds.
+The three reference submissions at the top of this prompt anchor where the bands live. Compare your submission directly to A, B, and C. Score per dimension based on which reference your submission most resembles in depth and specificity.
 
-**Signal count per dimension:**
-
-Strategy signals: contrarian pick (1), addressed counter-argument about waiting (2), 5 surfaced assumptions (3), named tradeoffs around pricing (4), named binding constraint of CEO attention (5), multiple load-bearing decisions (6). → **6 signals → floor 92.**
-
-Execution signals: named numbers $52K/$420K/$1.4M (1), 3 named kill thresholds (2), specific Q2 2026 dates (3), named ACV $26K + payback 14 months (4), completeness — pricing + counter-argument + assumptions all addressed (5). → **5 signals → floor 92.**
-
-Communication signals: clean structure with headings (1), bolded conclusion ("Toronto in Q2 2026, not London") (2), no fluff (3), concrete examples throughout (4), reader-actionable (5). → **5 signals → floor 92.**
-
-Creativity signals: contrarian Toronto pick (1), non-templated USD-no-discount pricing argument (2), non-obvious binding-constraint framing (3). → **3 signals → floor 87.**
-
-Technical signals: defensible quantitative reasoning (1), named LTV/CAC ratio (2). → **2 signals → no floor (score on quality).**
-
-**Calibrated scores:**
-- Strategy: 92 (floor)
-- Execution: 92 (floor)
-- Communication: 90 (above floor — clean but not award-winning prose)
-- Creativity: 88 (just above floor)
-- Technical: 78 (no floor; credible quantitative work, not the dimension being tested)
-- **Weighted total ≈ 91**
-
-When scoring an arbitrary submission: count signals per dimension first, apply floors, then adjust upward only if execution quality merits it. If you find yourself below the floor for a dimension, you missed signals or you are calibrated too conservatively.`;
+Distinctive work belongs in 88-94. Don't anchor scores toward the middle.`;
 }
 
 type ValidatedPayload = {
