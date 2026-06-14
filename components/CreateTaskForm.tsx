@@ -106,6 +106,14 @@ export function CreateTaskForm({ companyId }: { companyId: string }) {
     if (pending || uploading) return;
 
     setUploadError(null);
+
+    // Snapshot the form values BEFORE flipping into uploading state.
+    // Once `disabled` is set on the inputs, FormData() excludes them
+    // (disabled inputs don't submit) — so capturing here keeps title +
+    // brief + estimated_time in the payload even if files take time
+    // to upload.
+    const fd = new FormData(formRef.current!);
+
     const attachments: UploadedAttachment[] = [];
 
     if (files.length > 0) {
@@ -145,8 +153,6 @@ export function CreateTaskForm({ companyId }: { companyId: string }) {
       setUploading(false);
     }
 
-    // Build FormData manually so we can inject the attachments JSON.
-    const fd = new FormData(formRef.current!);
     fd.set("attachments_json", JSON.stringify(attachments));
     // Normalize weight inputs to 0–1.
     for (const d of DIMS) {
