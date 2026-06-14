@@ -27,7 +27,7 @@ export default async function AdminTasksPage({
       )
       .order("deletion_requested_at", { ascending: false, nullsFirst: false })
       .order("created_at", { ascending: false }),
-    admin.from("companies").select("id, name, slug"),
+    admin.from("companies").select("id, name, slug, is_practice"),
     admin.from("submissions").select("task_id"),
   ]);
 
@@ -65,14 +65,18 @@ export default async function AdminTasksPage({
               Deletion requests · {pendingDeletion.length}
             </p>
             <ul className="mt-4 divide-y divide-ink/10 border-y border-ink/10">
-              {pendingDeletion.map((t) => (
-                <Row
-                  key={t.id}
-                  task={t}
-                  companyName={companyById.get(t.company_id)?.name ?? "(unknown)"}
-                  submissions={submissionCount.get(t.id) ?? 0}
-                />
-              ))}
+              {pendingDeletion.map((t) => {
+                const company = companyById.get(t.company_id);
+                return (
+                  <Row
+                    key={t.id}
+                    task={t}
+                    companyName={company?.name ?? "(unknown)"}
+                    isPracticeCompany={company?.is_practice === true}
+                    submissions={submissionCount.get(t.id) ?? 0}
+                  />
+                );
+              })}
             </ul>
           </section>
         )}
@@ -82,14 +86,18 @@ export default async function AdminTasksPage({
             All tasks · {tasks.length}
           </p>
           <ul className="mt-4 divide-y divide-ink/10 border-y border-ink/10">
-            {others.map((t) => (
-              <Row
-                key={t.id}
-                task={t}
-                companyName={companyById.get(t.company_id)?.name ?? "(unknown)"}
-                submissions={submissionCount.get(t.id) ?? 0}
-              />
-            ))}
+            {others.map((t) => {
+              const company = companyById.get(t.company_id);
+              return (
+                <Row
+                  key={t.id}
+                  task={t}
+                  companyName={company?.name ?? "(unknown)"}
+                  isPracticeCompany={company?.is_practice === true}
+                  submissions={submissionCount.get(t.id) ?? 0}
+                />
+              );
+            })}
           </ul>
         </section>
       </div>
@@ -100,6 +108,7 @@ export default async function AdminTasksPage({
 function Row({
   task,
   companyName,
+  isPracticeCompany,
   submissions,
 }: {
   task: {
@@ -113,8 +122,10 @@ function Row({
     created_at: string;
   };
   companyName: string;
+  isPracticeCompany: boolean;
   submissions: number;
 }) {
+  const isDemoTask = task.is_demo || isPracticeCompany;
   return (
     <li className="py-4 flex items-start justify-between gap-6">
       <div className="min-w-0 flex-1">
@@ -128,8 +139,8 @@ function Row({
               Deletion requested
             </span>
           )}
-          {task.is_demo && (
-            <span className="text-[10px] tracking-[0.06em] uppercase text-muted">
+          {isDemoTask && (
+            <span className="inline-flex items-center px-2 min-h-[18px] bg-ink/10 text-ink/60 text-[10px] tracking-[0.04em] uppercase">
               Demo
             </span>
           )}

@@ -30,6 +30,7 @@ export type AdminTaskSubmissionRow = {
   studentEmail: string | null;
   studentSchool: string | null;
   studentGradYear: number | null;
+  studentIsSeed: boolean;
   scores: {
     strategy: number;
     execution: number;
@@ -53,6 +54,14 @@ const SORT_OPTIONS: Array<{ key: SortKey; label: string }> = [
   { key: "newest", label: "Newest" },
 ];
 
+type Filter = "all" | "real" | "seed";
+
+const FILTERS: Array<{ key: Filter; label: string }> = [
+  { key: "all", label: "All students" },
+  { key: "real", label: "Real students only" },
+  { key: "seed", label: "Seed personas only" },
+];
+
 export function AdminTaskSubmissionsView({
   taskBrief,
   rows,
@@ -61,11 +70,20 @@ export function AdminTaskSubmissionsView({
   rows: AdminTaskSubmissionRow[];
 }) {
   const [sortKey, setSortKey] = useState<SortKey>("overall");
+  const [filter, setFilter] = useState<Filter>("all");
   const [showBrief, setShowBrief] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
+  const realCount = rows.filter((r) => !r.studentIsSeed).length;
+  const seedCount = rows.length - realCount;
+
   const sorted = useMemo(() => {
-    const copy = [...rows];
+    const filtered = rows.filter((r) => {
+      if (filter === "all") return true;
+      if (filter === "real") return !r.studentIsSeed;
+      return r.studentIsSeed;
+    });
+    const copy = [...filtered];
     copy.sort((a, b) => {
       if (sortKey === "newest") {
         return (
@@ -85,7 +103,7 @@ export function AdminTaskSubmissionsView({
       return bv - av;
     });
     return copy.map((r, i) => ({ ...r, rank: i + 1 }));
-  }, [rows, sortKey]);
+  }, [rows, sortKey, filter]);
 
   if (rows.length === 0) {
     return (
@@ -116,9 +134,44 @@ export function AdminTaskSubmissionsView({
         </div>
       )}
 
+      <p className="mt-7 text-[12px] tracking-[0.04em] uppercase text-muted">
+        {realCount} real {realCount === 1 ? "student" : "students"}
+        {seedCount > 0 && (
+          <>
+            <span aria-hidden className="mx-2 text-muted/50">·</span>
+            <span className="text-ink/40">{seedCount} seed</span>
+          </>
+        )}
+      </p>
+
+      <nav
+        aria-label="Filter"
+        className="mt-3 flex flex-wrap gap-2"
+      >
+        {FILTERS.map((f) => (
+          <button
+            key={f.key}
+            type="button"
+            onClick={() => setFilter(f.key)}
+            aria-pressed={f.key === filter}
+            className={`
+              inline-flex items-center min-h-[32px] px-3
+              border text-[12px] tracking-[-0.005em]
+              transition-colors duration-150 ease-out
+              ${f.key === filter
+                ? "bg-oxblood text-cream border-oxblood"
+                : "bg-cream text-oxblood border-oxblood/50 hover:border-oxblood"
+              }
+            `}
+          >
+            {f.label}
+          </button>
+        ))}
+      </nav>
+
       <nav
         aria-label="Sort"
-        className="mt-8 flex flex-wrap gap-2"
+        className="mt-3 flex flex-wrap gap-2"
       >
         {SORT_OPTIONS.map((opt) => (
           <button
@@ -127,12 +180,12 @@ export function AdminTaskSubmissionsView({
             onClick={() => setSortKey(opt.key)}
             aria-pressed={opt.key === sortKey}
             className={`
-              inline-flex items-center min-h-[34px] px-3.5
+              inline-flex items-center min-h-[32px] px-3
               border text-[12px] tracking-[-0.005em]
               transition-colors duration-150 ease-out
               ${opt.key === sortKey
-                ? "bg-oxblood text-cream border-oxblood"
-                : "bg-cream text-oxblood border-oxblood/50 hover:border-oxblood"
+                ? "bg-ink/15 text-ink border-ink/30"
+                : "bg-cream text-muted border-ink/15 hover:text-ink hover:border-ink/40"
               }
             `}
           >
@@ -178,9 +231,16 @@ export function AdminTaskSubmissionsView({
                 </span>
                 <div className="min-w-0">
                   <div className="flex items-center gap-3 flex-wrap">
-                    <p className="text-[15px] tracking-[-0.005em] text-ink font-medium truncate">
+                    <p
+                      className={`text-[15px] tracking-[-0.005em] font-medium truncate ${r.studentIsSeed ? "text-ink/55" : "text-ink"}`}
+                    >
                       {r.studentName}
                     </p>
+                    {r.studentIsSeed && (
+                      <span className="inline-flex items-center px-2 min-h-[18px] bg-ink/10 text-ink/60 text-[10px] tracking-[0.04em] uppercase">
+                        Seed
+                      </span>
+                    )}
                     {r.releasedToCompany ? (
                       <span className="inline-flex items-center gap-1 text-[10px] tracking-[0.06em] uppercase text-muted">
                         <CheckCircle2 size={11} strokeWidth={1.8} />

@@ -58,7 +58,7 @@ export default async function AdminTaskSubmissionsPage({
     userIds.length > 0
       ? admin
           .from("profiles")
-          .select("id, full_name, email, school, graduation_year")
+          .select("id, full_name, email, school, graduation_year, is_seed")
           .in("id", userIds)
       : Promise.resolve({ data: [], error: null }),
   ]);
@@ -85,6 +85,7 @@ export default async function AdminTaskSubmissionsPage({
       studentEmail: studentProfile?.email ?? null,
       studentSchool: studentProfile?.school ?? null,
       studentGradYear: studentProfile?.graduation_year ?? null,
+      studentIsSeed: studentProfile?.is_seed === true,
       scores: fb
         ? {
             strategy: fb.score_strategy,
