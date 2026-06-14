@@ -92,6 +92,7 @@ export default async function DashboardPage() {
     school: string | null;
     graduation_year: number | null;
     onboarding_completed: boolean;
+    account_type: "student" | "company";
     self_rated_strategy: number;
     self_rated_execution: number;
     self_rated_communication: number;
@@ -105,7 +106,7 @@ export default async function DashboardPage() {
     const result = await supabase
       .from("profiles")
       .select(
-        "full_name, school, graduation_year, career_tracks, onboarding_completed, self_rated_strategy, self_rated_execution, self_rated_communication, self_rated_technical, self_rated_creativity",
+        "full_name, school, graduation_year, career_tracks, onboarding_completed, account_type, self_rated_strategy, self_rated_execution, self_rated_communication, self_rated_technical, self_rated_creativity",
       )
       .eq("id", user.id)
       .maybeSingle();
@@ -125,6 +126,11 @@ export default async function DashboardPage() {
   // surface it inline — don't silent-redirect into a loop.
   if (!profile && !profileError) {
     redirect("/onboarding");
+  }
+  // Company users belong on /companies/dashboard, not the student
+  // dashboard. Bounce them before any of the student-side queries fire.
+  if (profile && profile.account_type === "company") {
+    redirect("/companies/dashboard");
   }
   if (profile && !profile.onboarding_completed) {
     redirect("/onboarding");

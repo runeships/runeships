@@ -45,13 +45,28 @@ export async function GET(request: NextRequest) {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("onboarding_completed")
+    .select("onboarding_completed, account_type, company_id")
     .eq("id", user.id)
     .maybeSingle();
 
-  // Defensive: if the on_auth_user_created trigger hasn't materialized
-  // the row yet, treat as onboarding-incomplete.
-  if (!profile || profile.onboarding_completed === false) {
+  // Brand-new signup: no profile row yet or no account_type chosen.
+  // Send them to the type-selection screen.
+  if (!profile) {
+    return NextResponse.redirect(`${origin}/onboarding/select-type`);
+  }
+
+  // Company side: route to /companies/dashboard once they finish the
+  // company onboarding step (which sets company_id). Otherwise back
+  // to the company onboarding form.
+  if (profile.account_type === "company") {
+    const target = profile.company_id
+      ? "/companies/dashboard"
+      : "/onboarding/company";
+    return NextResponse.redirect(`${origin}${target}`);
+  }
+
+  // Student side: existing behavior.
+  if (profile.onboarding_completed === false) {
     return NextResponse.redirect(`${origin}/onboarding`);
   }
 

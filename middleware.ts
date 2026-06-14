@@ -15,6 +15,12 @@ const PROTECTED_ROUTES = [
   "/tasks",
   "/submissions",
   "/profile",
+  // Company side. /companies (the marketing page) is intentionally
+  // NOT in here — it's public-facing. Sub-routes under /companies/
+  // require auth.
+  "/companies/dashboard",
+  "/companies/tasks",
+  "/companies/submissions",
   // /admin/* is gated at the page level by requireAdmin(), but listing
   // it here ensures unauthenticated visitors bounce to /login at the
   // edge instead of doing a server-render → redirect roundtrip.

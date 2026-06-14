@@ -4,7 +4,10 @@ import { createClient } from "@/lib/supabase-server";
 import { createAdminClient } from "@/lib/supabase-admin";
 import { COOLDOWN_MS } from "@/lib/format";
 import { generateFeedback } from "./generateFeedback";
-import { notifyAdminOfNewSubmission } from "@/lib/emails";
+import {
+  notifyAdminOfNewSubmission,
+  notifyCompanyOfNewSubmission,
+} from "@/lib/emails";
 import type { SubmissionMode } from "@/lib/database.types";
 
 // Note: `maxDuration` cannot live in a "use server" file. The 60s
@@ -206,6 +209,38 @@ export async function submitTask(
   const feedback = await generateFeedback(inserted.id);
   if (!feedback.success) {
     console.error("[submitTask generateFeedback]", feedback.error);
+  }
+
+  // Notify the task's owning company if they opted in. Best-effort —
+  // failure must not block the student's submission flow.
+  try {
+    const { data: ownerProfile } = await admin
+      .from("profiles")
+      .select("email, notify_on_new_submission")
+      .eq("company_id", task.company_id)
+      .eq("account_type", "company")
+      .maybeSingle();
+    if (ownerProfile?.notify_on_new_submission && ownerProfile.email) {
+      const { data: studentProfile } = await admin
+        .from("profiles")
+        .select("full_name")
+        .eq("id", user.id)
+        .maybeSingle();
+      const { data: totalScoreRow } = await admin
+        .from("feedback")
+        .select("total_score")
+        .eq("submission_id", inserted.id)
+        .maybeSingle();
+      await notifyCompanyOfNewSubmission({
+        recipientEmail: ownerProfile.email,
+        studentName: studentProfile?.full_name ?? user.email ?? "(unnamed)",
+        taskTitle: task.title,
+        taskId: task.id,
+        totalScore: totalScoreRow?.total_score ?? null,
+      });
+    }
+  } catch (err) {
+    console.error("[submitTask notify company]", err);
   }
 
   return {

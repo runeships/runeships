@@ -8,6 +8,8 @@ import { Footer } from "@/components/Footer";
 import { createClient } from "@/lib/supabase-server";
 import { isAdminEmail } from "@/lib/admin";
 
+type AccountType = "student" | "company" | null;
+
 // Editorial display serif. The opsz axis lets us scale optical sizing for
 // the very large hero headline vs. smaller section titles.
 const fraunces = Fraunces({
@@ -67,20 +69,17 @@ export default async function RootLayout({
   } = await supabase.auth.getUser();
   const isAuthed = Boolean(user);
 
-  // Admin check — combines the env-var path with the profiles.is_admin
-  // DB flag so the nav surfaces the Review queue item for either.
+  // Admin check + account-type fetch in one round trip when authed.
   let isAdmin = false;
+  let accountType: AccountType = null;
   if (user) {
-    if (isAdminEmail(user.email)) {
-      isAdmin = true;
-    } else {
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("is_admin")
-        .eq("id", user.id)
-        .maybeSingle();
-      isAdmin = Boolean(profile?.is_admin);
-    }
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("is_admin, account_type")
+      .eq("id", user.id)
+      .maybeSingle();
+    isAdmin = Boolean(profile?.is_admin) || isAdminEmail(user.email);
+    accountType = (profile?.account_type as AccountType) ?? null;
   }
 
   return (
@@ -89,7 +88,11 @@ export default async function RootLayout({
       className={`${fraunces.variable} ${instrumentSans.variable} ${notoSansRunic.variable}`}
     >
       <body className="min-h-dvh bg-cream text-ink font-body antialiased selection:bg-oxblood selection:text-cream">
-        <StickyNav isAuthed={isAuthed} isAdmin={isAdmin} />
+        <StickyNav
+          isAuthed={isAuthed}
+          isAdmin={isAdmin}
+          accountType={accountType}
+        />
         {children}
         <Footer />
         <CookieBanner />

@@ -20,6 +20,9 @@ const APP_AUTHED_ROUTES = [
   "/tasks",
   "/submissions",
   "/profile",
+  "/companies/dashboard",
+  "/companies/tasks",
+  "/companies/submissions",
 ] as const;
 
 function matchesPrefix(pathname: string, routes: readonly string[]): boolean {
@@ -47,9 +50,11 @@ const SCROLL_THRESHOLD = 80;
 export function StickyNav({
   isAuthed = false,
   isAdmin = false,
+  accountType = null,
 }: {
   isAuthed?: boolean;
   isAdmin?: boolean;
+  accountType?: "student" | "company" | null;
 }) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -168,7 +173,14 @@ export function StickyNav({
           {/* Authenticated app routes: in-app nav + avatar dropdown.
               Leaderboard is now embedded inside the dashboard "Where
               you stand" panel — no separate route. */}
-          {isAppAuthed && (
+          {isAppAuthed && accountType === "company" && (
+            <div className="flex items-center gap-7">
+              <NavLink href="/companies/dashboard">Dashboard</NavLink>
+              <NavLink href="/companies/tasks/new">Post task</NavLink>
+              <ProfileMenu isAdmin={isAdmin} />
+            </div>
+          )}
+          {isAppAuthed && accountType !== "company" && (
             <div className="flex items-center gap-7">
               <NavLink href="/dashboard">Dashboard</NavLink>
               <ProfileMenu isAdmin={isAdmin} />

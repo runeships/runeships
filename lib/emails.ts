@@ -184,6 +184,57 @@ export async function notifyStudentOfFeedback(
   }
 }
 
+/* ─── Company notification: new submission landed on their task ───── */
+
+type CompanySubmissionNotificationCtx = {
+  recipientEmail: string;
+  studentName: string;
+  taskTitle: string;
+  taskId: string;
+  totalScore: number | null;
+};
+
+export async function notifyCompanyOfNewSubmission(
+  ctx: CompanySubmissionNotificationCtx,
+): Promise<{ ok: boolean }> {
+  if (!resend) {
+    console.warn("[notifyCompanyOfNewSubmission] Resend not configured");
+    return { ok: false };
+  }
+
+  const taskUrl = `${SITE_URL}/companies/tasks/${ctx.taskId}`;
+  const scoreLine =
+    ctx.totalScore !== null
+      ? `<p style="margin:0 0 16px 0; color:${INK}; line-height:1.6;">Total score: <strong style="color:${OXBLOOD};">${Math.round(ctx.totalScore)}/100</strong>.</p>`
+      : `<p style="margin:0 0 16px 0; color:${MUTED}; line-height:1.6;">Feedback is still generating — scores will appear on the submissions page within a minute.</p>`;
+
+  const body = `
+    <p style="margin:0 0 16px 0; color:${INK}; line-height:1.6;">
+      <strong>${escapeHtml(ctx.studentName)}</strong> submitted their work on <strong>${escapeHtml(ctx.taskTitle)}</strong>.
+    </p>
+    ${scoreLine}
+    ${buttonHtml(taskUrl, "View all submissions")}
+    <p style="margin:24px 0 0 0; color:${MUTED}; font-size:12px; line-height:1.55;">
+      You can turn this notification off in your profile settings.
+    </p>
+  `;
+
+  try {
+    await resend.emails.send({
+      from: RESEND_FROM,
+      to: ctx.recipientEmail,
+      replyTo: "hello@runeships.com",
+      subject: `New submission on ${ctx.taskTitle}`,
+      html: shellHtml({ title: "New submission received", body }),
+      text: `${ctx.studentName} submitted their work on ${ctx.taskTitle}.${ctx.totalScore !== null ? ` Total score: ${Math.round(ctx.totalScore)}/100.` : ""}\n\nView: ${taskUrl}`,
+    });
+    return { ok: true };
+  } catch (err) {
+    console.error("[notifyCompanyOfNewSubmission resend]", err);
+    return { ok: false };
+  }
+}
+
 /* ─── Student notification: new task matching their interests ─────── */
 
 type NewTaskNotificationCtx = {

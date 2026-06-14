@@ -26,6 +26,11 @@
  * - 019_add_task_dataset_url            → tasks.dataset_url + .dataset_label
  * - 022_add_evaluation_mode             → tasks.evaluation_mode
  * - 024_add_new_task_notification_pref  → profiles.notify_on_new_tasks
+ * - 026_company_users_schema            → profiles.account_type/company_id/
+ *                                         notify_on_new_submission +
+ *                                         companies.industry/size_band/
+ *                                         website/owner_email/task_categories +
+ *                                         tasks.created_by/attachments/is_demo
  */
 
 export type Json =
@@ -122,6 +127,9 @@ export interface Database {
           is_admin: boolean;
           notify_on_feedback: boolean;
           notify_on_new_tasks: boolean;
+          notify_on_new_submission: boolean;
+          account_type: "student" | "company";
+          company_id: string | null;
           is_seed: boolean;
           leaderboard_visible: boolean;
           created_at: string;
@@ -144,6 +152,9 @@ export interface Database {
           is_admin?: boolean;
           notify_on_feedback?: boolean;
           notify_on_new_tasks?: boolean;
+          notify_on_new_submission?: boolean;
+          account_type?: "student" | "company";
+          company_id?: string | null;
           is_seed?: boolean;
           leaderboard_visible?: boolean;
           created_at?: string;
@@ -167,6 +178,9 @@ export interface Database {
           is_admin?: boolean;
           notify_on_feedback?: boolean;
           notify_on_new_tasks?: boolean;
+          notify_on_new_submission?: boolean;
+          account_type?: "student" | "company";
+          company_id?: string | null;
           is_seed?: boolean;
           leaderboard_visible?: boolean;
           created_at?: string;
@@ -185,6 +199,10 @@ export interface Database {
           logo_url: string | null;
           website_url: string | null;
           is_practice: boolean;
+          size_band: string | null;
+          website: string | null;
+          owner_email: string | null;
+          task_categories: string[] | null;
           created_at: string;
         };
         Insert: {
@@ -196,6 +214,10 @@ export interface Database {
           logo_url?: string | null;
           website_url?: string | null;
           is_practice?: boolean;
+          size_band?: string | null;
+          website?: string | null;
+          owner_email?: string | null;
+          task_categories?: string[] | null;
           created_at?: string;
         };
         Relationships: [];
@@ -208,6 +230,10 @@ export interface Database {
           logo_url?: string | null;
           website_url?: string | null;
           is_practice?: boolean;
+          size_band?: string | null;
+          website?: string | null;
+          owner_email?: string | null;
+          task_categories?: string[] | null;
           created_at?: string;
         };
       };
@@ -233,6 +259,9 @@ export interface Database {
           dataset_url: string | null;
           dataset_label: string | null;
           evaluation_mode: "ai" | "human";
+          created_by: string | null;
+          attachments: Json;
+          is_demo: boolean;
           created_at: string;
         };
         Insert: {
@@ -254,6 +283,9 @@ export interface Database {
           dataset_url?: string | null;
           dataset_label?: string | null;
           evaluation_mode?: "ai" | "human";
+          created_by?: string | null;
+          attachments?: Json;
+          is_demo?: boolean;
           created_at?: string;
         };
         Relationships: [];
@@ -276,6 +308,9 @@ export interface Database {
           dataset_url?: string | null;
           dataset_label?: string | null;
           evaluation_mode?: "ai" | "human";
+          created_by?: string | null;
+          attachments?: Json;
+          is_demo?: boolean;
           created_at?: string;
         };
       };
