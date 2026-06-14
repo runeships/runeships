@@ -219,8 +219,8 @@ export function CvBuilderForm({
 
       {locked && !error && (
         <p className="mt-3 text-[12px] leading-[1.55] text-muted max-w-[58ch]">
-          You can regenerate once per day — keeps the per-task summaries from
-          burning through API credits and gives recent task work time to settle.
+          You can regenerate once per day. Keep on doing more tasks to make
+          your CV stand out even more!
         </p>
       )}
 
