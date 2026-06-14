@@ -176,39 +176,37 @@ export async function submitTask(
     .maybeSingle();
   const companyName = company?.name ?? null;
 
-  // ─── Branch on evaluation_mode ─────────────────────────────────
-  if (task.evaluation_mode === "human") {
-    // No AI run. Notify admins and return a state the form can
-    // render as "your work is in the queue."
-    const { data: studentProfile } = await admin
-      .from("profiles")
-      .select("full_name, school, graduation_year")
-      .eq("id", user.id)
-      .maybeSingle();
-
-    await notifyAdminOfNewSubmission({
-      submissionId: inserted.id,
-      taskTitle: task.title,
-      companyName: companyName ?? "(unknown)",
-      studentName: studentProfile?.full_name ?? user.email ?? "(unnamed)",
-      studentSchool: studentProfile?.school ?? null,
-      studentGradYear: studentProfile?.graduation_year ?? null,
-      submittedAt: inserted.created_at,
-    });
-
-    return {
-      status: "success",
-      submissionId: inserted.id,
-      feedbackGenerated: false,
-      awaitingHumanReview: true,
-      companyName,
-    };
-  }
-
-  // AI path — existing flow.
+  // AI feedback always runs, regardless of evaluation_mode. The
+  // 'human' value now means "AI + RuneShips team gets a heads-up
+  // email," not "skip AI." This keeps the student experience
+  // identical (instant scoring) and just adds a notification to
+  // the admin queue when companies opt into human oversight.
   const feedback = await generateFeedback(inserted.id);
   if (!feedback.success) {
     console.error("[submitTask generateFeedback]", feedback.error);
+  }
+
+  // Heads-up email to RuneShips admin when companies asked for
+  // human oversight. Best-effort — never block the student flow.
+  if (task.evaluation_mode === "human") {
+    try {
+      const { data: studentProfile } = await admin
+        .from("profiles")
+        .select("full_name, school, graduation_year")
+        .eq("id", user.id)
+        .maybeSingle();
+      await notifyAdminOfNewSubmission({
+        submissionId: inserted.id,
+        taskTitle: task.title,
+        companyName: companyName ?? "(unknown)",
+        studentName: studentProfile?.full_name ?? user.email ?? "(unnamed)",
+        studentSchool: studentProfile?.school ?? null,
+        studentGradYear: studentProfile?.graduation_year ?? null,
+        submittedAt: inserted.created_at,
+      });
+    } catch (err) {
+      console.error("[submitTask notify admin]", err);
+    }
   }
 
   // Notify the task's owning company if they opted in. Best-effort —

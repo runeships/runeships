@@ -124,16 +124,35 @@ export function CreateTaskForm({ companyId }: { companyId: string }) {
         for (const { file } of files) {
           const safeName = file.name.replace(/[^a-zA-Z0-9._-]+/g, "_");
           const path = `${companyId}/${taskTempId}/${safeName}`;
-          const { error: upErr } = await supabase.storage
+          console.log("[CreateTaskForm] uploading", file.name, file.size);
+
+          // Race the upload against a 60-second timeout. Supabase
+          // .upload() occasionally hangs on network blips with no
+          // error — without this the button stays "Uploading…" forever.
+          const uploadPromise = supabase.storage
             .from("task-attachments")
             .upload(path, file, {
               contentType: file.type || "application/octet-stream",
-              upsert: false,
+              upsert: true,
             });
-          if (upErr) throw upErr;
+          const timeoutPromise = new Promise<never>((_, reject) =>
+            setTimeout(
+              () => reject(new Error(`Upload timed out after 60s: ${file.name}`)),
+              60_000,
+            ),
+          );
+          const { error: upErr } = await Promise.race([
+            uploadPromise,
+            timeoutPromise,
+          ]);
+          if (upErr) {
+            console.error("[CreateTaskForm] upload error", file.name, upErr);
+            throw upErr;
+          }
           const { data: pub } = supabase.storage
             .from("task-attachments")
             .getPublicUrl(path);
+          console.log("[CreateTaskForm] uploaded", file.name, "→", pub.publicUrl);
           attachments.push({
             filename: file.name,
             url: pub.publicUrl,
@@ -144,8 +163,14 @@ export function CreateTaskForm({ companyId }: { companyId: string }) {
         }
       } catch (err) {
         console.error("[CreateTaskForm upload]", err);
+        const msg =
+          err instanceof Error
+            ? err.message
+            : "One of the files didn't upload.";
+        // Surface the real reason so the user knows what to do next
+        // (bucket not found → run migration 027; size → trim; etc.).
         setUploadError(
-          "One of the files didn't upload. Try again in a moment, or remove it.",
+          `Upload failed: ${msg}. You can remove the file and try again with just text + a link.`,
         );
         setUploading(false);
         return;
@@ -412,7 +437,7 @@ export function CreateTaskForm({ companyId }: { companyId: string }) {
             <Radio
               name="evaluation_mode"
               value="ai"
-              label="AI feedback (instant)"
+              label="AI feedback only"
               hint="Anthropic's Claude scores submissions in 30–60 seconds."
               checked={evaluationMode === "ai"}
               onChange={() => setEvaluationMode("ai")}
@@ -421,8 +446,8 @@ export function CreateTaskForm({ companyId }: { companyId: string }) {
             <Radio
               name="evaluation_mode"
               value="human"
-              label="I'll review them myself (within a few days)"
-              hint="Submissions land in your review queue. You score each one personally."
+              label="AI feedback + human reviewer"
+              hint="Same instant AI scoring — plus the RuneShips team gets a heads-up to spot-check submissions."
               checked={evaluationMode === "human"}
               onChange={() => setEvaluationMode("human")}
               disabled={disabled}
