@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { CookieSettingsLink } from "./CookieSettingsLink";
 
 /**
  * Site-wide footer mounted in app/layout.tsx. Appears on every page,
@@ -27,6 +28,8 @@ export function Footer() {
           <FooterLink href="/cookies">Cookies</FooterLink>
           <Separator />
           <FooterLink href="/terms">Terms</FooterLink>
+          <Separator />
+          <CookieSettingsLink />
         </nav>
         <p className="mt-1 text-[11px] tracking-[0.04em] text-muted/80">
           © 2026 RuneShips
