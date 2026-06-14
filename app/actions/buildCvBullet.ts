@@ -4,7 +4,11 @@ import { createClient } from "@/lib/supabase-server";
 import { createAdminClient } from "@/lib/supabase-admin";
 import { anthropic, DEFAULT_MODEL } from "@/lib/anthropic";
 import { getRankings } from "@/lib/rankings";
-import { generateResumeCode } from "@/lib/resumeCode";
+import {
+  generateResumeCode,
+  isInCvBuildCooldown,
+  nextCvBuildAvailableAt,
+} from "@/lib/resumeCode";
 
 export type BuildCvBulletState =
   | { status: "idle" }
@@ -16,7 +20,8 @@ export type BuildCvBulletState =
   | {
       status: "error";
       message: string;
-      reason?: "no_auth" | "seed" | "no_tasks" | "internal";
+      reason?: "no_auth" | "seed" | "no_tasks" | "cooldown" | "internal";
+      nextAvailableAt?: string;
     };
 
 /** Build a multi-line CV block from a set of user-selected tasks.
@@ -51,7 +56,7 @@ export async function buildCvBullet(
   const admin = createAdminClient();
   const { data: profile } = await admin
     .from("profiles")
-    .select("id, is_seed, resume_code")
+    .select("id, is_seed, resume_code, last_resume_at")
     .eq("id", user.id)
     .maybeSingle();
   if (!profile) {
@@ -66,6 +71,18 @@ export async function buildCvBullet(
       status: "error",
       message: "Demo accounts can't build CV blocks.",
       reason: "seed",
+    };
+  }
+
+  // Daily cooldown — gates the (potential) Anthropic call for
+  // uncached task summaries. Cheap when cache hits, but the call
+  // itself is real money on miss.
+  if (isInCvBuildCooldown(profile.last_resume_at)) {
+    return {
+      status: "error",
+      message: "You can only regenerate your CV block once per day.",
+      reason: "cooldown",
+      nextAvailableAt: nextCvBuildAvailableAt(profile.last_resume_at!),
     };
   }
 
@@ -170,6 +187,17 @@ export async function buildCvBullet(
     tasks,
     resumeCode,
   });
+
+  // Stamp last_resume_at so the daily cooldown engages. Best-effort —
+  // the user gets the block either way.
+  try {
+    await admin
+      .from("profiles")
+      .update({ last_resume_at: new Date().toISOString() })
+      .eq("id", profile.id);
+  } catch (err) {
+    console.error("[buildCvBullet stamp]", err);
+  }
 
   return {
     status: "success",

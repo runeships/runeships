@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { requireStudentUser } from "@/lib/account";
 import { createAdminClient } from "@/lib/supabase-admin";
 import { CvBuilderForm } from "@/components/CvBuilderForm";
@@ -13,10 +14,19 @@ export default async function CvBuilderPage() {
   const { user } = await requireStudentUser();
   const admin = createAdminClient();
 
-  const { data: subs } = await admin
-    .from("submissions")
-    .select("id, task_id, created_at")
-    .eq("user_id", user.id);
+  const [subsRes, profileRes] = await Promise.all([
+    admin
+      .from("submissions")
+      .select("id, task_id, created_at")
+      .eq("user_id", user.id),
+    admin
+      .from("profiles")
+      .select("last_resume_at")
+      .eq("id", user.id)
+      .maybeSingle(),
+  ]);
+  const subs = subsRes.data;
+  const lastResumeAt = profileRes.data?.last_resume_at ?? null;
 
   const submissionIds = (subs ?? []).map((s) => s.id);
   const taskIds = Array.from(new Set((subs ?? []).map((s) => s.task_id)));
@@ -99,24 +109,36 @@ export default async function CvBuilderPage() {
           </Link>
         </nav>
 
-        <header className="mt-7">
-          <p className="text-[11px] tracking-[0.20em] uppercase text-oxblood">
-            CV builder
-          </p>
-          <h1
-            className="mt-3 font-display font-light tracking-[-0.022em] leading-[1.04] text-ink"
-            style={{
-              fontSize: "clamp(2rem, 3.4vw + 1rem, 3rem)",
-              fontVariationSettings: '"opsz" 144',
-            }}
-          >
-            Add RuneShips to your CV.
-          </h1>
-          <p className="mt-5 text-[15px] leading-[1.6] text-muted max-w-[62ch]">
-            Pick the tasks you want featured. We&rsquo;ll assemble a copyable
-            CV block: one line about your standing on RuneShips, then a
-            numbered list of the tasks you selected with short descriptions.
-          </p>
+        <header className="mt-7 grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-x-10 gap-y-6 items-start">
+          <div>
+            <p className="text-[11px] tracking-[0.20em] uppercase text-oxblood">
+              CV builder
+            </p>
+            <h1
+              className="mt-3 font-display font-light tracking-[-0.022em] leading-[1.04] text-ink"
+              style={{
+                fontSize: "clamp(2rem, 3.4vw + 1rem, 3rem)",
+                fontVariationSettings: '"opsz" 144',
+              }}
+            >
+              Add RuneShips to your CV.
+            </h1>
+            <p className="mt-5 text-[15px] leading-[1.6] text-muted max-w-[62ch]">
+              Pick the tasks you want featured. We&rsquo;ll assemble a
+              copyable CV block: one line about your standing on RuneShips,
+              then a numbered list of the tasks you selected with short
+              descriptions.
+            </p>
+          </div>
+          <Image
+            src="/brand/shipofrunes.png"
+            alt=""
+            aria-hidden
+            width={220}
+            height={110}
+            priority
+            className="hidden sm:block w-[180px] md:w-[220px] h-auto shrink-0 select-none pointer-events-none mt-1"
+          />
         </header>
 
         <div className="mt-12">
@@ -142,6 +164,7 @@ export default async function CvBuilderPage() {
             </div>
           ) : (
             <CvBuilderForm
+              initialLastResumeAt={lastResumeAt}
               tasks={rows.map((r) => ({
                 taskId: r.taskId,
                 title: r.title,

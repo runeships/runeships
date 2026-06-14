@@ -1,8 +1,13 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Check, Copy, Sparkles } from "lucide-react";
+import { Check, Copy, Sparkles, Lock } from "lucide-react";
 import { buildCvBullet } from "@/app/actions/buildCvBullet";
+import {
+  hoursUntilNextCvBuild,
+  isInCvBuildCooldown,
+  CV_BUILD_COOLDOWN_MS,
+} from "@/lib/resumeCode";
 
 type TaskRow = {
   taskId: string;
@@ -14,7 +19,13 @@ type TaskRow = {
   completedAtRelative: string;
 };
 
-export function CvBuilderForm({ tasks }: { tasks: TaskRow[] }) {
+export function CvBuilderForm({
+  tasks,
+  initialLastResumeAt,
+}: {
+  tasks: TaskRow[];
+  initialLastResumeAt: string | null;
+}) {
   // Default: all tasks selected. Most users will want the full list.
   const [selected, setSelected] = useState<Set<string>>(
     () => new Set(tasks.map((t) => t.taskId)),
@@ -23,6 +34,10 @@ export function CvBuilderForm({ tasks }: { tasks: TaskRow[] }) {
   const [block, setBlock] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [lastResumeAt, setLastResumeAt] = useState(initialLastResumeAt);
+
+  const locked = isInCvBuildCooldown(lastResumeAt);
+  const hoursLeft = hoursUntilNextCvBuild(lastResumeAt);
 
   function toggle(id: string) {
     setSelected((prev) => {
@@ -45,13 +60,26 @@ export function CvBuilderForm({ tasks }: { tasks: TaskRow[] }) {
   }
 
   function handleGenerate() {
+    if (locked) return;
     setError(null);
     const taskIds = Array.from(selected);
     startTransition(async () => {
       const result = await buildCvBullet(taskIds);
       if (result.status === "success") {
         setBlock(result.block);
+        // Engage cooldown immediately on the client so the button
+        // locks before the next paint.
+        setLastResumeAt(new Date().toISOString());
       } else if (result.status === "error") {
+        if (result.reason === "cooldown" && result.nextAvailableAt) {
+          // Server won the race — reconcile cooldown locally.
+          setLastResumeAt(
+            new Date(
+              new Date(result.nextAvailableAt).getTime() -
+                CV_BUILD_COOLDOWN_MS,
+            ).toISOString(),
+          );
+        }
         setError(result.message);
       }
     });
@@ -152,19 +180,33 @@ export function CvBuilderForm({ tasks }: { tasks: TaskRow[] }) {
         <button
           type="button"
           onClick={handleGenerate}
-          disabled={pending}
+          disabled={pending || locked}
           aria-busy={pending}
-          className="
+          aria-disabled={locked}
+          title={
+            locked
+              ? `Available again in ${hoursLeft} hour${hoursLeft === 1 ? "" : "s"}`
+              : undefined
+          }
+          className={`
             inline-flex items-center gap-2 min-h-[48px] px-6
-            bg-oxblood text-cream border border-oxblood
-            text-[14px] tracking-[0.01em] font-medium
+            border text-[14px] tracking-[0.01em] font-medium
             transition-colors duration-200 ease-out
-            hover:bg-oxblood-hover
-            disabled:opacity-60 disabled:cursor-not-allowed
-          "
+            disabled:cursor-not-allowed
+            ${locked
+              ? "bg-ink/10 text-ink/45 border-ink/15"
+              : "bg-oxblood text-cream border-oxblood hover:bg-oxblood-hover disabled:opacity-60"
+            }
+          `}
         >
-          <Sparkles size={14} strokeWidth={1.8} aria-hidden />
-          {pending
+          {locked ? (
+            <Lock size={14} strokeWidth={1.8} aria-hidden />
+          ) : (
+            <Sparkles size={14} strokeWidth={1.8} aria-hidden />
+          )}
+          {locked
+            ? `Available in ${hoursLeft}h`
+            : pending
             ? "Generating…"
             : block
             ? "Regenerate"
@@ -174,6 +216,13 @@ export function CvBuilderForm({ tasks }: { tasks: TaskRow[] }) {
           {selected.size} task{selected.size === 1 ? "" : "s"} selected
         </p>
       </div>
+
+      {locked && !error && (
+        <p className="mt-3 text-[12px] leading-[1.55] text-muted max-w-[58ch]">
+          You can regenerate once per day — keeps the per-task summaries from
+          burning through API credits and gives recent task work time to settle.
+        </p>
+      )}
 
       {error && (
         <p role="alert" className="mt-4 text-[13px] text-oxblood">

@@ -19,3 +19,29 @@ export function generateResumeCode(): string {
   }
   return out;
 }
+
+/** Daily cooldown for /cv-builder regeneration. Each build can fan
+ *  out to an Anthropic call for uncached task summaries — gate at
+ *  24h to keep the per-user cost bounded. */
+export const CV_BUILD_COOLDOWN_MS = 24 * 60 * 60 * 1000;
+
+export function isInCvBuildCooldown(lastResumeAt: string | null): boolean {
+  if (!lastResumeAt) return false;
+  return Date.now() - new Date(lastResumeAt).getTime() < CV_BUILD_COOLDOWN_MS;
+}
+
+export function nextCvBuildAvailableAt(lastResumeAt: string): string {
+  return new Date(
+    new Date(lastResumeAt).getTime() + CV_BUILD_COOLDOWN_MS,
+  ).toISOString();
+}
+
+/** Hours remaining until the user can regenerate (rounded up).
+ *  Returns 0 if ready. */
+export function hoursUntilNextCvBuild(lastResumeAt: string | null): number {
+  if (!lastResumeAt) return 0;
+  const elapsed = Date.now() - new Date(lastResumeAt).getTime();
+  const remaining = CV_BUILD_COOLDOWN_MS - elapsed;
+  if (remaining <= 0) return 0;
+  return Math.ceil(remaining / (60 * 60 * 1000));
+}
