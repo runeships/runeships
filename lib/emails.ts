@@ -301,3 +301,57 @@ export async function notifyStudentOfNewTask(
     return { ok: false };
   }
 }
+
+/* ─── Admin notification: company requested task deletion ──────────── */
+
+type DeletionRequestCtx = {
+  taskId: string;
+  taskTitle: string;
+  companyName: string;
+  requesterEmail: string;
+  note: string | null;
+  requestedAt: string;
+};
+
+export async function notifyAdminOfDeletionRequest(
+  ctx: DeletionRequestCtx,
+): Promise<{ ok: boolean }> {
+  if (!resend) {
+    console.warn("[notifyAdminOfDeletionRequest] Resend not configured");
+    return { ok: false };
+  }
+  const admins = getAdminEmails();
+  if (admins.length === 0) {
+    console.warn(
+      "[notifyAdminOfDeletionRequest] ADMIN_EMAILS not configured — skipping",
+    );
+    return { ok: false };
+  }
+  const adminUrl = `${SITE_URL}/admin/tasks/${ctx.taskId}/edit`;
+  const body = `
+    <table style="width:100%; border-collapse:collapse;">
+      ${metaRow("Task", ctx.taskTitle)}
+      ${metaRow("Company", ctx.companyName)}
+      ${metaRow("Requester", ctx.requesterEmail)}
+      ${metaRow("Requested", new Date(ctx.requestedAt).toISOString())}
+    </table>
+    ${ctx.note ? `<p style="margin:20px 0 0 0; font-size:14px; line-height:1.55; color:${INK};">${escapeHtml(ctx.note)}</p>` : ""}
+    ${buttonHtml(adminUrl, "Review request")}
+    <p style="margin:20px 0 0 0; color:${MUTED}; font-size:12px; line-height:1.55;">
+      The task is still live until you delete it from /admin/tasks.
+    </p>
+  `;
+  try {
+    await resend.emails.send({
+      from: RESEND_FROM,
+      to: admins,
+      subject: `Deletion requested: ${ctx.taskTitle} (${ctx.companyName})`,
+      html: shellHtml({ title: "Task deletion requested", body }),
+      text: `${ctx.companyName} requested deletion of "${ctx.taskTitle}".\n\nReview: ${adminUrl}`,
+    });
+    return { ok: true };
+  } catch (err) {
+    console.error("[notifyAdminOfDeletionRequest resend]", err);
+    return { ok: false };
+  }
+}

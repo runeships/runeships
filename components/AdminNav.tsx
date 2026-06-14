@@ -1,8 +1,8 @@
 import Link from "next/link";
-import { ClipboardCheck, RefreshCw } from "lucide-react";
+import { ClipboardCheck, RefreshCw, ListChecks } from "lucide-react";
 import { createAdminClient } from "@/lib/supabase-admin";
 
-type AdminTab = "queue" | "regrades";
+type AdminTab = "queue" | "regrades" | "tasks";
 
 /**
  * Shared header across /admin/* routes. Renders the "Admin" kicker,
@@ -27,7 +27,7 @@ export async function AdminNav({
   // feedback row yet. Three-step JS filter mirrors /admin/page.tsx
   // — Database.types.Relationships is empty so we don't pay the
   // cost of typed nested selects.
-  const [submissionsRes, humanTasksRes, feedbackRes, regradesRes] =
+  const [submissionsRes, humanTasksRes, feedbackRes, regradesRes, deletionRes] =
     await Promise.all([
       admin.from("submissions").select("id, task_id"),
       admin
@@ -39,6 +39,10 @@ export async function AdminNav({
         .from("regrade_requests")
         .select("id", { count: "exact", head: true })
         .eq("status", "pending"),
+      admin
+        .from("tasks")
+        .select("id", { count: "exact", head: true })
+        .not("deletion_requested_at", "is", null),
     ]);
 
   let queueCount = 0;
@@ -58,6 +62,7 @@ export async function AdminNav({
     ).length;
   }
   const regradesCount = regradesRes.count ?? 0;
+  const deletionCount = deletionRes.count ?? 0;
 
   return (
     <header className="mt-2">
@@ -83,6 +88,13 @@ export async function AdminNav({
             icon={<RefreshCw size={14} strokeWidth={1.6} />}
             count={regradesCount}
             active={current === "regrades"}
+          />
+          <Tab
+            href="/admin/tasks"
+            label="Tasks"
+            icon={<ListChecks size={14} strokeWidth={1.6} />}
+            count={deletionCount}
+            active={current === "tasks"}
           />
         </ul>
       </nav>

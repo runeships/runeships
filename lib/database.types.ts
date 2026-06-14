@@ -262,6 +262,8 @@ export interface Database {
           created_by: string | null;
           attachments: Json;
           is_demo: boolean;
+          deletion_requested_at: string | null;
+          deletion_request_note: string | null;
           created_at: string;
         };
         Insert: {
@@ -286,6 +288,8 @@ export interface Database {
           created_by?: string | null;
           attachments?: Json;
           is_demo?: boolean;
+          deletion_requested_at?: string | null;
+          deletion_request_note?: string | null;
           created_at?: string;
         };
         Relationships: [];
@@ -311,6 +315,8 @@ export interface Database {
           created_by?: string | null;
           attachments?: Json;
           is_demo?: boolean;
+          deletion_requested_at?: string | null;
+          deletion_request_note?: string | null;
           created_at?: string;
         };
       };

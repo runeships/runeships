@@ -4,6 +4,7 @@ import { requireCompanyUser } from "@/lib/account";
 import { createAdminClient } from "@/lib/supabase-admin";
 import { EditorialMarkdown } from "@/components/EditorialMarkdown";
 import { CompanySubmissionsTable } from "@/components/CompanySubmissionsTable";
+import { RequestDeletionButton } from "@/components/RequestDeletionButton";
 import { timeAgo } from "@/lib/format";
 import { File as FileIcon } from "lucide-react";
 
@@ -29,7 +30,7 @@ export default async function CompanyTaskDetailPage({
   const { data: task } = await admin
     .from("tasks")
     .select(
-      "id, slug, title, brief, category, submission_mode, evaluation_mode, created_at, company_id, attachments, weight_strategy, weight_execution, weight_communication, weight_technical, weight_creativity",
+      "id, slug, title, brief, category, submission_mode, evaluation_mode, created_at, company_id, attachments, weight_strategy, weight_execution, weight_communication, weight_technical, weight_creativity, deletion_requested_at",
     )
     .eq("id", id)
     .maybeSingle();
@@ -230,13 +231,17 @@ export default async function CompanyTaskDetailPage({
           )}
         </section>
 
-        <div className="mt-20 pt-8 border-t border-ink/10">
+        <div className="mt-20 pt-8 border-t border-ink/10 flex flex-wrap items-start justify-between gap-y-6 gap-x-10">
           <Link
             href="/companies/dashboard"
             className="link-anim text-[14px] tracking-[0.005em] text-ink hover:text-oxblood transition-colors duration-200 ease-out"
           >
             <span aria-hidden>←</span> Back to dashboard
           </Link>
+          <RequestDeletionButton
+            taskId={task.id}
+            alreadyRequestedAt={task.deletion_requested_at}
+          />
         </div>
       </div>
     </main>
