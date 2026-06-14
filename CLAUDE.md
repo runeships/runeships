@@ -181,3 +181,33 @@ Display as pentagon/radar charts (like FIFA player cards).
 - Company 1: Godly (brief drafted in Prompt 1)
 - Company 2: myOrbit (brief drafted in Prompt 1)
 - Company 3: Veganuño (brief drafted in Prompt 1)
+
+
+## AI grader calibration anchors
+
+The AI grader's per-dimension scoring uses this calibrated scale (defined in `app/actions/generateFeedback.ts`):
+
+| Band | Range | Meaning |
+|---|---|---|
+| Broken or absent | 0-15 | Gibberish or fundamental misunderstanding |
+| Severely underdeveloped | 16-35 | Critical errors of reasoning, structure, or judgment |
+| Below average | 36-55 | Materially weaker than averagely competent |
+| Average to competent | 56-70 | Solid baseline. Most AI-baseline output lands here |
+| Above average / solid | 71-82 | Thoughtful, specific, hidden assumptions surfaced |
+| Strong / impressive | 83-90 | Beyond competent — judgment, counter-considerations |
+| Exceptional | 91-95 | Contrarian framings supported by rigor; non-obvious considerations |
+| Distinguished | 96-100 | Rare; instructive to a senior practitioner |
+
+Old prompt: "50 = average, 70 = strong, 85+ = exceptional" — compressed the top 25 points into 13 points of actual usage. New scale widens the dynamic range so exceptional work reliably reaches 88-94.
+
+### Reference submissions for calibration testing
+
+Run `pnpm tsx scripts/test-grader-calibration.ts` after any prompt change.
+
+| Benchmark | Expected weighted total | What it tests |
+|---|---|---|
+| `garbage` ("asdf asdf qwerty") | 0-15 | Bottom-end behavior unchanged |
+| `chatgpt-baseline` (well-prompted GPT output, no editing) | 65-78 | AI baseline stays in the competent band |
+| `toronto-exceptional` (contrarian pick + named numbers + kill thresholds + counter-argument) | 88-94 | Top-end dynamic range opens up |
+
+If `chatgpt-baseline` drifts to 80+, the calibration over-inflated and needs tightening. If `toronto-exceptional` stays below 88, the calibration didn't take.

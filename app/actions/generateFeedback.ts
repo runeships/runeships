@@ -364,7 +364,47 @@ ${bodySection}${linkSection}${externalSection}SCORE the submission on these five
 4. Technical — appropriate use of tools, code, data, calculations
 5. Creativity — original insight, novel framing, differentiated thinking
 
-Apply scoring rigor: 50 is average submission, 70 is strong, 85+ is exceptional. Reserve 90+ for genuinely outstanding work. Don't inflate.
+# Per-dimension scoring anchors
+
+Score each dimension from 0 to 100 using this calibrated scale. Use the full range. Do not compress scores toward the middle.
+
+**0-15 — Broken or absent.** The submission fails to engage with this dimension. Gibberish input, complete absence of relevant content, or fundamental misunderstanding of what was asked. Example: a strategy task where the response is unrelated to the question.
+
+**16-35 — Severely underdeveloped.** Some engagement with the dimension but it falls apart on inspection. Critical errors of reasoning, structure, or judgment. A reader would not trust the work product.
+
+**36-55 — Below average.** Recognizable attempt but materially weaker than what an averagely competent person would produce. Lacks specificity, makes unforced errors, or misses the core of what the task demands.
+
+**56-70 — Average to competent.** Solid baseline work. Addresses the task adequately. No major errors but no distinctive moves either. This is what a careful but unremarkable submission looks like — including most well-prompted AI-generated baseline output. A capable person on a tired day produces work in this range.
+
+**71-82 — Above average / solid.** Clearly thoughtful work that demonstrates real engagement with the problem. Specific reasoning, some hidden assumptions surfaced, clean structure. The kind of work a strong early-career professional would produce on a focused day.
+
+**83-90 — Strong / impressive.** Work that goes beyond competent execution into genuine insight. Demonstrates judgment, specificity in quantitative reasoning where relevant, addresses counter-considerations, names tradeoffs the average submission ignores. Could be presented directly to senior stakeholders.
+
+**91-95 — Exceptional.** Work that displays clear strategic or craft maturity beyond the typical early-career level. Contrarian framings supported by rigorous reasoning. Quantitative work that holds up to scrutiny. Risk analysis ordered by actual business impact rather than templated categories. Surfaces non-obvious considerations a thoughtful expert would notice but most practitioners would miss.
+
+**96-100 — Distinguished.** Reserve for work that would be genuinely instructive to a senior practitioner. Rare. A submission scoring here should display all of: novel framing, defensible quantitative rigor, surfaced and addressed counter-arguments, tactical specificity at the level of named numbers and named thresholds, and craft (writing, structure, code organization) that itself models best practice. If you find yourself wanting to give 95+ on a regular basis, recalibrate downward.
+
+**Calibration discipline.**
+
+- Most submissions cluster in the 56-82 range. Resist the temptation to inflate scores toward the upper half just because a submission is "well-written." Structure and prose quality count toward Communication, not toward all dimensions.
+- An AI-generated baseline response (well-prompted, no editing) typically lands in the 65-75 range. Score it there.
+- A careful human response that addresses the task without distinctive insight should land in the 73-82 range.
+- A response that demonstrates contrarian insight, quantitative rigor, and surfacing of non-obvious considerations is what 88-92 looks like. Don't penalize it for not being "perfect" — score it for what it is.
+- 95+ should feel like exception, not pattern. If you would honestly score multiple submissions in a cohort at 95+, your calibration is too generous.
+
+# Distinctiveness check (apply before finalizing scores)
+
+After producing initial per-dimension scores, review the submission once more and ask:
+
+1. What moves does this submission make that a baseline competent submission would NOT make? List them mentally.
+2. Are those moves recognized in your scores? If the submission surfaces a non-obvious assumption, picks a contrarian-but-defensible position, includes specific quantitative reasoning, or addresses a counter-argument explicitly, those are signals that warrant scoring above the 75-82 "solid" range.
+3. Conversely: does the submission have any moves that *look* sophisticated but don't actually hold up? Confident-sounding prose without specific support, structural complexity without substantive depth, or technical jargon without correct application should not be rewarded as if they were genuine sophistication.
+
+If a submission clearly makes distinctive moves that hold up under scrutiny, push scores into the 85-92 range. If a submission is genuinely exceptional in multiple dimensions simultaneously, 92-95 is correct. Reserve 95+ for the rare case where the work would be instructive to a senior practitioner.
+
+# Weighted total
+
+The weighted total is computed automatically from per-dimension scores and task weights — do not manually compute or "round" the weighted total. Your job is to score each dimension accurately on the 0-100 scale above. The total will follow from honest dimension scoring.
 
 QUALITATIVE FEEDBACK (200-400 words) must cover:
 - One specific strength they demonstrated (with evidence from their submission)
@@ -387,7 +427,23 @@ OUTPUT FORMAT — respond with ONLY this JSON object, no other text, no markdown
   "score_technical": <integer 0-100>,
   "score_creativity": <integer 0-100>,
   "qualitative_feedback": "<your 200-400 word feedback as a single string with proper line breaks using \\n\\n between paragraphs>"
-}`;
+}
+
+# Calibration example
+
+To anchor your scoring, here is an illustrative example of how a submission should be evaluated on a strategy task with weights Strategy 40%, Communication 30%, Execution 15%, Creativity 10%, Technical 5%.
+
+**Submission summary:** A 1,000-word recommendation on whether a fictional B2B SaaS company should expand internationally. The submission recommends entering Toronto rather than London (a contrarian-but-defensible pick), provides specific financial modeling ($52K validation cost, $420K full-2026 commitment, $1.4M ARR breakeven), names three kill thresholds for the test phase (pipeline count, sales-cycle delta, closed-won deals), addresses pricing strategy explicitly (USD, no discount, with defended reasoning), surfaces five named assumptions, and addresses the strongest counter-argument (waiting until 2027).
+
+**Calibrated scores:**
+- Strategy: 91 (contrarian framing held up by reasoning; named the binding constraint correctly; multiple defensible load-bearing decisions)
+- Communication: 89 (clean structure, scannable, bolded conclusions, no fluff)
+- Execution: 88 (named numbers, named thresholds, specific dates)
+- Creativity: 90 (Toronto pick is a non-obvious move; pricing argument is non-templated)
+- Technical: 78 (quantitative work present and credible but not the dimension this task primarily tests)
+- **Weighted total: ~89**
+
+This example anchors what "strong" looks like. Submissions that make fewer distinctive moves should score lower; submissions that also model 90+ work across multiple dimensions could score higher.`;
 }
 
 type ValidatedPayload = {

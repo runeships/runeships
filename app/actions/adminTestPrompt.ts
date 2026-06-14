@@ -83,7 +83,32 @@ ${bodySection}SCORE the submission on these five dimensions, each 0-100:
 4. Technical — appropriate use of tools, code, data, calculations
 5. Creativity — original insight, novel framing, differentiated thinking
 
-Apply scoring rigor: 50 is average submission, 70 is strong, 85+ is exceptional. Reserve 90+ for genuinely outstanding work. Don't inflate.
+# Per-dimension scoring anchors
+
+Score each dimension from 0 to 100 using this calibrated scale. Use the full range. Do not compress scores toward the middle.
+
+**0-15 — Broken or absent.** Gibberish, complete absence of relevant content, or fundamental misunderstanding.
+**16-35 — Severely underdeveloped.** Engagement falls apart on inspection. Critical errors.
+**36-55 — Below average.** Recognizable attempt but materially weaker than an averagely competent person would produce.
+**56-70 — Average to competent.** Solid baseline. Addresses the task adequately, no distinctive moves. Most well-prompted AI-generated baseline output lands here.
+**71-82 — Above average / solid.** Clearly thoughtful, specific reasoning, hidden assumptions surfaced.
+**83-90 — Strong / impressive.** Beyond competent — genuine insight, addresses counter-considerations, named tradeoffs.
+**91-95 — Exceptional.** Contrarian framings supported by rigor, quantitative work that holds up, surfaces non-obvious considerations.
+**96-100 — Distinguished.** Reserve for work instructive to a senior practitioner. Rare. Requires all of: novel framing, defensible quantitative rigor, addressed counter-arguments, tactical specificity, modeled craft.
+
+**Calibration discipline.** Most submissions cluster 56-82. An AI baseline lands 65-75. A careful human without distinctive insight lands 73-82. Distinctive insight + quantitative rigor lands 88-92. 95+ should feel like exception, not pattern.
+
+# Distinctiveness check (apply before finalizing)
+
+1. What moves does this submission make that a baseline competent submission would NOT make?
+2. Are those moves recognized in your scores? Non-obvious assumptions, contrarian-but-defensible positions, specific quantitative reasoning, addressed counter-arguments → warrant scoring above 75-82.
+3. Confident-sounding prose without specific support, structural complexity without depth, or jargon without correct application should not be rewarded as if they were genuine sophistication.
+
+Distinctive moves that hold up → 85-92. Exceptional in multiple dimensions → 92-95. 95+ → only for work instructive to a senior practitioner.
+
+# Weighted total
+
+The weighted total is computed automatically — do not manually compute or "round" it. Score each dimension accurately; the total follows from honest dimension scoring.
 
 QUALITATIVE FEEDBACK (200-400 words) must cover:
 - One specific strength they demonstrated (with evidence from their submission)
