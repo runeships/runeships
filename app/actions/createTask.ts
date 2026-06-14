@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase-server";
 import { createAdminClient } from "@/lib/supabase-admin";
 import { slugify, uniqueSlug } from "@/lib/slugify";
+import { checkTaskBriefForBias } from "@/lib/biasCheck";
 
 export type CreateTaskState =
   | { status: "idle" }
@@ -181,6 +182,14 @@ export async function createTask(
     }
   }
 
+  // ─── Bias review (best-effort) ───────────────────────────────────
+  // Runs an AI moderation pass on the brief. If flagged, we still
+  // publish the task (false positives shouldn't gate company users)
+  // but mark it for admin review so /admin/tasks shows a badge.
+  const biasCheck = brief.trim().length > 0
+    ? await checkTaskBriefForBias(title, brief)
+    : { flagged: false, note: null };
+
   // Generate a unique slug scoped within the company's tasks.
   const { data: existingSlugs } = await admin
     .from("tasks")
@@ -209,6 +218,8 @@ export async function createTask(
       is_published: true,
       is_demo: false,
       attachments: attachments,
+      bias_review_needed: biasCheck.flagged,
+      bias_review_note: biasCheck.note,
     })
     .select("id")
     .single();

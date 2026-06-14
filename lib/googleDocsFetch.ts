@@ -11,7 +11,10 @@
  * limitation.
  */
 
-const MAX_CHARS = 30_000;
+// 40k chars ≈ 10k tokens — accommodates a real 8-12 page document
+// (deep strategy memo, full financial model export) while still
+// bounding the prompt at ~13% of the default 75k task budget.
+const MAX_CHARS = 40_000;
 
 type GDocType = "document" | "spreadsheets" | "presentation";
 

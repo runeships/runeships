@@ -9,8 +9,12 @@
  * MAX_TOTAL_CHARS (50_000). Bigger repos get truncated, not skipped.
  */
 
-const MAX_TOTAL_CHARS = 50_000;
-const MAX_FILE_CHARS = 8_000;
+// 60k total chars ≈ 15k tokens — enough to read a small-to-mid
+// project (~3-5 entry files + README + configs) while bounding the
+// prompt cost at ~25% of the default 75k task budget. Bigger repos
+// get truncated, not skipped.
+const MAX_TOTAL_CHARS = 60_000;
+const MAX_FILE_CHARS = 10_000;
 const KEY_FILES = [
   "package.json",
   "requirements.txt",

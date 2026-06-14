@@ -1,10 +1,13 @@
 "use server";
 
 import { createClient } from "@/lib/supabase-server";
+import { createAdminClient } from "@/lib/supabase-admin";
 import { resend, RESEND_FROM } from "@/lib/resend";
 
 const FEEDBACK_INBOX = "hello@runeships.com";
 const MAX_LENGTH = 2000;
+const FEEDBACK_DAILY_CAP = 5;
+const FEEDBACK_WINDOW_MS = 24 * 60 * 60 * 1000;
 
 const CATEGORIES = ["bug", "suggestion", "praise", "question", "other"] as const;
 type Category = (typeof CATEGORIES)[number];
@@ -65,6 +68,31 @@ export async function sendFeedback(input: {
     };
   }
 
+  // ─── Per-user rate limit ─────────────────────────────────────
+  // Cap at FEEDBACK_DAILY_CAP per 24h per user. Keeps the inbox
+  // useful and protects the Resend monthly quota from a sit-on-
+  // the-button attack. Best-effort — if the log read fails we
+  // still let the message through.
+  const admin = createAdminClient();
+  try {
+    const windowStart = new Date(
+      Date.now() - FEEDBACK_WINDOW_MS,
+    ).toISOString();
+    const { count } = await admin
+      .from("feedback_submissions")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user.id)
+      .gte("created_at", windowStart);
+    if ((count ?? 0) >= FEEDBACK_DAILY_CAP) {
+      return {
+        success: false,
+        error: `You've hit the ${FEEDBACK_DAILY_CAP}-message daily limit. Email hello@runeships.com directly if it's urgent.`,
+      };
+    }
+  } catch (err) {
+    console.error("[sendFeedback rate check]", err);
+  }
+
   const pageUrl =
     typeof input.pageUrl === "string" && input.pageUrl.length > 0
       ? input.pageUrl.slice(0, 500)
@@ -109,6 +137,15 @@ export async function sendFeedback(input: {
       html,
       text,
     });
+    // Log only after a successful send so a failed send doesn't
+    // count against the cap.
+    try {
+      await admin
+        .from("feedback_submissions")
+        .insert({ user_id: user.id });
+    } catch (err) {
+      console.error("[sendFeedback log]", err);
+    }
   } catch (err) {
     console.error("[sendFeedback resend]", err);
     return {

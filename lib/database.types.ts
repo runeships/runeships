@@ -279,6 +279,8 @@ export interface Database {
           ai_token_budget: number;
           ai_tokens_used: number;
           cv_summary: string | null;
+          bias_review_needed: boolean;
+          bias_review_note: string | null;
           created_at: string;
         };
         Insert: {
@@ -308,6 +310,8 @@ export interface Database {
           ai_token_budget?: number;
           ai_tokens_used?: number;
           cv_summary?: string | null;
+          bias_review_needed?: boolean;
+          bias_review_note?: string | null;
           created_at?: string;
         };
         Relationships: [];
@@ -338,6 +342,8 @@ export interface Database {
           ai_token_budget?: number;
           ai_tokens_used?: number;
           cv_summary?: string | null;
+          bias_review_needed?: boolean;
+          bias_review_note?: string | null;
           created_at?: string;
         };
       };
@@ -424,6 +430,26 @@ export interface Database {
           qualitative_feedback?: string;
           model_used?: string;
           generated_at?: string;
+        };
+      };
+
+      // ─── 036 (rate-limit log for FeedbackModal) ─────────────────────
+      feedback_submissions: {
+        Row: {
+          id: string;
+          user_id: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          created_at?: string;
+        };
+        Relationships: [];
+        Update: {
+          id?: string;
+          user_id?: string;
+          created_at?: string;
         };
       };
 

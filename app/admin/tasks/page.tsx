@@ -23,7 +23,7 @@ export default async function AdminTasksPage({
     admin
       .from("tasks")
       .select(
-        "id, title, slug, category, submission_mode, evaluation_mode, is_published, is_demo, company_id, deletion_requested_at, deletion_request_note, created_at, ai_token_budget, ai_tokens_used",
+        "id, title, slug, category, submission_mode, evaluation_mode, is_published, is_demo, company_id, deletion_requested_at, deletion_request_note, created_at, ai_token_budget, ai_tokens_used, bias_review_needed, bias_review_note",
       )
       .order("deletion_requested_at", { ascending: false, nullsFirst: false })
       .order("created_at", { ascending: false }),
@@ -122,6 +122,8 @@ function Row({
     created_at: string;
     ai_token_budget: number;
     ai_tokens_used: number;
+    bias_review_needed: boolean;
+    bias_review_note: string | null;
   };
   companyName: string;
   isPracticeCompany: boolean;
@@ -145,6 +147,12 @@ function Row({
             <span className="inline-flex items-center gap-1 text-[10px] tracking-[0.06em] uppercase text-oxblood">
               <AlertTriangle size={11} strokeWidth={1.8} />
               Deletion requested
+            </span>
+          )}
+          {task.bias_review_needed && (
+            <span className="inline-flex items-center gap-1 text-[10px] tracking-[0.06em] uppercase text-oxblood">
+              <AlertTriangle size={11} strokeWidth={1.8} />
+              Bias review
             </span>
           )}
           {isDemoTask && (
@@ -206,6 +214,11 @@ function Row({
         {task.deletion_request_note && (
           <p className="mt-2 text-[12px] text-muted italic max-w-[80ch]">
             &ldquo;{task.deletion_request_note}&rdquo;
+          </p>
+        )}
+        {task.bias_review_needed && task.bias_review_note && (
+          <p className="mt-2 text-[12px] text-oxblood/85 max-w-[80ch]">
+            Bias flag: {task.bias_review_note}
           </p>
         )}
       </div>

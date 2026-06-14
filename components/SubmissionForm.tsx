@@ -100,23 +100,6 @@ export function SubmissionForm({
     <form action={formAction} noValidate className="space-y-8 max-w-[680px] mx-auto">
       <input type="hidden" name="task_id" value={taskId} />
 
-      {/* Honest expectations + compliance note before the inputs. */}
-      <div className="border-l-2 border-ink/20 pl-5 max-w-[60ch] text-[12px] leading-[1.6] text-muted">
-        <p>
-          <span className="text-ink">Submit work you&rsquo;ve done for the
-          task.</span> RuneShips isn&rsquo;t a homework grader or a general
-          AI essay reviewer — off-topic submissions (papers from a different
-          course, generic requests for feedback, attempts to use the AI for
-          something else) score near zero and may be removed.
-        </p>
-        <p className="mt-2">
-          Don&rsquo;t include identifying information about real third
-          parties (real co-workers, real clients, real companies you&rsquo;re
-          not the task is about) in your submission text. If your work
-          involves real-world examples, keep names and details generic.
-        </p>
-      </div>
-
       {/* Title — always required */}
       <div>
         <FieldLabel htmlFor="sub-title">Title of your submission</FieldLabel>
@@ -149,6 +132,7 @@ export function SubmissionForm({
             id="sub-body"
             name="submission_body"
             rows={12}
+            maxLength={12000}
             required
             value={body}
             onChange={(e) => setBody(e.target.value)}
@@ -164,6 +148,14 @@ export function SubmissionForm({
               disabled:opacity-60
             "
           />
+          <p className="mt-2 text-[12px] text-muted tabular-nums">
+            {body.length.toLocaleString()} / 12,000 characters
+            {body.length > 10000 && body.length <= 12000 && (
+              <span className="ml-2 text-oxblood">
+                — getting close to the limit. Link to a hosted doc if your work is longer.
+              </span>
+            )}
+          </p>
         </div>
       )}
 

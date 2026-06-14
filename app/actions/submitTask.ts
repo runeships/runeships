@@ -18,14 +18,13 @@ const URL_RE = /^https?:\/\/.+/i;
 // thoughtful work, blocks pasting an entire book to chew through
 // the AI budget.
 const MAX_TITLE_CHARS = 200;
-// 8,000 chars ≈ 1,200 words ≈ 2,000 tokens. Forces long-form work
-// to be submitted as a link (Google Doc, GitHub, etc.) where the
-// fetcher cap controls the spend, instead of through the body field
-// where a single submission could otherwise eat an entire task's
-// budget alone. The homework-helper abuse case largely collapses
-// here too — 1,200 words isn't enough to dump a 5-page essay for
-// free AI review.
-const MAX_BODY_CHARS = 8_000;
+// 12,000 chars ≈ 2,000 words ≈ 3,000 tokens. Accommodates legitimate
+// essay-format briefs (strategy memos, financial reasoning, design
+// rationale) while still bounding what one submission can consume.
+// Anything bigger than this realistically belongs in a hosted doc;
+// the linked-content fetchers (Google Docs at 40k chars, GitHub at
+// 60k) handle the long-form case with their own caps.
+const MAX_BODY_CHARS = 12_000;
 const MAX_LINK_CHARS = 2_000;
 
 // Global per-user daily cap. Per-task 24h cooldown stops re-submits
