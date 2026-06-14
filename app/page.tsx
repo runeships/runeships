@@ -105,7 +105,7 @@ export default async function Home({
                     focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-oxblood
                   "
                 >
-                  Try RuneShips <span aria-hidden className="ml-1.5">→</span>
+                  Sign up &amp; try it <span aria-hidden className="ml-1.5">→</span>
                 </Link>
                 <p className="mt-4 text-[14px] leading-[1.55] text-muted max-w-[44ch]">
                   Magic-link sign in. No password. Practice tasks open
@@ -419,7 +419,7 @@ export default async function Home({
                   focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-oxblood
                 "
               >
-                Try RuneShips <span aria-hidden className="ml-1.5">→</span>
+                Sign up &amp; try it <span aria-hidden className="ml-1.5">→</span>
               </Link>
               <p className="text-[14px] leading-[1.55] text-cream/70 text-center">
                 Magic-link sign in. No password.

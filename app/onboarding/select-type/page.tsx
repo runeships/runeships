@@ -48,6 +48,10 @@ export default async function SelectTypePage() {
         <p className="mt-6 text-[17px] sm:text-[19px] leading-[1.5] text-muted font-display italic max-w-[58ch]">
           Are you joining as a student or as a company?
         </p>
+        <p className="mt-3 text-[13px] leading-[1.55] text-muted max-w-[58ch]">
+          You can change this later — your choice today determines which side
+          of the platform you start on.
+        </p>
 
         <div className="mt-14 grid grid-cols-1 md:grid-cols-2 gap-6">
           <TypeCard
