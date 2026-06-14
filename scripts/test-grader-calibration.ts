@@ -13,12 +13,20 @@
  * for the three runs). Run sparingly.
  */
 
-import "dotenv/config";
+import dotenv from "dotenv";
 import Anthropic from "@anthropic-ai/sdk";
+
+// Next.js loads .env.local automatically at runtime, but standalone
+// scripts need an explicit path — dotenv's default is .env. Try
+// .env.local first, fall back to .env.
+dotenv.config({ path: ".env.local" });
+if (!process.env.ANTHROPIC_API_KEY) dotenv.config({ path: ".env" });
 
 const apiKey = process.env.ANTHROPIC_API_KEY;
 if (!apiKey) {
-  console.error("Missing ANTHROPIC_API_KEY in .env.local");
+  console.error(
+    "Missing ANTHROPIC_API_KEY. Add it to .env.local at the project root.",
+  );
   process.exit(1);
 }
 
