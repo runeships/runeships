@@ -50,11 +50,18 @@ OUTPUT FORMAT — respond with ONLY this JSON object, no other text, no markdown
 }`;
 
   try {
-    const response = await anthropic.messages.create({
-      model: DEFAULT_MODEL,
-      max_tokens: 300,
-      messages: [{ role: "user", content: prompt }],
-    });
+    // 6-second ceiling on the Anthropic call. If the API is slow,
+    // we'd rather skip the check than hang the task-posting flow
+    // long enough to trip the route's maxDuration and break the
+    // post-redirect render.
+    const response = await anthropic.messages.create(
+      {
+        model: DEFAULT_MODEL,
+        max_tokens: 300,
+        messages: [{ role: "user", content: prompt }],
+      },
+      { signal: AbortSignal.timeout(6_000) },
+    );
     const rawText = response.content
       .filter((b) => b.type === "text")
       .map((b) => (b as { text: string }).text)
