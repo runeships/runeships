@@ -22,25 +22,20 @@ const STEPS = [
 ] as const;
 
 /**
- * Three-step explainer. Horizontal grid on desktop, snap-scroll carousel
- * on mobile. Each step fades in on scroll with a 150ms stagger.
+ * Three-step explainer. Vertical stack on mobile (no confusing
+ * snap-swiper), horizontal grid on desktop. Each step fades in on
+ * scroll with a 150ms stagger.
  */
 export function HowItWorks() {
   return (
     <div
       className="
-        flex overflow-x-auto snap-x snap-mandatory gap-6 -mx-6 px-6 pb-2
-        lg:grid lg:grid-cols-3 lg:gap-x-12 lg:gap-y-0 lg:mx-0 lg:px-0
-        lg:overflow-visible lg:snap-none
+        flex flex-col gap-12 sm:gap-14
+        lg:grid lg:grid-cols-3 lg:gap-x-12 lg:gap-y-0
       "
     >
       {STEPS.map((step, i) => (
-        <Reveal
-          key={step.n}
-          mode="scroll"
-          delay={i * 0.15}
-          className="snap-start shrink-0 w-[85%] sm:w-[60%] lg:w-auto"
-        >
+        <Reveal key={step.n} mode="scroll" delay={i * 0.15}>
           <p
             className="font-display text-[44px] sm:text-[52px] leading-[1] text-oxblood tracking-[-0.01em]"
             style={{ fontVariationSettings: '"opsz" 144' }}
