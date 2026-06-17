@@ -3,6 +3,11 @@ import { requireCompanyUser } from "@/lib/account";
 import { CreateTaskForm } from "@/components/CreateTaskForm";
 
 export const dynamic = "force-dynamic";
+// createTask runs a bias check via Anthropic (~3-5s) plus the DB
+// work — Vercel's default 10s server-action ceiling was tripping
+// the redirect even though the task insert succeeded. Server
+// actions inherit maxDuration from the calling route.
+export const maxDuration = 30;
 
 export default async function NewTaskPage() {
   const { company } = await requireCompanyUser();
