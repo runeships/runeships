@@ -36,19 +36,21 @@ export function Reveal({
   className,
   id,
 }: RevealProps) {
+  // Stays the same hook count regardless of `reducedMotion`. The
+  // earlier `if (reducedMotion) return <div>` short-circuit changed
+  // the hook count between SSR (where useReducedMotion is null) and
+  // hydration (where it resolves to the OS value) — that produced
+  // React error #310 because motion.div calls useMemo internally.
   const reducedMotion = useReducedMotion();
-
-  if (reducedMotion) {
-    return (
-      <div id={id} className={className}>
-        {children}
-      </div>
-    );
-  }
-
+  const offset = reducedMotion ? 0 : y;
+  const duration = reducedMotion
+    ? 0
+    : mode === "load"
+    ? 0.85
+    : 0.75;
   const transition = {
-    duration: mode === "load" ? 0.85 : 0.75,
-    delay,
+    duration,
+    delay: reducedMotion ? 0 : delay,
     ease: EDITORIAL_EASE as unknown as [number, number, number, number],
   };
 
@@ -56,7 +58,7 @@ export function Reveal({
     return (
       <motion.div
         id={id}
-        initial={{ opacity: 0, y }}
+        initial={{ opacity: 0, y: offset }}
         animate={{ opacity: 1, y: 0 }}
         transition={transition}
         className={className}
@@ -69,7 +71,7 @@ export function Reveal({
   return (
     <motion.div
       id={id}
-      initial={{ opacity: 0, y }}
+      initial={{ opacity: 0, y: offset }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "0px 0px -10% 0px" }}
       transition={transition}
