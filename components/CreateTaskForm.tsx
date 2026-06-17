@@ -2,6 +2,7 @@
 
 import { useActionState, useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Upload, X } from "lucide-react";
 import { createClient as createBrowserSupabase } from "@/lib/supabase-browser";
 import { createTask, type CreateTaskState } from "@/app/actions/createTask";
@@ -48,7 +49,9 @@ type UploadedAttachment = {
 };
 
 export function CreateTaskForm({ companyId }: { companyId: string }) {
+  const router = useRouter();
   const [state, formAction, pending] = useActionState(createTask, initial);
+  const [redirecting, setRedirecting] = useState(false);
   const [files, setFiles] = useState<PickedFile[]>([]);
   const [submissionMode, setSubmissionMode] = useState("link_only");
   const [category, setCategory] = useState("strategy");
@@ -85,11 +88,23 @@ export function CreateTaskForm({ companyId }: { companyId: string }) {
       if (e.persisted) {
         setUploading(false);
         setUploadError(null);
+        setRedirecting(false);
       }
     };
     window.addEventListener("pageshow", onShow);
     return () => window.removeEventListener("pageshow", onShow);
   }, []);
+
+  // Navigate after the action returns success. Doing this client-side
+  // (instead of redirect() inside the server action) avoids a Next 16
+  // server-action redirect issue where the destination page rendered
+  // with "This page couldn't load" after long actions.
+  useEffect(() => {
+    if (state.status === "success") {
+      setRedirecting(true);
+      router.push(`/companies/tasks/${state.taskId}`);
+    }
+  }, [state, router]);
 
   function addFiles(list: FileList | null) {
     if (!list) return;
@@ -211,7 +226,7 @@ export function CreateTaskForm({ companyId }: { companyId: string }) {
     formAction(fd);
   }
 
-  const disabled = pending || uploading;
+  const disabled = pending || uploading || redirecting;
 
   return (
     <form ref={formRef} onSubmit={handleSubmit} className="space-y-10" noValidate>
@@ -501,6 +516,8 @@ export function CreateTaskForm({ companyId }: { companyId: string }) {
             ? "Uploading…"
             : pending
             ? "Posting…"
+            : redirecting
+            ? "Opening task…"
             : "Post task"}
         </button>
         <Link

@@ -1,6 +1,5 @@
 "use server";
 
-import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase-server";
 import { createAdminClient } from "@/lib/supabase-admin";
 import { slugify, uniqueSlug } from "@/lib/slugify";
@@ -8,7 +7,8 @@ import { checkTaskBriefForBias } from "@/lib/biasCheck";
 
 export type CreateTaskState =
   | { status: "idle" }
-  | { status: "error"; message: string };
+  | { status: "error"; message: string }
+  | { status: "success"; taskId: string };
 
 const CATEGORY_VALUES = [
   "writing",
@@ -252,5 +252,5 @@ export async function createTask(
     };
   }
 
-  redirect(`/companies/tasks/${inserted.id}`);
+  return { status: "success", taskId: inserted.id };
 }
