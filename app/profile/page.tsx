@@ -35,6 +35,18 @@ export default async function ProfilePage({
   } = await supabase.auth.getUser();
   if (!user) redirect("/login?next=/profile");
 
+  // Account-type gate: company users get a completely different
+  // profile shape (company name/industry/etc.) — push them there
+  // so they don't see student-only fields like school + ranking.
+  const { data: routingProfile } = await supabase
+    .from("profiles")
+    .select("account_type")
+    .eq("id", user.id)
+    .maybeSingle();
+  if (routingProfile?.account_type === "company") {
+    redirect("/companies/profile");
+  }
+
   // Core profile fields — these existed before migration 016.
   const { data: profile } = await supabase
     .from("profiles")
