@@ -57,10 +57,18 @@ export default async function AdminSubmissionsPage() {
       realCount: 0,
       lastSubmittedAt: null,
     };
+    const isSeed = isSeedById.get(s.user_id) === true;
     cur.total++;
-    if (s.released_to_company) cur.released++;
-    else cur.pending++;
-    if (isSeedById.get(s.user_id) === true) cur.seedCount++;
+    if (s.released_to_company) {
+      cur.released++;
+    } else if (!isSeed) {
+      // Pending = actionable review work for the admin. Seed
+      // submissions are AI-generated demo activity, so leaving them
+      // "unreleased" shouldn't surface as a notification — they'd
+      // never get released to a real company.
+      cur.pending++;
+    }
+    if (isSeed) cur.seedCount++;
     else cur.realCount++;
     if (
       !cur.lastSubmittedAt ||
