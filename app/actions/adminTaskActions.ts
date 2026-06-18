@@ -96,19 +96,74 @@ export async function adminUpdateTask(
 }
 
 /** Hard-delete a task. Cascades to submissions + feedback via the FK
- *  chain on submissions.task_id (on delete cascade). Storage objects
- *  in task-attachments are left orphan — they're cheap and the bucket
- *  doesn't have a cleanup-on-task-delete policy yet. */
+ *  chain on submissions.task_id (on delete cascade). Also purges the
+ *  task's storage attachments from the task-attachments bucket and
+ *  decrements the company's storage_bytes_used so the 500 MB quota
+ *  reflects only the files that still exist. */
 export async function adminDeleteTask(formData: FormData): Promise<void> {
   await requireAdmin();
   const admin = createAdminClient();
   const id = String(formData.get("id") ?? "").trim();
   if (!id) return;
+
+  // Pull what we need to clean up BEFORE the delete cascade.
+  const { data: task } = await admin
+    .from("tasks")
+    .select("company_id, attachments")
+    .eq("id", id)
+    .maybeSingle();
+
+  type Attachment = { storage_path?: string; size?: number };
+  const attachments: Attachment[] = Array.isArray(task?.attachments)
+    ? (task.attachments as Attachment[])
+    : [];
+  const storagePaths = attachments
+    .map((a) => a.storage_path)
+    .filter((p): p is string => typeof p === "string" && p.length > 0);
+  const bytesToFree = attachments.reduce(
+    (sum, a) => sum + (typeof a.size === "number" ? a.size : 0),
+    0,
+  );
+
+  // Best-effort storage purge — if this fails we still proceed with
+  // the DB delete; the worst outcome is an orphaned file rather than
+  // a half-deleted task. Errors get logged for admin follow-up.
+  if (storagePaths.length > 0) {
+    const { error: storageErr } = await admin.storage
+      .from("task-attachments")
+      .remove(storagePaths);
+    if (storageErr) {
+      console.error("[adminDeleteTask storage]", storageErr);
+    }
+  }
+
   const { error } = await admin.from("tasks").delete().eq("id", id);
   if (error) {
     console.error("[adminDeleteTask]", error);
     redirect(`/admin/tasks?err=${encodeURIComponent(error.message)}`);
   }
+
+  // Decrement the company's storage counter so future uploads see the
+  // freed bytes. Best-effort — wrong by N bytes is recoverable; a
+  // failed delete already short-circuited above.
+  if (bytesToFree > 0 && task?.company_id) {
+    try {
+      const { data: companyRow } = await admin
+        .from("companies")
+        .select("storage_bytes_used")
+        .eq("id", task.company_id)
+        .maybeSingle();
+      const current = companyRow?.storage_bytes_used ?? 0;
+      const next = Math.max(0, current - bytesToFree);
+      await admin
+        .from("companies")
+        .update({ storage_bytes_used: next })
+        .eq("id", task.company_id);
+    } catch (err) {
+      console.error("[adminDeleteTask storage stamp]", err);
+    }
+  }
+
   revalidatePath("/admin/tasks");
   redirect("/admin/tasks?deleted=1");
 }

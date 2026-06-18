@@ -212,9 +212,10 @@ export function AdminEditTaskForm({ task }: { task: TaskShape }) {
           Danger zone
         </p>
         <p className="mt-3 text-[13px] leading-[1.55] text-muted max-w-[58ch]">
-          Deleting removes the task, every submission to it, and every
-          feedback row. Storage attachments are orphaned (cheap, but not
-          auto-purged). This can&rsquo;t be undone.
+          Deleting removes the task, every submission to it, every
+          feedback row, and every attachment file in storage. The
+          company&rsquo;s storage quota is freed accordingly. This
+          can&rsquo;t be undone.
         </p>
         {!confirmDelete ? (
           <button
