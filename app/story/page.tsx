@@ -69,9 +69,11 @@ We don't know yet. We're going to find out by doing it.
 `.trim();
 
 const STORY_BODY_FOUNDER = `
-I'm Diego. I noticed that students around me with capability and ambition were running into closed doors because they couldn't prove what they could do. I'm building RuneShips to give them a door to walk through.
+I'm Diego. I'm building RuneShips because too many capable people get filtered out before they get the chance to show what they can do.
 
-There's no point pretending I have all the answers. I have a thesis, a working platform, and a willingness to be wrong about pieces of it. Send me feedback. Tell me what's broken. The early users shape what this becomes.
+Here's the deal: you bring the work, we build the credential together. Every task you ship, every score you earn, every recruiter who finds you here — that's proof the old system wouldn't let you build.
+
+This is the start. The rest we build with you.
 `.trim();
 
 export default function StoryPage() {
@@ -92,16 +94,6 @@ export default function StoryPage() {
         </h1>
 
         <EditorialMarkdown content={STORY_BODY_TOP} className="mt-10" />
-
-        {/* Reminder to Diego — visible inset so the draft below
-            doesn't ship as a final voice without a pass. */}
-        <div className="mt-6 pl-6 sm:pl-8 border-l-2 border-oxblood/60 max-w-[60ch]">
-          <p className="font-display italic text-[14px] leading-[1.6] text-oxblood">
-            Diego — rewrite this section in your own voice before
-            publishing. The draft below is a starting point, but this is
-            the page where your actual voice matters most. Edit freely.
-          </p>
-        </div>
 
         <EditorialMarkdown content={STORY_BODY_FOUNDER} className="mt-6" />
 
