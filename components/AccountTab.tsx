@@ -133,7 +133,12 @@ export function AccountTab({
           <button
             type="button"
             disabled={signOutPending}
-            onClick={() => startSignOut(() => signOut())}
+            onClick={() =>
+              startSignOut(async () => {
+                await signOut();
+                router.push("/");
+              })
+            }
             className="
               inline-flex items-center min-h-[48px] px-6
               bg-transparent text-oxblood border border-oxblood

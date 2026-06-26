@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { User, LogOut, ClipboardCheck } from "lucide-react";
 import { createClient } from "@/lib/supabase-browser";
 import { signOut } from "@/app/actions/signOut";
@@ -24,6 +25,7 @@ function initialsFrom(name: string | null | undefined): string {
  * so the nav stays skeleton-free if the request is slow.
  */
 export function ProfileMenu({ isAdmin = false }: { isAdmin?: boolean }) {
+  const router = useRouter();
   const [initials, setInitials] = useState<string>("•");
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -138,9 +140,10 @@ export function ProfileMenu({ isAdmin = false }: { isAdmin?: boolean }) {
             role="menuitem"
             disabled={isPending}
             onClick={() =>
-              startTransition(() => {
+              startTransition(async () => {
                 setOpen(false);
-                signOut();
+                await signOut();
+                router.push("/");
               })
             }
             className="
