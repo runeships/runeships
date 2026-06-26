@@ -1,6 +1,5 @@
 "use server";
 
-import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/admin";
 import { createAdminClient } from "@/lib/supabase-admin";
@@ -9,6 +8,11 @@ import type { UpdatableRow } from "@/lib/database.types";
 export type AdminUpdateTaskState =
   | { status: "idle" }
   | { status: "saved" }
+  | { status: "error"; message: string };
+
+export type AdminDeleteTaskState =
+  | { status: "idle" }
+  | { status: "deleted" }
   | { status: "error"; message: string };
 
 const CATEGORY_VALUES = [
@@ -99,12 +103,23 @@ export async function adminUpdateTask(
  *  chain on submissions.task_id (on delete cascade). Also purges the
  *  task's storage attachments from the task-attachments bucket and
  *  decrements the company's storage_bytes_used so the 500 MB quota
- *  reflects only the files that still exist. */
-export async function adminDeleteTask(formData: FormData): Promise<void> {
+ *  reflects only the files that still exist.
+ *
+ *  Returns success/error state instead of throwing redirect — the
+ *  Next 16 server-action redirect protocol was unreliable for slow
+ *  actions, and this one can be slow (storage purge over many
+ *  attachments). The client form pushes to /admin/tasks?deleted=1
+ *  on success. */
+export async function adminDeleteTask(
+  _prev: AdminDeleteTaskState,
+  formData: FormData,
+): Promise<AdminDeleteTaskState> {
   await requireAdmin();
   const admin = createAdminClient();
   const id = String(formData.get("id") ?? "").trim();
-  if (!id) return;
+  if (!id) {
+    return { status: "error", message: "Missing task id." };
+  }
 
   // Pull what we need to clean up BEFORE the delete cascade.
   const { data: task } = await admin
@@ -140,7 +155,7 @@ export async function adminDeleteTask(formData: FormData): Promise<void> {
   const { error } = await admin.from("tasks").delete().eq("id", id);
   if (error) {
     console.error("[adminDeleteTask]", error);
-    redirect(`/admin/tasks?err=${encodeURIComponent(error.message)}`);
+    return { status: "error", message: error.message };
   }
 
   // Decrement the company's storage counter so future uploads see the
@@ -165,5 +180,5 @@ export async function adminDeleteTask(formData: FormData): Promise<void> {
   }
 
   revalidatePath("/admin/tasks");
-  redirect("/admin/tasks?deleted=1");
+  return { status: "deleted" };
 }

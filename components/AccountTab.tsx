@@ -2,9 +2,11 @@
 
 import {
   useActionState,
+  useEffect,
   useState,
   useTransition,
 } from "react";
+import { useRouter } from "next/navigation";
 import { signOut } from "@/app/actions/signOut";
 import {
   deleteAccount,
@@ -26,6 +28,7 @@ export function AccountTab({
   notifyOnNewTasks: boolean;
   leaderboardVisible: boolean;
 }) {
+  const router = useRouter();
   const [signOutPending, startSignOut] = useTransition();
   const [notify, setNotify] = useState(notifyOnFeedback);
   const [notifyPending, startNotify] = useTransition();
@@ -39,6 +42,15 @@ export function AccountTab({
     initialDelete,
   );
   const [confirmEmail, setConfirmEmail] = useState("");
+
+  // Navigate after deletion completes — session cookie is already
+  // cleared server-side, so the new request to `/` server-renders
+  // the deletion-confirmation landing.
+  useEffect(() => {
+    if (deleteState.status === "success") {
+      router.push("/?deleted=1");
+    }
+  }, [deleteState, router]);
 
   function toggleNotify() {
     const next = !notify;

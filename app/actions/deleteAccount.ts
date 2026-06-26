@@ -1,12 +1,12 @@
 "use server";
 
-import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase-server";
 import { createAdminClient } from "@/lib/supabase-admin";
 
 export type DeleteAccountState =
   | { status: "idle" }
-  | { status: "error"; message: string };
+  | { status: "error"; message: string }
+  | { status: "success" };
 
 /**
  * Permanently deletes the signed-in user's account. Validates the
@@ -75,5 +75,9 @@ export async function deleteAccount(
   // no-op on the server but does the cookie housekeeping.
   await supabase.auth.signOut();
 
-  redirect("/?deleted=1");
+  // Return success and let the client push to /?deleted=1. Next 16's
+  // server-action redirect protocol was unreliable for slow actions
+  // (the user saw "page couldn't load" after long bias-checked
+  // createTask calls); client-side navigation sidesteps that.
+  return { status: "success" };
 }

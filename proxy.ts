@@ -34,13 +34,15 @@ function isProtected(pathname: string): boolean {
 }
 
 /**
- * Edge middleware that (1) refreshes the Supabase session on every
+ * Edge proxy that (1) refreshes the Supabase session on every
  * request so tokens don't expire mid-session and (2) gates the
  * post-login app routes. Unauthenticated visitors get redirected to
  * /login with ?next= preserving their intended destination. Signed-in
  * visitors who hit /login are redirected straight to /dashboard.
+ *
+ * Renamed from `middleware` per the Next 16 convention.
  */
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
 
   const supabase = createServerClient<Database>(URL, KEY, {

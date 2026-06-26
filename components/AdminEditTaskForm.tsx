@@ -1,13 +1,16 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   adminUpdateTask,
   adminDeleteTask,
   type AdminUpdateTaskState,
+  type AdminDeleteTaskState,
 } from "@/app/actions/adminTaskActions";
 
 const initial: AdminUpdateTaskState = { status: "idle" };
+const initialDelete: AdminDeleteTaskState = { status: "idle" };
 
 const CATEGORIES = [
   { value: "writing", label: "Writing" },
@@ -41,11 +44,25 @@ type TaskShape = {
 };
 
 export function AdminEditTaskForm({ task }: { task: TaskShape }) {
+  const router = useRouter();
   const [state, formAction, pending] = useActionState(
     adminUpdateTask,
     initial,
   );
+  const [deleteState, deleteAction, deletePending] = useActionState(
+    adminDeleteTask,
+    initialDelete,
+  );
   const [confirmDelete, setConfirmDelete] = useState(false);
+
+  // Navigate after the delete action completes. Doing it client-side
+  // dodges the Next 16 server-action redirect timing issue for slow
+  // actions (storage purge can take a beat on tasks with many files).
+  useEffect(() => {
+    if (deleteState.status === "deleted") {
+      router.push("/admin/tasks?deleted=1");
+    }
+  }, [deleteState, router]);
 
   return (
     <>
@@ -231,26 +248,40 @@ export function AdminEditTaskForm({ task }: { task: TaskShape }) {
             Delete task
           </button>
         ) : (
-          <form action={adminDeleteTask} className="mt-5 flex items-center gap-5">
-            <input type="hidden" name="id" value={task.id} />
-            <button
-              type="submit"
-              className="
-                inline-flex items-center min-h-[40px] px-5
-                bg-oxblood text-cream border border-oxblood text-[13px]
-                hover:bg-oxblood-hover transition-colors duration-200 ease-out
-              "
-            >
-              Yes, delete forever
-            </button>
-            <button
-              type="button"
-              onClick={() => setConfirmDelete(false)}
-              className="link-anim text-[12px] text-muted hover:text-ink transition-colors duration-200 ease-out"
-            >
-              Cancel
-            </button>
-          </form>
+          <>
+            <form action={deleteAction} className="mt-5 flex items-center gap-5">
+              <input type="hidden" name="id" value={task.id} />
+              <button
+                type="submit"
+                disabled={deletePending || deleteState.status === "deleted"}
+                className="
+                  inline-flex items-center min-h-[40px] px-5
+                  bg-oxblood text-cream border border-oxblood text-[13px]
+                  hover:bg-oxblood-hover transition-colors duration-200 ease-out
+                  disabled:opacity-60 disabled:cursor-not-allowed
+                "
+              >
+                {deletePending
+                  ? "Deleting…"
+                  : deleteState.status === "deleted"
+                  ? "Cleaning up…"
+                  : "Yes, delete forever"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setConfirmDelete(false)}
+                disabled={deletePending}
+                className="link-anim text-[12px] text-muted hover:text-ink transition-colors duration-200 ease-out"
+              >
+                Cancel
+              </button>
+            </form>
+            {deleteState.status === "error" && (
+              <p role="alert" className="mt-3 text-[13px] text-oxblood">
+                {deleteState.message}
+              </p>
+            )}
+          </>
         )}
       </div>
     </>
