@@ -183,7 +183,7 @@ export default function OnboardingPage() {
           </h1>
           <p className="mt-6 text-[17px] leading-[1.55] text-muted max-w-[56ch]">
             A few questions so we know who&rsquo;s behind the work. This takes
-            about two minutes — you can update everything later.
+            about two minutes; you can update everything later.
           </p>
         </Reveal>
 
@@ -396,7 +396,7 @@ export default function OnboardingPage() {
               </h2>
               <p className="mt-5 text-[15px] leading-[1.55] text-muted max-w-[60ch] mx-auto text-center">
                 Rate yourself honestly across these five dimensions. This is
-                your starting point — your real scores will build from the
+                your starting point; your real scores will build from the
                 tasks you complete.
               </p>
 
@@ -627,7 +627,7 @@ function SkillSlider({
           className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 text-[14px] tracking-[-0.005em]"
         >
           <span className="text-ink font-medium">{label}</span>
-          <span className="text-muted text-[12px]">— {detail}</span>
+          <span className="text-muted text-[12px]">· {detail}</span>
         </label>
         <span className="font-display text-[20px] leading-none text-ink tabular-nums">
           {value}

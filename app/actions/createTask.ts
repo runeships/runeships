@@ -76,7 +76,7 @@ export async function createTask(
   if (title.length > 200) {
     return {
       status: "error",
-      message: "Title is too long — keep it under 200 characters.",
+      message: "Title is too long; keep it under 200 characters.",
     };
   }
 
@@ -177,7 +177,7 @@ export async function createTask(
       );
       return {
         status: "error",
-        message: `Storage quota reached. Your company has ${remainingMb} MB left of the 500 MB limit — drop the attachments or shrink them and try again.`,
+        message: `Storage quota reached. Your company has ${remainingMb} MB left of the 500 MB limit; drop the attachments or shrink them and try again.`,
       };
     }
   }

@@ -109,7 +109,7 @@ export async function submitTask(
   if (submissionTitle.length > MAX_TITLE_CHARS) {
     return {
       status: "error",
-      message: `Title is too long — keep it under ${MAX_TITLE_CHARS} characters.`,
+      message: `Title is too long; keep it under ${MAX_TITLE_CHARS} characters.`,
     };
   }
   if (needsText && !submissionBody) {
@@ -121,7 +121,7 @@ export async function submitTask(
   if (submissionBody.length > MAX_BODY_CHARS) {
     return {
       status: "error",
-      message: `Your submission is too long — keep it under ${MAX_BODY_CHARS.toLocaleString()} characters (about 1,200 words). If your work is longer, link to it instead (Google Doc, GitHub repo, hosted page).`,
+      message: `Your submission is too long; keep it under ${MAX_BODY_CHARS.toLocaleString()} characters (about 1,200 words). If your work is longer, link to it instead (Google Doc, GitHub repo, hosted page).`,
     };
   }
   if (needsLink) {
@@ -165,7 +165,7 @@ export async function submitTask(
   if ((recentCount ?? 0) >= DAILY_SUBMISSION_CAP) {
     return {
       status: "error",
-      message: `You've hit the ${DAILY_SUBMISSION_CAP}-submission daily limit. Come back tomorrow — quality over quantity beats grinding through every task in one sitting.`,
+      message: `You've hit the ${DAILY_SUBMISSION_CAP}-submission daily limit. Come back tomorrow; quality over quantity beats grinding through every task in one sitting.`,
     };
   }
 

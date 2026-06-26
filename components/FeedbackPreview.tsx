@@ -4,10 +4,10 @@ import { useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 
 const SUBMISSION =
-  "The fintech infrastructure market sits around $42B globally; our serviceable obtainable wedge — embedded payments for vertical SaaS — looks closer to $1.8B. Competitive landscape includes Stripe Treasury, Modern Treasury, and Mercury, but each occupies a distinct slice, and we believe there’s room for a vertical-specific offering targeting SaaS platforms with $1M–$10M ARR.";
+  "The fintech infrastructure market sits around $42B globally; our serviceable obtainable wedge (embedded payments for vertical SaaS) looks closer to $1.8B. Competitive landscape includes Stripe Treasury, Modern Treasury, and Mercury, but each occupies a distinct slice, and we believe there’s room for a vertical-specific offering targeting SaaS platforms with $1M to $10M ARR.";
 
 const FEEDBACK =
-  "Your TAM logic is strong, but the competitive positioning still reads generic. Add 2–3 differentiated axes and compare against specific fintech infrastructure competitors (Stripe Treasury, Modern Treasury, Mercury). Tighten the embedded-payments wedge into one sentence a partner could repeat from memory.";
+  "Your TAM logic is strong, but the competitive positioning still reads generic. Add 2 or 3 differentiated axes and compare against specific fintech infrastructure competitors (Stripe Treasury, Modern Treasury, Mercury). Tighten the embedded-payments wedge into one sentence a partner could repeat from memory.";
 
 /**
  * Interactive two-state preview sitting below the sample task card.

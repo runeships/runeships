@@ -38,11 +38,11 @@ export const metadata: Metadata = {
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
   ),
-  title: "RuneShips — Show your work. Earn your ships.",
+  title: "RuneShips: Show your work. Earn your ships.",
   description:
     "RuneShips lets students complete real company tasks, get AI feedback in minutes, and build a public skill rank recruiters can trust.",
   openGraph: {
-    title: "RuneShips — Show your work. Earn your ships.",
+    title: "RuneShips: Show your work. Earn your ships.",
     description:
       "Real company tasks. AI feedback in minutes. A portable skill rank recruiters can trust.",
     type: "website",

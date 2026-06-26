@@ -281,8 +281,8 @@ function renderBlock(ctx: {
   const introLine =
     ctx.rankings.overallPercentile !== null &&
     ctx.rankings.cohortSize > 0
-      ? `RuneShips — Ranked in the top ${Math.max(1, 100 - ctx.rankings.overallPercentile)}% of ${ctx.rankings.cohortSize.toLocaleString()} students on a skill assessment platform evaluating real business tasks across strategy, execution, communication, technical, and creativity (${verifyUrl})`
-      : `RuneShips — Active on a skill assessment platform evaluating real business tasks across strategy, execution, communication, technical, and creativity (${verifyUrl})`;
+      ? `RuneShips · Ranked in the top ${Math.max(1, 100 - ctx.rankings.overallPercentile)}% of ${ctx.rankings.cohortSize.toLocaleString()} students on a skill assessment platform evaluating real business tasks across strategy, execution, communication, technical, and creativity (${verifyUrl})`
+      : `RuneShips · Active on a skill assessment platform evaluating real business tasks across strategy, execution, communication, technical, and creativity (${verifyUrl})`;
 
   if (ctx.tasks.length === 0) {
     return introLine;
@@ -291,7 +291,7 @@ function renderBlock(ctx: {
   const taskLines = ctx.tasks
     .map((t, i) => {
       const summary = (t.cv_summary ?? "").trim() || t.title;
-      return `${i + 1}. ${t.title} — ${summary}`;
+      return `${i + 1}. ${t.title}: ${summary}`;
     })
     .join("\n");
 

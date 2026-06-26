@@ -64,7 +64,7 @@ export async function sendFeedback(input: {
   if (feedback.length > MAX_LENGTH) {
     return {
       success: false,
-      error: `Feedback is too long — please keep it under ${MAX_LENGTH} characters.`,
+      error: `Feedback is too long; please keep it under ${MAX_LENGTH} characters.`,
     };
   }
 

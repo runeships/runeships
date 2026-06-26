@@ -379,7 +379,7 @@ function SkillSlider({
       <div className="flex items-baseline justify-between gap-4 mb-2">
         <label htmlFor={id} className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 text-[14px] tracking-[-0.005em]">
           <span className="text-ink font-medium">{label}</span>
-          <span className="text-muted text-[12px]">— {detail}</span>
+          <span className="text-muted text-[12px]">· {detail}</span>
         </label>
         <span className="font-display text-[20px] leading-none text-ink tabular-nums">
           {value}

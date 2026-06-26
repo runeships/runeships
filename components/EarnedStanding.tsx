@@ -21,7 +21,7 @@ export function EarnedStanding({ rankings }: { rankings: RankingsResult }) {
 
       {!hasFeedback ? (
         <p className="mt-6 text-[14px] leading-[1.55] text-muted max-w-[58ch]">
-          You haven&rsquo;t completed any tasks yet — submit one to see your
+          You haven&rsquo;t completed any tasks yet; submit one to see your
           earned standing.
         </p>
       ) : (

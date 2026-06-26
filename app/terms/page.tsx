@@ -3,7 +3,7 @@ import Link from "next/link";
 import { EditorialMarkdown } from "@/components/EditorialMarkdown";
 
 export const metadata: Metadata = {
-  title: "Terms of Service — RuneShips",
+  title: "Terms of Service · RuneShips",
   description: "Terms of Service for RuneShips.",
 };
 
@@ -43,7 +43,7 @@ The Platform is provided "as available." Features may change, be added, or be re
 
 ## 5. User Content and Licenses
 
-"User Content" means anything you submit to the Platform — task submissions, files, links, briefs, profile information, comments, and any other material.
+"User Content" means anything you submit to the Platform: task submissions, files, links, briefs, profile information, comments, and any other material.
 
 ### 5.1 You retain ownership
 
@@ -100,11 +100,11 @@ You agree not to use the Platform to:
 
 Violations may result in suspension or termination of your account, removal of content, and, where appropriate, referral to law enforcement.
 
-## 8. Company Users — Additional Terms
+## 8. Company Users: Additional Terms
 
 If you are using the Platform as a representative of a company posting tasks, you additionally agree:
 
-- Tasks you post must reflect real work or realistic exercises — not assessment-only puzzles designed to identify candidates without any benefit to them
+- Tasks you post must reflect real work or realistic exercises, not assessment-only puzzles designed to identify candidates without any benefit to them
 - You will not use the Platform to source labor without compensation when the work product has commercial value to you. Genuine practice tasks and timed assessments are permitted; production work disguised as a "task" is not.
 - You will not contact students outside the Platform for recruiting purposes without their explicit invitation
 - You will pay any fees that apply (currently, the Platform is free; if this changes, you will be notified before fees apply to you)
@@ -113,7 +113,7 @@ If you are using the Platform as a representative of a company posting tasks, yo
 
 The Platform may issue you a public verification code (e.g., \`runeships.com/v/{code}\`) that you can include on a CV or share with recruiters. You agree that:
 
-- The verification page reflects your **current** standing, not a frozen snapshot — your percentile may change as the cohort grows or as you complete more tasks
+- The verification page reflects your **current** standing, not a frozen snapshot; your percentile may change as the cohort grows or as you complete more tasks
 - You will not represent the verification page as anything other than what it is: a real-time skill-assessment profile within the RuneShips Platform
 - Misrepresenting your RuneShips standing in any formal document (resume, application, etc.) violates these Terms and may result in account termination
 
@@ -131,7 +131,7 @@ On termination:
 
 - Your access to the Platform ends
 - Your User Content is deleted under the retention schedule in our [Privacy Policy](/privacy)
-- Sections that by their nature should survive termination — including Sections 5 (licenses already exercised), 13, 14, 15, 17, 18 — will survive
+- Sections that by their nature should survive termination (including Sections 5 (licenses already exercised), 13, 14, 15, 17, 18) will survive
 
 ## 12. Intellectual Property
 
@@ -160,7 +160,7 @@ Some jurisdictions don't allow exclusion of certain warranties. In those jurisdi
 
 TO THE FULLEST EXTENT PERMITTED BY APPLICABLE LAW:
 
-(A) IN NO EVENT WILL RUNESHIPS, ITS FOUNDER, OR ITS PERSONNEL BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, EXEMPLARY, OR PUNITIVE DAMAGES — INCLUDING WITHOUT LIMITATION LOST PROFITS, LOST DATA, LOST GOODWILL, LOST EMPLOYMENT OPPORTUNITY, OR REPUTATIONAL HARM — ARISING OUT OF OR RELATING TO YOUR USE OF, OR INABILITY TO USE, THE PLATFORM, EVEN IF WE HAVE BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+(A) IN NO EVENT WILL RUNESHIPS, ITS FOUNDER, OR ITS PERSONNEL BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, EXEMPLARY, OR PUNITIVE DAMAGES (INCLUDING WITHOUT LIMITATION LOST PROFITS, LOST DATA, LOST GOODWILL, LOST EMPLOYMENT OPPORTUNITY, OR REPUTATIONAL HARM) ARISING OUT OF OR RELATING TO YOUR USE OF, OR INABILITY TO USE, THE PLATFORM, EVEN IF WE HAVE BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
 
 (B) OUR TOTAL CUMULATIVE LIABILITY TO YOU FOR ALL CLAIMS ARISING OUT OF OR RELATING TO THE PLATFORM OR THESE TERMS WILL NOT EXCEED ONE HUNDRED U.S. DOLLARS ($100), REGARDLESS OF THE THEORY OF LIABILITY (CONTRACT, TORT, STATUTE, OR OTHERWISE).
 
@@ -205,7 +205,7 @@ If you are a consumer resident in the European Economic Area, the United Kingdom
 
 ## 18. Dispute Resolution and Arbitration
 
-**Please read this section carefully — it affects your legal rights.**
+**Please read this section carefully; it affects your legal rights.**
 
 ### 18.1 Informal resolution
 

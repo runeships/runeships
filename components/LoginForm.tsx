@@ -133,7 +133,7 @@ export function LoginForm({ next, initialError }: LoginFormProps) {
           <p className="mt-3 text-[17px] leading-[1.55] text-ink/90">
             Magic link sent to{" "}
             <span className="text-ink font-medium">{state.email}</span>. Open
-            the link in the same browser you&rsquo;re using right now —
+            the link in the same browser you&rsquo;re using right now;
             different browsers won&rsquo;t recognize the session. Links are
             valid for 24 hours.
           </p>
@@ -268,7 +268,7 @@ function callbackErrorMessageFor(code: string | null): string | null {
     case "already_used":
       return "This link was already used. Send a fresh one to sign in again.";
     case "browser_mismatch":
-      return "Looks like you opened the link in a different browser than where you requested it. Try again — request the link AND open the email in the same browser.";
+      return "Looks like you opened the link in a different browser than where you requested it. Try again, and request the link AND open the email in the same browser.";
     case null:
     case "":
       return null;

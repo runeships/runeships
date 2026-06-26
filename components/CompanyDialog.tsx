@@ -31,7 +31,7 @@ export function CompanyDialog() {
     if (state.status !== "success") return;
     window.dispatchEvent(
       new CustomEvent("runeships:toast", {
-        detail: { text: "Thanks — we'll be in touch within 48 hours." },
+        detail: { text: "Thanks, we'll be in touch within 48 hours." },
       }),
     );
     const t = window.setTimeout(() => dialogRef.current?.close(), 2000);
@@ -144,7 +144,7 @@ export function CompanyDialog() {
           {state.status === "success" ? (
             <div className="px-8 sm:px-10 pb-10">
               <p className="text-[16px] leading-[1.55] text-ink/85 max-w-[44ch]">
-                Thanks — we&rsquo;ll be in touch within 48 hours.
+                Thanks, we&rsquo;ll be in touch within 48 hours.
               </p>
             </div>
           ) : (
@@ -191,7 +191,7 @@ export function CompanyDialog() {
                     name="task_description"
                     rows={4}
                     disabled={pending}
-                    placeholder="A short sketch — what work, what skills, what you'd want to see."
+                    placeholder="A short sketch: what work, what skills, what you'd want to see."
                     className="
                       w-full px-4 py-3
                       bg-cream text-ink placeholder:text-muted/80

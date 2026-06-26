@@ -2,7 +2,7 @@ const CRITERIA = [
   "Submissions evaluated against task-specific rubrics.",
   "AI flags weak reasoning, missing requirements, and generic answers.",
   "Human review calibrates top submissions.",
-  "Points are skill-specific — not participation trophies.",
+  "Points are skill-specific, not participation trophies.",
   "Bad or incomplete submissions earn zero points.",
   "Rankings build across repeated tasks, not one lucky submission.",
 ] as const;

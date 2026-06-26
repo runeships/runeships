@@ -3,7 +3,7 @@ import Link from "next/link";
 import { EditorialMarkdown } from "@/components/EditorialMarkdown";
 
 export const metadata: Metadata = {
-  title: "Privacy — RuneShips",
+  title: "Privacy · RuneShips",
   description: "Privacy policy for RuneShips.",
 };
 
@@ -15,7 +15,7 @@ const PRIVACY_BODY = `
 
 RuneShips is an independent online project ("RuneShips," "we," "us," or "our") that operates the platform at runeships.com. The platform is run by its founder as a personal project. You can reach us at any time at [hello@runeships.com](mailto:hello@runeships.com).
 
-When this policy says "you" or "your," we mean the person using the platform — whether as a student or as a representative of a company that posts tasks.
+When this policy says "you" or "your," we mean the person using the platform, whether as a student or as a representative of a company that posts tasks.
 
 ## 2. Scope of this policy
 
@@ -87,7 +87,7 @@ We use the information described above for the following purposes:
 - To respond to your inquiries when you contact us
 - To make your skill profile available to recruiters only if you explicitly opt in (this feature is in development; we will ask before activating any recruiter visibility)
 
-We do not use your information for advertising. We do not sell, rent, or trade your personal information to third parties for their own marketing purposes — ever.
+We do not use your information for advertising. We do not sell, rent, or trade your personal information to third parties for their own marketing purposes, ever.
 
 ## 6. Automated decision-making and AI
 
@@ -106,10 +106,10 @@ However, we want you to have meaningful transparency and control over how AI eva
 
 We share data only with the third-party providers necessary to run the platform. Each of these is bound by their own data protection commitments and applicable contractual safeguards:
 
-- **Supabase** — our database and authentication provider. Stores account data, profile information, submissions, and feedback.
-- **Anthropic** — provides the AI models that generate scores and feedback. Receives the text content of submissions to generate evaluations.
-- **Resend** — sends transactional emails on our behalf.
-- **Vercel** — hosts the platform and provides analytics (in aggregate, non-identifying form).
+- **Supabase**, our database and authentication provider. Stores account data, profile information, submissions, and feedback.
+- **Anthropic**, which provides the AI models that generate scores and feedback. Receives the text content of submissions to generate evaluations.
+- **Resend**, which sends transactional emails on our behalf.
+- **Vercel**, which hosts the platform and provides analytics (in aggregate, non-identifying form).
 
 We do not sell your personal information. We do not share it with advertisers, data brokers, or any party not listed above.
 
@@ -157,7 +157,7 @@ You have rights over your personal information. The specific rights you have dep
 - Right to rectification of inaccurate or incomplete data.
 - Right to erasure ("right to be forgotten").
 - Right to restriction of processing.
-- Right to data portability — receiving your data in a structured, machine-readable format.
+- Right to data portability: receiving your data in a structured, machine-readable format.
 - Right to object to processing based on legitimate interest.
 - Right to withdraw consent at any time for processing based on consent.
 - Right to lodge a complaint with your local supervisory authority. In Spain this is the Agencia Española de Protección de Datos (AEPD, [www.aepd.es](https://www.aepd.es)). In the UK, the Information Commissioner's Office (ICO). Other EU residents may contact their national authority.

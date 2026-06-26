@@ -32,7 +32,7 @@ export function Wordmark({ size = "sm", className = "", asLink = true }: Wordmar
   if (!asLink) return content;
 
   return (
-    <Link href="/" className="inline-flex items-baseline" aria-label="RuneShips — home">
+    <Link href="/" className="inline-flex items-baseline" aria-label="RuneShips home">
       {content}
     </Link>
   );

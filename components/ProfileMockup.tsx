@@ -61,8 +61,8 @@ export function ProfileMockup() {
           Latest feedback
         </p>
         <p className="mt-3 text-[14px] leading-[1.6] italic text-ink/85">
-          &ldquo;Strong market sizing logic. Weak competitive differentiation
-          — add specific fintech infrastructure comparators.&rdquo;
+          &ldquo;Strong market sizing logic. Weak competitive differentiation;
+          add specific fintech infrastructure comparators.&rdquo;
         </p>
       </div>
 

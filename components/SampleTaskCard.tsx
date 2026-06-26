@@ -18,7 +18,7 @@ export function SampleTaskCard() {
           className="mt-5 font-display font-normal leading-[1.12] tracking-[-0.014em] text-ink"
           style={{ fontSize: "clamp(1.55rem, 1.6vw + 1rem, 2rem)" }}
         >
-          Pitch deck teardown — Series A SaaS, fintech vertical.
+          Pitch deck teardown: Series A SaaS, fintech vertical.
         </h3>
 
         <div className="prose-editorial mt-6 max-w-[62ch] text-[16px] sm:text-[17px] text-ink/85">
@@ -29,7 +29,7 @@ export function SampleTaskCard() {
             generic.
           </p>
           <p>
-            Submit a revised deck — or a written critique — showing a tighter
+            Submit a revised deck, or a written critique, showing a tighter
             TAM/SAM/SOM breakdown, sharper competitive positioning, and a
             recommendation on the financial projections slide.
           </p>

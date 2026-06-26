@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase-server";
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "RuneShips for companies — skill, not resumes",
+  title: "RuneShips for companies · skill, not resumes",
   description:
     "Post real tasks. Get ranked student work back. Hire from the top of the curve.",
 };
@@ -93,12 +93,12 @@ export default async function CompaniesMarketingPage() {
             <Step
               n="1"
               title="Post a task."
-              body="Upload anything — a brief, a dataset, a code repo, a video reference. Set what you want students to deliver and how it should be evaluated."
+              body="Upload anything: a brief, a dataset, a code repo, a video reference. Set what you want students to deliver and how it should be evaluated."
             />
             <Step
               n="2"
               title="Students submit."
-              body="Your task goes live to the cohort. Each submission gets scored across five dimensions by Anthropic's Claude — or by your own team if you'd rather review yourself."
+              body="Your task goes live to the cohort. Each submission gets scored across five dimensions by Anthropic's Claude, or by your own team if you'd rather review yourself."
             />
             <Step
               n="3"
@@ -124,14 +124,14 @@ export default async function CompaniesMarketingPage() {
             <div className="col-span-12 md:col-span-6 md:col-start-7 prose-editorial text-[16px] sm:text-[17px] leading-[1.7] text-ink/85 space-y-5">
               <p>
                 Résumés filter on the wrong thing. School name, internship
-                pedigree, polish — none of which tell you whether the candidate
+                pedigree, polish; none of which tell you whether the candidate
                 can actually do the work.
               </p>
               <p>
                 RuneShips flips it. You post the actual work. The student
                 actually does it. You see what they produced, alongside an
                 AI-generated rubric score across the five dimensions that
-                matter for any knowledge-work hire — strategy, execution,
+                matter for any knowledge-work hire: strategy, execution,
                 communication, technical, creativity.
               </p>
               <p>

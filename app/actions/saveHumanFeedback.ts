@@ -60,7 +60,7 @@ export async function saveHumanFeedback(
   if (qualitative.length > 4000) {
     return {
       status: "error",
-      message: "Qualitative feedback is too long — keep it under 4,000 characters.",
+      message: "Qualitative feedback is too long; keep it under 4,000 characters.",
     };
   }
 

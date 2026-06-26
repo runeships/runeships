@@ -40,7 +40,7 @@ export async function resolveRegrade(
   if (resolution !== "resolved" && resolution !== "declined") {
     return {
       status: "error",
-      message: "Invalid resolution — must be 'resolved' or 'declined'.",
+      message: "Invalid resolution; must be 'resolved' or 'declined'.",
     };
   }
 

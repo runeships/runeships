@@ -15,7 +15,7 @@ const STUDENT_POINTS = [
   {
     title: "Get real feedback before your first internship",
     detail:
-      "Written, specific, within minutes — not the polite no-thanks of an application portal.",
+      "Written, specific, within minutes, not the polite no-thanks of an application portal.",
   },
   {
     title: "Build a skill rank by category",

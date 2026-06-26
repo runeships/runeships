@@ -87,7 +87,7 @@ async function sendCompanyConfirmation({
         "",
         "If you have other context or examples you'd like us to see before we connect, just reply to this email.",
         "",
-        "— Diego",
+        "Diego",
         "RuneShips",
       ].join("\n"),
     });

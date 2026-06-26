@@ -260,7 +260,7 @@ export function AccountTab({
               <span className="block mt-2 text-[13px] leading-[1.55] text-muted max-w-[54ch]">
                 When enabled, your name, school, and scores appear on the
                 public RuneShips leaderboard. Disable to keep your profile
-                private — your work and feedback remain available to you
+                private; your work and feedback remain available to you
                 either way.
               </span>
             </span>

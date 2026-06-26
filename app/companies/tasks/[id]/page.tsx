@@ -241,7 +241,7 @@ export default async function CompanyTaskDetailPage({
               </p>
               <p className="mt-3 text-[14px] leading-[1.55] text-muted max-w-[60ch]">
                 {pendingReviewCount > 0
-                  ? `${pendingReviewCount} submission${pendingReviewCount === 1 ? "" : "s"} pending RuneShips review — they'll appear here once vetted.`
+                  ? `${pendingReviewCount} submission${pendingReviewCount === 1 ? "" : "s"} pending RuneShips review; they'll appear here once vetted.`
                   : "Submissions will appear here as students complete it."}
               </p>
             </div>

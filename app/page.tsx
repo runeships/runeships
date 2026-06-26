@@ -187,8 +187,8 @@ export default async function Home({
               <div className="col-span-12 md:col-span-6 md:col-start-7 prose-editorial text-[16px] sm:text-[17px] text-ink/85">
                 <p>
                   The system is closed at the front door. Every entry-level
-                  internship asks for prior internship experience — preferably
-                  at a name-brand firm — that almost no freshman or sophomore
+                  internship asks for prior internship experience, preferably
+                  at a name-brand firm, that almost no freshman or sophomore
                   can have yet. The qualification it filters for is the
                   qualification it refuses to let you earn.
                 </p>
@@ -329,12 +329,12 @@ export default async function Home({
               <div className="col-span-12 md:col-span-9 md:col-start-3 lg:col-span-8 lg:col-start-3 pl-6 sm:pl-8 border-l-2 border-oxblood">
                 <p className="font-display font-light italic text-[20px] sm:text-[22px] leading-[1.5] text-ink/90 max-w-[50ch]">
                   I applied to 40 internships freshman year. I made it past two
-                  résumé screens. The issue wasn&rsquo;t ability — it was
+                  résumé screens. The issue wasn&rsquo;t ability; it was
                   visibility. RuneShips exists so students can prove the work
                   before anyone gives them the job.
                 </p>
                 <p className="mt-6 text-[14px] tracking-[0.02em] text-muted">
-                  — Diego, founder
+                  Diego, founder
                 </p>
                 <div className="mt-7">
                   <Link

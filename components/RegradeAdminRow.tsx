@@ -217,7 +217,7 @@ export function RegradeAdminRow({ row }: { row: AdminRegradeRow }) {
               id={`note-${row.regradeId}`}
               name="admin_note"
               type="text"
-              placeholder="Why you adjusted or declined — for your own records."
+              placeholder="Why you adjusted or declined, for your own records."
               className="
                 w-full min-h-[48px] px-4
                 border border-ink/25 bg-cream text-ink placeholder:text-muted/80

@@ -218,7 +218,7 @@ export default async function SubmissionDetailPage({
                   <span className="text-ink font-medium">
                     {user.email ?? "your account email"}
                   </span>{" "}
-                  when your feedback is ready — typically within 3–5
+                  when your feedback is ready, typically within 3 to 5
                   business days of submission. The reviewer will score
                   across the same five dimensions as the AI does.
                 </p>
@@ -235,7 +235,7 @@ export default async function SubmissionDetailPage({
                 </p>
                 <p className="mt-4 text-[17px] leading-[1.6] text-ink/90">
                   Feedback generation didn&rsquo;t complete for this
-                  submission. This sometimes happens during API hiccups —
+                  submission. This sometimes happens during API hiccups;
                   your submission is still saved, and you can retry
                   generation now.
                 </p>
@@ -489,7 +489,7 @@ function SubmissionNotFound() {
           Submission not found.
         </h1>
         <p className="mt-6 text-[17px] leading-[1.55] text-muted max-w-[44ch]">
-          We couldn&rsquo;t find that submission — it may have been deleted, or
+          We couldn&rsquo;t find that submission; it may have been deleted, or
           it belongs to someone else.
         </p>
         <div className="mt-10">

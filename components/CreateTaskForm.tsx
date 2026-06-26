@@ -117,7 +117,7 @@ export function CreateTaskForm({ companyId }: { companyId: string }) {
         break;
       }
       if (f.size > MAX_FILE_BYTES) {
-        setPickError(`${f.name} is over 50 MB — pick a smaller file.`);
+        setPickError(`${f.name} is over 50 MB; pick a smaller file.`);
         continue;
       }
       accepted.push({ file: f, id: `${Date.now()}-${Math.random()}` });
@@ -344,7 +344,7 @@ export function CreateTaskForm({ companyId }: { companyId: string }) {
           name="brief"
           rows={6}
           disabled={disabled}
-          placeholder="Optional — describe what you need, what to focus on, what 'good' looks like. Markdown supported."
+          placeholder="Optional. Describe what you need, what to focus on, what 'good' looks like. Markdown supported."
           className={`${inputCls} resize-y min-h-[140px]`}
         />
       </div>
@@ -481,7 +481,7 @@ export function CreateTaskForm({ companyId }: { companyId: string }) {
               name="evaluation_mode"
               value="human"
               label="AI feedback + human reviewer"
-              hint="Same instant AI scoring — plus the RuneShips team gets a heads-up to spot-check submissions."
+              hint="Same instant AI scoring, plus the RuneShips team gets a heads-up to spot-check submissions."
               checked={evaluationMode === "human"}
               onChange={() => setEvaluationMode("human")}
               disabled={disabled}

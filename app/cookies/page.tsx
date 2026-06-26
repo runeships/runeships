@@ -4,7 +4,7 @@ import { EditorialMarkdown } from "@/components/EditorialMarkdown";
 import { CookieSettingsLink } from "@/components/CookieSettingsLink";
 
 export const metadata: Metadata = {
-  title: "Cookies Policy — RuneShips",
+  title: "Cookies Policy · RuneShips",
   description: "What cookies RuneShips sets, why, and how to control them.",
 };
 
@@ -20,7 +20,7 @@ If you continue to use the platform after reading this policy, you agree to the 
 
 ## 2. What are cookies
 
-Cookies are small text files that a website places on your device when you visit it. They let the site remember things between page loads — for example, that you're signed in.
+Cookies are small text files that a website places on your device when you visit it. They let the site remember things between page loads (for example, that you're signed in).
 
 Similar technologies include browser **local storage** and **session storage**. These don't get sent back to a server with every request the way cookies do, but they serve overlapping purposes. This policy covers both.
 
@@ -30,9 +30,9 @@ We don't use Flash cookies, web beacons, fingerprinting, or any cross-site track
 
 RuneShips uses cookies for **essential** purposes only. There are three categories of cookie use you'll see across the web:
 
-- **Essential** — required for the platform to function (authentication, session, security). You can't opt out of these without breaking sign-in.
-- **Functional** — remember preferences (theme, language). We don't currently use any.
-- **Analytics / Advertising** — measure usage or target ads. **We don't use any of these.**
+- **Essential**: required for the platform to function (authentication, session, security). You can't opt out of these without breaking sign-in.
+- **Functional**: remember preferences (theme, language). We don't currently use any.
+- **Analytics / Advertising**: measure usage or target ads. **We don't use any of these.**
 
 Every cookie we set falls in the essential category.
 
@@ -44,9 +44,9 @@ Every cookie we set falls in the essential category.
 | \`sb-kbokzwvnqeuxkcxigkdh-auth-token-code-verifier\` | Briefly stores the PKCE verifier during magic-link sign-in. Cleared automatically once the sign-in flow completes. | A few minutes (one-time) | Essential |
 | \`runeships_cookie_consent\` | Records that you've seen and acknowledged this cookie banner so it doesn't reappear on every visit. Set when you click "OK, got it" in the banner. | 12 months | Essential |
 
-That's it — three cookies, all first-party (set by runeships.com), all strictly necessary.
+That's it: three cookies, all first-party (set by runeships.com), all strictly necessary.
 
-The Supabase cookies (\`sb-kbokzwvnqeuxkcxigkdh-...\`) are set by our database and authentication provider, Supabase. The project identifier \`kbokzwvnqeuxkcxigkdh\` is our specific Supabase project reference. These cookies travel only between your browser and runeships.com — they aren't shared with Supabase's other customers or with any third party.
+The Supabase cookies (\`sb-kbokzwvnqeuxkcxigkdh-...\`) are set by our database and authentication provider, Supabase. The project identifier \`kbokzwvnqeuxkcxigkdh\` is our specific Supabase project reference. These cookies travel only between your browser and runeships.com; they aren't shared with Supabase's other customers or with any third party.
 
 ## 5. Third-party cookies
 
@@ -61,13 +61,13 @@ Our hosting provider Vercel does not set tracking cookies in the configuration w
 
 ## 6. Do Not Track signals
 
-Some browsers can send a "Do Not Track" (DNT) signal with each request. There's no industry consensus on how websites should respond to DNT, so we don't behave differently when we receive it — but since we don't track you in the first place, this doesn't change what gets set on your device.
+Some browsers can send a "Do Not Track" (DNT) signal with each request. There's no industry consensus on how websites should respond to DNT, so we don't behave differently when we receive it; but since we don't track you in the first place, this doesn't change what gets set on your device.
 
-We also honor the Global Privacy Control (GPC) signal where it's a legal requirement. For users in jurisdictions where GPC is recognized as a valid opt-out (e.g., California, Colorado, Connecticut), receiving the signal has no practical effect on RuneShips because we don't sell or share personal information for advertising — but we respect the signal as a matter of policy.
+We also honor the Global Privacy Control (GPC) signal where it's a legal requirement. For users in jurisdictions where GPC is recognized as a valid opt-out (e.g., California, Colorado, Connecticut), receiving the signal has no practical effect on RuneShips because we don't sell or share personal information for advertising, but we respect the signal as a matter of policy.
 
 ## 7. Local storage and similar technologies
 
-We use a small amount of browser local storage for transient UI state — for example, remembering which informational popovers you've dismissed within a session. These values:
+We use a small amount of browser local storage for transient UI state, for example, remembering which informational popovers you've dismissed within a session. These values:
 
 - Live only on your device
 - Aren't sent to our servers
@@ -101,7 +101,7 @@ We don't intentionally set any cookie with a lifetime longer than 12 months.
 
 ## 10. Changes to this policy
 
-We may update this policy from time to time — for example, if we add a new essential cookie or change how an existing one works. Material changes will be posted at runeships.com/cookies with an updated "Last updated" date, and we'll re-show the cookie banner so you can review the change.
+We may update this policy from time to time (for example, if we add a new essential cookie or change how an existing one works). Material changes will be posted at runeships.com/cookies with an updated "Last updated" date, and we'll re-show the cookie banner so you can review the change.
 
 ## 11. Contact
 
@@ -141,8 +141,8 @@ export default function CookiesPage() {
             Reset your cookie banner
           </p>
           <p className="mt-3 text-[14px] leading-[1.6] text-ink max-w-[58ch]">
-            If you&rsquo;d like to see the cookie banner again — for example,
-            to review the disclosure — clear your acknowledgment below. The
+            If you&rsquo;d like to see the cookie banner again (for example,
+            to review the disclosure), clear your acknowledgment below. The
             page will reload and the banner will reappear.
           </p>
           <div className="mt-5">

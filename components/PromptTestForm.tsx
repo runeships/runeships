@@ -8,7 +8,7 @@ import {
 
 type Preset = { label: string; title: string; body: string };
 
-const DEFAULT_BRIEF = `Write a customer-facing email announcing a 20% price increase, effective in 90 days. Plain text — no formatting beyond what's natural in an email. Lead with the news. Be honest about the reason. Stay under 250 words. Tone: direct, not corporate.`;
+const DEFAULT_BRIEF = `Write a customer-facing email announcing a 20% price increase, effective in 90 days. Plain text, no formatting beyond what's natural in an email. Lead with the news. Be honest about the reason. Stay under 250 words. Tone: direct, not corporate.`;
 
 export function PromptTestForm({ cases }: { cases: Preset[] }) {
   const [taskBrief, setTaskBrief] = useState(DEFAULT_BRIEF);

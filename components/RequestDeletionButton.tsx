@@ -48,7 +48,7 @@ export function RequestDeletionButton({
         Request deletion
       </p>
       <p className="mt-3 text-[13px] leading-[1.55] text-muted">
-        We&rsquo;ll email the RuneShips team — they&rsquo;ll remove it within a
+        We&rsquo;ll email the RuneShips team and they&rsquo;ll remove it within a
         day or two. Submissions students have already made will be deleted
         too. Add a short reason if you want.
       </p>
@@ -57,7 +57,7 @@ export function RequestDeletionButton({
         rows={3}
         maxLength={1000}
         disabled={pending}
-        placeholder="Optional — why are you removing it?"
+        placeholder="Optional. Why are you removing it?"
         className="
           mt-4 w-full min-h-[80px] px-3 py-2
           border border-ink/25 bg-cream text-ink placeholder:text-muted/80

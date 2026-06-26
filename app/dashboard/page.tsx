@@ -357,7 +357,7 @@ export default async function DashboardPage() {
           {tasks.length === 0 ? (
             <p className="mt-8 text-[15px] leading-[1.55] text-muted">
               {tasksError
-                ? "Couldn’t load tasks — see the message above."
+                ? "Couldn’t load tasks; see the message above."
                 : "No tasks published yet."}
             </p>
           ) : (
@@ -380,7 +380,7 @@ export default async function DashboardPage() {
           {submissions.length === 0 ? (
             <p className="mt-8 text-[15px] leading-[1.55] text-muted max-w-[44ch]">
               {submissionsError
-                ? "Couldn’t load submissions — see the message above."
+                ? "Couldn’t load submissions; see the message above."
                 : "No submissions yet. Pick a brief above to start."}
             </p>
           ) : (

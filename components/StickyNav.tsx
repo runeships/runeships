@@ -136,7 +136,7 @@ export function StickyNav({
           {/* Brand: horizontal logo image. */}
           <Link
             href="/"
-            aria-label="RuneShips — home"
+            aria-label="RuneShips home"
             className="inline-flex items-center"
           >
             <Image

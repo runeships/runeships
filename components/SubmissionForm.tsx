@@ -62,10 +62,10 @@ export function SubmissionForm({
       ? "Your scores are in."
       : "Your work has been saved.";
     const body = human
-      ? `This task's automated grading capacity has been reached for the period — your submission is in the human review queue and will be graded within a couple of hours.${companyName ? ` ${companyName} has been notified.` : ""} You'll get an email when your feedback is ready.`
+      ? `This task's automated grading capacity has been reached for the period, so your submission is in the human review queue and will be graded within a couple of hours.${companyName ? ` ${companyName} has been notified.` : ""} You'll get an email when your feedback is ready.`
       : ready
       ? "Per-dimension scores and written feedback are on the submission page."
-      : "Feedback generation hit a snag — you can retry from the submission page.";
+      : "Feedback generation hit a snag; you can retry from the submission page.";
     const linkLabel = human
       ? "View your submission"
       : ready
@@ -111,7 +111,7 @@ export function SubmissionForm({
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           disabled={pending}
-          placeholder="e.g., Pitch deck for Atlas — Series A"
+          placeholder="e.g., Pitch deck for Atlas, Series A"
           className="
             w-full min-h-[52px] px-4
             border border-ink/25 bg-cream text-ink placeholder:text-muted/80
@@ -137,7 +137,7 @@ export function SubmissionForm({
             value={body}
             onChange={(e) => setBody(e.target.value)}
             disabled={pending}
-            placeholder="Paste or write your submission here. Use clear structure — headings, paragraphs."
+            placeholder="Paste or write your submission here. Use clear structure: headings, paragraphs."
             className="
               w-full px-4 py-3
               border border-ink/25 bg-cream text-ink placeholder:text-muted/80
@@ -152,7 +152,7 @@ export function SubmissionForm({
             {body.length.toLocaleString()} / 12,000 characters
             {body.length > 10000 && body.length <= 12000 && (
               <span className="ml-2 text-oxblood">
-                — getting close to the limit. Link to a hosted doc if your work is longer.
+                · getting close to the limit. Link to a hosted doc if your work is longer.
               </span>
             )}
           </p>
@@ -231,7 +231,7 @@ export function SubmissionForm({
         {pending && (
           <p className="mt-3 text-[13px] leading-[1.5] text-muted max-w-[58ch]">
             We&rsquo;re scoring your work across five dimensions. This usually
-            takes 30–60 seconds — hang on.
+            takes 30 to 60 seconds, hang on.
           </p>
         )}
       </div>

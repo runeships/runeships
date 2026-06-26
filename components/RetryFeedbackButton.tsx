@@ -9,9 +9,9 @@ const ERROR_MESSAGES: Record<string, string> = {
   submission_not_found: "We couldn’t find this submission.",
   task_not_found: "We couldn’t find the task for this submission.",
   api_failed:
-    "Anthropic didn’t respond in time. Try again in a moment — your submission is still saved.",
+    "Anthropic didn’t respond in time. Try again in a moment; your submission is still saved.",
   parse_failed:
-    "The model returned something we couldn’t parse. Try again — your submission is still saved.",
+    "The model returned something we couldn’t parse. Try again; your submission is still saved.",
   insert_failed:
     "We generated the feedback but couldn’t save it. Try again.",
 };

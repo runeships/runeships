@@ -103,7 +103,7 @@ export async function SubmissionContext({
       ? ` It would rank in the top ${Math.max(0, 100 - counterfactualPercentile)}% on ${dimName} overall.`
       : "";
   const peakClause = isNewPeakOnTask
-    ? " — and it's now your new peak score on this dimension."
+    ? ", and it's now your new peak score on this dimension."
     : "";
 
   return (

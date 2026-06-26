@@ -211,7 +211,7 @@ export function LeaderboardTable({
   // ─── Active-filter caption above the table ──────────────────
   const filterCaption = useMemo(() => {
     if (activeTask && yearStr !== "all") {
-      return `Top performers on ${activeTask.title} — Class of ${yearStr}.`;
+      return `Top performers on ${activeTask.title}, Class of ${yearStr}.`;
     }
     if (activeTask) return `Top performers on ${activeTask.title}.`;
     if (yearStr !== "all") return `Class of ${yearStr}.`;
@@ -417,7 +417,7 @@ function renderRow(
 
       <div className="text-right shrink-0 w-[80px]">
         {topPct === null ? (
-          <span aria-hidden className="text-muted">—</span>
+          <span aria-hidden className="text-muted">·</span>
         ) : (
           <span className="text-[11px] tracking-[0.16em] uppercase text-oxblood">
             Top {topPct}%

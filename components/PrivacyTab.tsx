@@ -25,7 +25,7 @@ const LINKS: Array<{
   {
     label: "Request a copy of your data",
     href: "mailto:hello@runeships.com?subject=Data%20export%20request",
-    description: "Email us — we’ll send a complete export within 30 days.",
+    description: "Email us and we’ll send a complete export within 30 days.",
     external: true,
   },
 ];
@@ -111,8 +111,8 @@ export function PrivacyTab({
         </p>
         {arbitrationStatus.kind === "open" ? (
           <p className="mt-3 text-[14px] leading-[1.65] text-ink/85">
-            To opt out of binding arbitration under our Terms of Service —
-            within 30 days of accepting — email{" "}
+            To opt out of binding arbitration under our Terms of Service
+            (within 30 days of accepting), email{" "}
             <a
               href="mailto:hello@runeships.com?subject=Arbitration%20Opt-Out"
               className="link-anim text-oxblood hover:text-oxblood-hover transition-colors duration-200 ease-out"
@@ -173,7 +173,7 @@ export function PrivacyTab({
           >
             hello@runeships.com
           </a>{" "}
-          — we&rsquo;ll respond within 30 days. You can request deletion or
+          and we&rsquo;ll respond within 30 days. You can request deletion or
           export of your data at any time.
         </p>
         <p className="mt-4 text-[14px] leading-[1.7] text-ink/80">

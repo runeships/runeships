@@ -74,7 +74,7 @@ export function ResumeSection({
       )}
 
       <p className="mt-7 text-[12px] leading-[1.6] text-muted max-w-[58ch]">
-        Regenerate the bullet anytime — it always reflects your current
+        Regenerate the bullet anytime; it always reflects your current
         standing. The verification URL stays the same so a CV in circulation
         still works.
       </p>

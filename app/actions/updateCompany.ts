@@ -55,7 +55,7 @@ export async function updateCompany(
   if (name.length > 80) {
     return {
       status: "error",
-      message: "Company name is too long — keep it under 80 characters.",
+      message: "Company name is too long; keep it under 80 characters.",
     };
   }
 

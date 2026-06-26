@@ -361,7 +361,7 @@ export function RadarChart({
                 }}
               >
                 {orderedPercentiles[i] === null
-                  ? "—"
+                  ? "·"
                   : `Top ${Math.max(0, 100 - (orderedPercentiles[i] ?? 0))}%`}
               </text>
             )}

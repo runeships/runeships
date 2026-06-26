@@ -68,7 +68,7 @@ export default async function ResumeVerificationPage({
           {profile.full_name ?? "Anonymous"}&rsquo;s RuneShips profile
         </h1>
         <p className="mt-5 text-[14px] leading-[1.55] text-muted">
-          Verified directly from runeships.com — this resume is real.
+          Verified directly from runeships.com; this resume is real.
         </p>
 
         <section className="mt-12 border border-ink/15 p-7 sm:p-9 bg-parchment/40">
@@ -163,7 +163,7 @@ function NotFound({ code }: { code: string }) {
         </h1>
         <p className="mt-5 text-[14px] leading-[1.6] text-muted max-w-[58ch]">
           The verification code <code className="text-ink">{code}</code> doesn&rsquo;t
-          map to any active profile. Double-check the spelling — codes use
+          map to any active profile. Double-check the spelling; codes use
           lowercase letters and digits, with ambiguous characters (0/O, 1/l/I)
           excluded.
         </p>

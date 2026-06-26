@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 const STORY_BODY_TOP = `
 You need experience to get experience. Most internships require experience. Most experience requires an internship. Most opportunities require a credential the candidate doesn't yet have, gated by the very system that's supposed to grant it.
 
-This particularly hurts freshmen and sophomores — students with no track record yet, locked out of formative opportunities by a system that selects for opportunities already had.
+This particularly hurts freshmen and sophomores: students with no track record yet, locked out of formative opportunities by a system that selects for opportunities already had.
 
 RuneShips exists to break that loop.
 
@@ -49,7 +49,7 @@ A skill assessment platform. A practice surface. A portable transcript for work 
 
 ## What this isn't
 
-A job placement service. A guarantee of any specific role or outcome. A replacement for relationships, mentorship, or in-person learning. A credential that supersedes degrees or experience — it's adjacent to those, not replacement for them.
+A job placement service. A guarantee of any specific role or outcome. A replacement for relationships, mentorship, or in-person learning. A credential that supersedes degrees or experience; it's adjacent to those, not replacement for them.
 
 If you complete tasks here and rank well, you've shown you can do those specific tasks. That's it. That's also more than most students can show at this point in their journey.
 
@@ -71,7 +71,7 @@ We don't know yet. We're going to find out by doing it.
 const STORY_BODY_FOUNDER = `
 I'm Diego. I'm building RuneShips because too many capable people get filtered out before they get the chance to show what they can do.
 
-Here's the deal: you bring the work, we build the credential together. Every task you ship, every score you earn, every recruiter who finds you here — that's proof the old system wouldn't let you build.
+Here's the deal: you bring the work, we build the credential together. Every task you ship, every score you earn, every recruiter who finds you here, that's proof the old system wouldn't let you build.
 
 This is the start. The rest we build with you.
 `.trim();

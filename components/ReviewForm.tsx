@@ -133,7 +133,7 @@ export function ReviewForm({
           className="mt-1 font-display text-[28px] leading-[1] text-oxblood tabular-nums tracking-[-0.012em]"
           style={{ fontVariationSettings: '"opsz" 96' }}
         >
-          {liveTotal === null ? "—" : liveTotal.toFixed(1)}
+          {liveTotal === null ? "·" : liveTotal.toFixed(1)}
         </p>
       </div>
 

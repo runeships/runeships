@@ -78,8 +78,8 @@ export function RuneOpener({
         <span
           tabIndex={0}
           role="img"
-          aria-label={`${name} — ${meaning}`}
-          title={`${name} — ${meaning}`}
+          aria-label={`${name}: ${meaning}`}
+          title={`${name}: ${meaning}`}
           className={`
             inline-block cursor-help outline-none
             font-rune text-oxblood
@@ -110,7 +110,7 @@ export function RuneOpener({
           ${tipHover}
         `}
       >
-        {name} — {meaning}
+        {name}: {meaning}
       </span>
     </div>
   );

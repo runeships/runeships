@@ -272,7 +272,7 @@ export function CvBuilderForm({
           <p className="mt-3 text-[11px] leading-[1.55] text-muted max-w-[62ch]">
             Paste it into your CV under an &ldquo;Experience&rdquo; or
             &ldquo;Activities&rdquo; section. Trim or rewrite any line that
-            doesn&rsquo;t match your voice — the verification URL stays valid
+            doesn&rsquo;t match your voice; the verification URL stays valid
             even if you edit the surrounding text.
           </p>
         </section>

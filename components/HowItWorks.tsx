@@ -11,7 +11,7 @@ const STEPS = [
     n: "02",
     title: "Submit your work",
     body:
-      "Use any tools you want — including AI. What matters is the final thinking.",
+      "Use any tools you want, including AI. What matters is the final thinking.",
   },
   {
     n: "03",

@@ -279,7 +279,7 @@ export function AdminTaskSubmissionsView({
                       </p>
                     </>
                   ) : (
-                    <span className="text-[11px] text-muted">—</span>
+                    <span className="text-[11px] text-muted">·</span>
                   )}
                 </div>
                 <span className="text-[11px] tracking-[0.04em] uppercase text-muted shrink-0">
@@ -339,7 +339,7 @@ function ExpandedDetail({ row }: { row: AdminTaskSubmissionRow }) {
             </div>
           ) : (
             <p className="mt-5 text-[13px] text-muted italic">
-              (No body — link-only submission.)
+              (No body, link-only submission.)
             </p>
           )}
         </div>
@@ -385,7 +385,7 @@ function ExpandedDetail({ row }: { row: AdminTaskSubmissionRow }) {
             <p className="mt-4 text-[13px] leading-[1.55] text-muted max-w-[58ch]">
               No AI feedback. The task&rsquo;s token budget was exhausted before
               this submission could be graded. Release as-is (company sees a
-              submission with no score) or skip — your call.
+              submission with no score) or skip; your call.
             </p>
           )}
 

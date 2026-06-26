@@ -89,8 +89,8 @@ export function RankingPanel({
           style={{ fontSize: "clamp(1.5rem, 1.6vw + 1rem, 1.85rem)" }}
         >
           Your strongest dimension is{" "}
-          <span className="text-oxblood">{dimensionLabel(strongest)}</span> —
-          you&rsquo;re outperforming{" "}
+          <span className="text-oxblood">{dimensionLabel(strongest)}</span>,
+          and you&rsquo;re outperforming{" "}
           <span className="text-oxblood">{strongestPercentile}%</span> of the
           cohort so far.
         </p>
@@ -181,7 +181,7 @@ export function RankingPanel({
         </p>
         {rankings.isProvisional ? (
           <p className="text-[12px] leading-[1.55] italic text-oxblood">
-            Provisional rankings. RuneShips is early — these refine as more
+            Provisional rankings. RuneShips is early; these refine as more
             students join. <FeedbackTrigger />
           </p>
         ) : (
