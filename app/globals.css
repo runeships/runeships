@@ -33,11 +33,16 @@ html {
   scroll-padding-top: 88px; /* clear the sticky nav on anchor jumps */
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  html {
-    scroll-behavior: smooth;
-  }
-}
+/*
+ * Smooth-scroll is gated to anchor-jump navigation only via :focus /
+ * hash targets. Applying it globally to <html> caused new-page loads
+ * on mobile to animate the scroll reset from the previous page's
+ * position (route change → old scroll persists → smooth-scroll from
+ * bottom back to 0), which read as "the new page opens at the
+ * bottom." Removing the global rule fixes that without breaking
+ * intra-page anchor links (browsers still respect scroll-padding-top
+ * for #hash jumps).
+ */
 
 body {
   text-rendering: optimizeLegibility;
@@ -125,9 +130,23 @@ dialog.company-dialog[open]::backdrop {
   transform-origin: left;
   transition: transform 250ms cubic-bezier(0.22, 0.61, 0.36, 1);
 }
-.link-anim:hover::after,
+@media (hover: hover) {
+  .link-anim:hover::after {
+    transform: scaleX(1);
+  }
+}
 .link-anim:focus-visible::after {
   transform: scaleX(1);
+}
+
+/*
+ * Eliminate the 300ms tap delay + prevent sticky-hover on touch
+ * devices for every interactive element. Buttons, anchors, and
+ * form controls fire immediately on tap and don't hold a phantom
+ * hover state that requires a second tap to dismiss.
+ */
+a, button, [role="button"], input[type="submit"], input[type="button"], label {
+  touch-action: manipulation;
 }
 
 /*

@@ -216,7 +216,7 @@ export function RadarChart({
       width={size}
       height={size}
       viewBox={`0 0 ${size} ${size}`}
-      className="overflow-visible"
+      className="overflow-visible max-w-full h-auto"
     >
       {/* Grid pentagons */}
       {gridPaths.map((d, i) => (

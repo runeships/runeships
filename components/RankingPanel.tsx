@@ -40,7 +40,7 @@ export function RankingPanel({
   // ─── Empty state ─────────────────────────────────────────────
   if (!hasFeedback) {
     return (
-      <div className="border border-ink/15 bg-cream p-8 sm:p-10 rounded-[2px]">
+      <div className="border border-ink/15 bg-cream p-5 sm:p-10 rounded-[2px]">
         <p className="text-[11px] tracking-[0.20em] uppercase text-oxblood">
           Getting started
         </p>
@@ -81,7 +81,7 @@ export function RankingPanel({
   const overallPercentile = rankings.overallPercentile ?? 0;
 
   return (
-    <div className="border border-ink/15 bg-cream p-8 sm:p-10 rounded-[2px]">
+    <div className="border border-ink/15 bg-cream p-5 sm:p-10 rounded-[2px]">
       {/* Headline */}
       {rankings.isProvisional ? (
         <p
@@ -118,7 +118,7 @@ export function RankingPanel({
             Your skill shape
           </p>
           <div className="mt-6 flex justify-center lg:justify-start">
-            <div className="border border-ink/15 bg-cream px-10 py-7 sm:px-12 sm:py-8">
+            <div className="border border-ink/15 bg-cream px-3 py-5 sm:px-12 sm:py-8 max-w-full">
               <RadarChart
                 values={earnedValues}
                 compareValues={selfRated}
