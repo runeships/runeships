@@ -82,10 +82,16 @@ export function RadarChart({
   // the SVG's bounding box (or the parent container's border).
   // Extra room when percentile sub-labels are shown — the second line
   // of text needs vertical breathing space on the top/bottom vertices.
-  const padding = hideLabels ? 12 : percentiles ? 70 : 62;
+  const padding = hideLabels ? 12 : percentiles ? 78 : 72;
   const cx = size / 2;
   const cy = size / 2;
   const radius = size / 2 - padding;
+
+  // Axis-label font scales down on smaller charts so the longest
+  // words ("COMMUNICATION" / "CREATIVITY") stay inside the SVG box
+  // instead of spilling past the edge on mobile. Capped at 10.5 so
+  // large charts don't get oversized labels.
+  const labelFontSize = Math.max(9, Math.min(10.5, size * 0.032));
 
   const orderedValues = useMemo(
     () => [
@@ -195,7 +201,7 @@ export function RadarChart({
   const labels = useMemo(
     () =>
       angles.map((angle, i) => {
-        const labelRadius = radius + 22;
+        const labelRadius = radius + 12;
         const x = cx + labelRadius * Math.cos(angle);
         const y = cy + labelRadius * Math.sin(angle);
 
@@ -317,10 +323,10 @@ export function RadarChart({
               y={label.y}
               textAnchor={label.textAnchor}
               dominantBaseline="middle"
-              fontSize={11}
+              fontSize={labelFontSize}
               fill="rgb(138 132 127)"
               style={{
-                letterSpacing: "0.11em",
+                letterSpacing: "0.07em",
                 textTransform: "uppercase",
                 fontFamily:
                   "var(--font-instrument, ui-sans-serif, system-ui, sans-serif)",

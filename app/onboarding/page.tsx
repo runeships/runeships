@@ -56,7 +56,9 @@ const SPECIFIC_SKILLS = [
   "Machine learning",
 ] as const;
 
-const GRAD_YEARS = [2025, 2026, 2027, 2028, 2029, 2030] as const;
+const GRAD_YEARS = [
+  2024, 2025, 2026, 2027, 2028, 2029, 2030, 2031, 2032,
+] as const;
 
 const SKILL_LABELS: Array<{
   key: keyof RadarValues;
@@ -205,19 +207,21 @@ export default function OnboardingPage() {
               </h2>
 
               <div className="mt-10 grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-7 max-w-[640px] mx-auto">
-                <FieldLabel htmlFor={fullNameId}>Full name</FieldLabel>
-                <FieldLabel htmlFor={schoolId}>School</FieldLabel>
-                <TextInput
-                  id={fullNameId}
-                  name="full_name"
-                  type="text"
-                  autoComplete="name"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  disabled={isPending}
-                  required
-                />
                 <div>
+                  <FieldLabel htmlFor={fullNameId}>Full name</FieldLabel>
+                  <TextInput
+                    id={fullNameId}
+                    name="full_name"
+                    type="text"
+                    autoComplete="name"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    disabled={isPending}
+                    required
+                  />
+                </div>
+                <div>
+                  <FieldLabel htmlFor={schoolId}>School</FieldLabel>
                   <TextInput
                     id={schoolId}
                     name="school"

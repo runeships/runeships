@@ -27,7 +27,9 @@ const CAREER_TRACKS = [
   "Entrepreneurship",
 ] as const;
 
-const GRAD_YEARS = [2025, 2026, 2027, 2028, 2029, 2030] as const;
+const GRAD_YEARS = [
+  2024, 2025, 2026, 2027, 2028, 2029, 2030, 2031, 2032,
+] as const;
 
 const SKILL_LABELS: Array<{
   key: keyof RadarValues;
