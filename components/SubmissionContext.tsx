@@ -1,6 +1,7 @@
 import {
   type Dimension,
   dimensionLabel,
+  getRankings,
   hypotheticalPercentile,
 } from "@/lib/rankings";
 import { createAdminClient } from "@/lib/supabase-admin";
@@ -62,13 +63,13 @@ export async function SubmissionContext({
   );
   const strongestScore = feedback[SCORE_KEY[strongestHere]];
 
-  // Where this submission's score on the strongest dim would rank
-  // in the cohort, treated as if it were the user's aggregate.
-  const counterfactualPercentile = await hypotheticalPercentile(
-    userId,
-    strongestHere,
-    strongestScore,
-  );
+  // Below the cohort floor we make no percentile claim anywhere, so
+  // don't compute (or later render) a rank here either — a screenshot
+  // of this line must not imply a ranking the rest of the app withholds.
+  const rankings = await getRankings(userId);
+  const counterfactualPercentile = rankings.isProvisional
+    ? null
+    : await hypotheticalPercentile(userId, strongestHere, strongestScore);
 
   // Is this submission a new peak on this dim for this task?
   // Compare to other submissions on the same task by the same user.
@@ -98,8 +99,9 @@ export async function SubmissionContext({
   const isNewPeakOnTask = strongestScore > previousBest;
 
   const dimName = dimensionLabel(strongestHere);
-  const rankClause =
-    counterfactualPercentile !== null
+  const rankClause = rankings.isProvisional
+    ? ` It scored ${strongestScore} on ${dimName}.`
+    : counterfactualPercentile !== null
       ? ` It would rank in the top ${Math.max(0, 100 - counterfactualPercentile)}% on ${dimName} overall.`
       : "";
   const peakClause = isNewPeakOnTask

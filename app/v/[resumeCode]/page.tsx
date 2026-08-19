@@ -51,6 +51,10 @@ export default async function ResumeVerificationPage({
     rankings.overallPercentile !== null
       ? Math.max(1, 100 - rankings.overallPercentile)
       : null;
+  // Only make a percentile / cohort claim once the cohort is large
+  // enough to mean something. Below the floor the scores stand on
+  // their own — no percentile, no cohort count.
+  const showPercentile = !rankings.isProvisional && topPct !== null;
 
   return (
     <main className="px-6 sm:px-10 md:px-16 pt-28 sm:pt-36 md:pt-44 pb-24 sm:pb-32 min-h-dvh">
@@ -72,7 +76,7 @@ export default async function ResumeVerificationPage({
         </p>
 
         <section className="mt-12 border border-ink/15 p-7 sm:p-9 bg-parchment/40">
-          {topPct !== null ? (
+          {showPercentile ? (
             <p
               className="font-display font-light tracking-[-0.018em] leading-[1.05] text-oxblood"
               style={{ fontSize: "clamp(1.4rem, 1.8vw + 1rem, 1.9rem)" }}
@@ -84,7 +88,7 @@ export default async function ResumeVerificationPage({
               className="font-display font-light tracking-[-0.018em] leading-[1.05] text-ink"
               style={{ fontSize: "clamp(1.2rem, 1.6vw + 1rem, 1.6rem)" }}
             >
-              Skill profile in progress
+              Skill profile
             </p>
           )}
           <p className="mt-3 text-[12px] tracking-[0.04em] uppercase text-muted">
@@ -99,8 +103,12 @@ export default async function ResumeVerificationPage({
           {/* Stats line */}
           <p className="mt-6 text-[13px] leading-[1.55] text-muted">
             {taskCount} task{taskCount === 1 ? "" : "s"} attempted
-            <span aria-hidden className="mx-2 text-muted/50">·</span>
-            Cohort of {rankings.cohortSize.toLocaleString()}
+            {showPercentile && (
+              <>
+                <span aria-hidden className="mx-2 text-muted/50">·</span>
+                Cohort of {rankings.cohortSize.toLocaleString()}
+              </>
+            )}
             {profile.last_resume_at && (
               <>
                 <span aria-hidden className="mx-2 text-muted/50">·</span>
@@ -120,16 +128,27 @@ export default async function ResumeVerificationPage({
                 technical: rankings.userAggregates.technical ?? 0,
                 creativity: rankings.userAggregates.creativity ?? 0,
               }}
-              percentiles={rankings.userPercentiles}
+              percentiles={showPercentile ? rankings.userPercentiles : null}
+              showScoreLabels={!showPercentile}
             />
           </div>
         </section>
 
         <p className="mt-8 text-[13px] leading-[1.6] text-muted max-w-[58ch]">
-          RuneShips evaluates student work on real tasks across five
-          dimensions. The percentile shown reflects this student&rsquo;s
-          standing within the active RuneShips cohort as of the last resume
-          generation. Resumes can be generated once per week.
+          {showPercentile ? (
+            <>
+              RuneShips evaluates student work on real tasks across five
+              dimensions. The percentile shown reflects this student&rsquo;s
+              standing within the active RuneShips cohort as of the last resume
+              generation. Resumes can be generated once per week.
+            </>
+          ) : (
+            <>
+              RuneShips evaluates student work on real business tasks across
+              five dimensions. These scores reflect work this student actually
+              submitted, verified directly from runeships.com.
+            </>
+          )}
         </p>
 
         <div className="mt-10 pt-8 border-t border-ink/10">

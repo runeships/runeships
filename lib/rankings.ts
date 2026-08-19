@@ -24,7 +24,13 @@ const DIMENSIONS: Dimension[] = [
   "creativity",
 ];
 
-const PROVISIONAL_THRESHOLD = 25;
+/**
+ * Below this many scored students the cohort is too small for a
+ * percentile to mean anything, so every surface suppresses the
+ * percentile + cohort-size claim entirely (see /v, buildCvBullet,
+ * RankingPanel, LeaderboardTable). Single knob — tune here.
+ */
+export const MIN_COHORT_SIZE = 20;
 
 export type RankingsResult = {
   cohortSize: number;
@@ -73,12 +79,12 @@ export const getRankings = cache(async function getRankingsImpl(
   // user — the metric that drives `overallAggregate` /
   // `overallPercentile`. RPC stays the source of truth for the
   // per-dimension aggregates.
-  const [aggregatesRes, submissionsRes, feedbackRes, visibleIds] =
+  const [aggregatesRes, submissionsRes, feedbackRes, rankableIds] =
     await Promise.all([
       admin.rpc("get_user_aggregates"),
       admin.from("submissions").select("id, user_id, task_id"),
       admin.from("feedback").select("submission_id, total_score"),
-      getVisibleUserIds(admin),
+      getRankableUserIds(admin),
     ]);
 
   if (aggregatesRes.error) {
@@ -87,16 +93,15 @@ export const getRankings = cache(async function getRankingsImpl(
   }
 
   const allRows = aggregatesRes.data ?? [];
-  // visibleIds === null means migration 016 hasn't run yet, in which
-  // case we don't filter — treat all users as visible. Once the
-  // column exists, opted-out users drop out of the cohort numerator.
-  // The caller is found in the unfiltered list either way so opted-
-  // out users still see their own standing.
-  const rows =
-    visibleIds === null
-      ? allRows
-      : allRows.filter((r) => visibleIds.has(r.user_id));
-  const cohortSize = rows.length;
+  // Canonical cohort: scored users (allRows only contains users with
+  // feedback) that are leaderboard-visible AND non-seed. `rows` is the
+  // baseline every percentile is measured against; `cohortSize` is the
+  // number every surface displays. The caller is looked up in the
+  // UNFILTERED allRows below, so a below-floor / opted-out user still
+  // sees their own scores.
+  const memberIds = cohortMemberIds(allRows, rankableIds);
+  const rows = allRows.filter((r) => memberIds.has(r.user_id));
+  const cohortSize = memberIds.size;
 
   if (cohortSize === 0) {
     return emptyResult();
@@ -118,7 +123,7 @@ export const getRankings = cache(async function getRankingsImpl(
   if (!userRow) {
     return {
       cohortSize,
-      isProvisional: cohortSize < PROVISIONAL_THRESHOLD,
+      isProvisional: cohortSize < MIN_COHORT_SIZE,
       userAggregates: nullDims(),
       userPercentiles: nullDims(),
       cohortMeans,
@@ -225,10 +230,11 @@ export const getRankings = cache(async function getRankingsImpl(
   // (e.g. their aggregates came in through the early-return branch)
   // — guard with null.
   const overallAggregate = avgPerTaskByUser.get(userId) ?? null;
-  // Cohort to rank against = visible users with at least one
-  // submission (i.e. they have an avg-per-task entry).
+  // Cohort to rank against = the same canonical member set that
+  // drives cohortSize, so the overall percentile denominator always
+  // matches the displayed count.
   const cohortAvgs = Array.from(avgPerTaskByUser.entries())
-    .filter(([uid]) => visibleIds === null || visibleIds.has(uid))
+    .filter(([uid]) => memberIds.has(uid))
     .map(([, avg]) => avg);
   let overallPercentile: number | null = null;
   if (overallAggregate !== null && cohortAvgs.length > 0) {
@@ -238,7 +244,7 @@ export const getRankings = cache(async function getRankingsImpl(
 
   return {
     cohortSize,
-    isProvisional: cohortSize < PROVISIONAL_THRESHOLD,
+    isProvisional: cohortSize < MIN_COHORT_SIZE,
     userAggregates,
     userPercentiles,
     cohortMeans,
@@ -263,18 +269,19 @@ export async function hypotheticalPercentile(
   value: number,
 ): Promise<number | null> {
   const admin = createAdminClient();
-  const [aggregatesRes, visibleIds] = await Promise.all([
+  const [aggregatesRes, rankableIds] = await Promise.all([
     admin.rpc("get_user_aggregates"),
-    getVisibleUserIds(admin),
+    getRankableUserIds(admin),
   ]);
   const data = aggregatesRes.data ?? [];
   if (data.length === 0) return null;
 
-  // visibleIds === null → migration 016 hasn't run yet; don't filter.
+  // Same canonical cohort (visible, non-seed, scored) the rest of the
+  // module ranks against. rankableIds === null → pre-migration, no filter.
   const cohortRows =
-    visibleIds === null
+    rankableIds === null
       ? data
-      : data.filter((r) => visibleIds.has(r.user_id));
+      : data.filter((r) => rankableIds.has(r.user_id));
 
   // Substitute the caller's hypothetical value when they're in the
   // cohort; otherwise the cohort is the baseline they're being
@@ -357,7 +364,7 @@ export const getLeaderboard = cache(async function getLeaderboardImpl(): Promise
     feedbackRes,
     tasksRes,
     companiesRes,
-    visibleIds,
+    rankableIds,
   ] = await Promise.all([
     admin
       .from("profiles")
@@ -375,7 +382,7 @@ export const getLeaderboard = cache(async function getLeaderboardImpl(): Promise
       .eq("is_published", true)
       .order("order_index", { ascending: true }),
     admin.from("companies").select("id, slug"),
-    getVisibleUserIds(admin),
+    getRankableUserIds(admin),
   ]);
 
   if (profilesRes.error) {
@@ -387,12 +394,14 @@ export const getLeaderboard = cache(async function getLeaderboardImpl(): Promise
     return { rows: [], tasks: [] };
   }
 
-  // Pre-migration tolerance — visibleIds=null means no filter applied.
+  // Pre-migration tolerance — rankableIds=null means no filter applied.
+  // Non-null excludes seeds + opted-out profiles, so demo accounts
+  // never appear on the leaderboard or in its counts.
   const allProfiles = profilesRes.data ?? [];
   const profiles =
-    visibleIds === null
+    rankableIds === null
       ? allProfiles
-      : allProfiles.filter((p) => visibleIds.has(p.id));
+      : allProfiles.filter((p) => rankableIds.has(p.id));
 
   const aggregatesByUser = new Map<string, (typeof aggregatesRes.data)[number]>();
   for (const row of aggregatesRes.data ?? []) {
@@ -510,27 +519,53 @@ export const getLeaderboard = cache(async function getLeaderboardImpl(): Promise
 /* ─── Internal helpers ──────────────────────────────────────────── */
 
 /**
- * Returns the set of user_ids opted into the leaderboard, or null if
- * the leaderboard_visible column doesn't exist yet (i.e. migration
- * 016 has not been run). Returning null tells the caller "don't
- * filter" so the app degrades gracefully in the pre-migration state.
+ * Returns the set of user_ids eligible to be ranked and counted:
+ * leaderboard-visible AND non-seed. Seed/demo accounts are excluded
+ * so percentiles and cohort counts reflect only real students — the
+ * verification page's "verified, real" claim depends on this.
+ *
+ * Returns null if the leaderboard_visible/is_seed columns don't exist
+ * yet (i.e. migration 016 hasn't run), telling callers "don't filter"
+ * so the app degrades gracefully in the pre-migration state.
  */
-async function getVisibleUserIds(
+async function getRankableUserIds(
   admin: ReturnType<typeof createAdminClient>,
 ): Promise<Set<string> | null> {
   const { data, error } = await admin
     .from("profiles")
     .select("id")
-    .eq("leaderboard_visible", true);
+    .eq("leaderboard_visible", true)
+    .eq("is_seed", false);
   if (error) {
     // Most likely cause: column does not exist (pre-migration).
     // Log once so we know, but don't fail the request.
     console.warn(
-      "[getVisibleUserIds] visibility filter unavailable — falling back to all users. Run migration 016 to enable.",
+      "[getRankableUserIds] visibility/seed filter unavailable — falling back to all users. Run migration 016 to enable.",
     );
     return null;
   }
   return new Set((data ?? []).map((p) => p.id));
+}
+
+/**
+ * Canonical cohort membership: the intersection of scored users
+ * (aggregateRows — only users with feedback appear there) and the
+ * rankable id set (visible, non-seed). This is THE definition of
+ * "cohort" for the whole app; cohortSize, the leaderboard footer, the
+ * CV bullet, and every percentile denominator all derive from it.
+ * rankableIds === null (pre-migration) means don't filter.
+ */
+function cohortMemberIds(
+  aggregateRows: ReadonlyArray<{ user_id: string }>,
+  rankableIds: Set<string> | null,
+): Set<string> {
+  const ids = new Set<string>();
+  for (const r of aggregateRows) {
+    if (rankableIds === null || rankableIds.has(r.user_id)) {
+      ids.add(r.user_id);
+    }
+  }
+  return ids;
 }
 
 function percentileFor(

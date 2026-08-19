@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { EditorialMarkdown } from "@/components/EditorialMarkdown";
+import { MIN_COHORT_SIZE } from "@/lib/rankings";
 
 export const metadata: Metadata = {
   title: "How we evaluate work · RuneShips",
@@ -52,7 +53,7 @@ A skeptical reader should know what we haven't proved:
 
 **Anti-gameability is an open problem.** A student could theoretically submit LLM-generated work and receive a high score. We're working on detection and prevention measures, but for now: if you're submitting work to be evaluated, submit your work.
 
-**Rankings are provisional below a certain cohort size.** Percentiles need data to be meaningful. Below 25 active students per task, your rank is provisional: directionally useful, not statistically anchored.
+**Rankings need a cohort to be meaningful.** Below ${MIN_COHORT_SIZE} scored students, we don't show a percentile at all: your scores stand on their own.
 
 **A score is not a verdict.** It's one model's evaluation at one point in time on one specific task. People evolve. Models improve. Use the feedback to grow; use the score to track your trajectory.
 

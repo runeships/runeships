@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { ChevronDown } from "lucide-react";
 import {
+  MIN_COHORT_SIZE,
   type LeaderboardRow,
   type LeaderboardTaskOption,
   type Dimension,
@@ -52,7 +53,13 @@ const VALID_SORT_KEYS = new Set<SortKey>([
   "activity",
 ]);
 
-const GRAD_YEAR_OPTIONS = [2025, 2026, 2027, 2028, 2029, 2030] as const;
+// Derived from the current year so the filter never goes stale. 2026 →
+// 2024–2032, matching the onboarding range; shifts forward each year.
+const CURRENT_YEAR = new Date().getFullYear();
+const GRAD_YEAR_OPTIONS = Array.from(
+  { length: 9 },
+  (_, i) => CURRENT_YEAR - 2 + i,
+);
 const DIM_KEYS = new Set<SortKey>([
   "strategy",
   "execution",
@@ -81,10 +88,15 @@ export function LeaderboardTable({
   rows,
   tasks,
   currentUserId,
+  provisional = false,
 }: {
   rows: LeaderboardRow[];
   tasks: LeaderboardTaskOption[];
   currentUserId: string;
+  /** When true the global cohort is below MIN_COHORT_SIZE, so the
+   *  per-row "top %" column is suppressed and the footer shows the
+   *  "ranking opens at N" caption instead of a cohort count. */
+  provisional?: boolean;
 }) {
   const sp = useSearchParams();
 
@@ -160,6 +172,10 @@ export function LeaderboardTable({
   }, [rows, activeTask, yearStr]);
 
   // ─── Sort + rank ────────────────────────────────────────────
+  // "Top %" uses the same ≤-value method as lib/rankings so a user's
+  // leaderboard number matches their profile / verification page. The
+  // denominator is the scored students in scope (those with a non-null
+  // stat) — never the unscored users listed at the bottom.
   const sorted = useMemo(() => {
     const withStat = filtered.map((r) => ({
       row: r,
@@ -171,13 +187,27 @@ export function LeaderboardTable({
       if (b.stat === null) return -1;
       return b.stat - a.stat;
     });
-    const ranked = withStat.length;
-    return withStat.map((entry, i) => ({
-      ...entry,
-      rank: i + 1,
-      topPct: entry.stat === null ? null : Math.round((i / ranked) * 100),
-    }));
+    const scoredStats = withStat
+      .map((e) => e.stat)
+      .filter((s): s is number => s !== null);
+    const denom = scoredStats.length;
+    return withStat.map((entry, i) => {
+      let topPct: number | null = null;
+      if (entry.stat !== null && denom > 0) {
+        const atOrBelow = scoredStats.filter((s) => s <= entry.stat!).length;
+        const percentile = Math.round((atOrBelow / denom) * 100);
+        topPct = Math.max(1, 100 - percentile);
+      }
+      return { ...entry, rank: i + 1, topPct };
+    });
   }, [filtered, sortKey, activeTask]);
+
+  // Scored students in the current scope — the cohort count the footer
+  // reports (never the unscored users pinned to the bottom).
+  const scoredCount = useMemo(
+    () => sorted.filter((e) => e.stat !== null).length,
+    [sorted],
+  );
 
   const userIndex = sorted.findIndex((r) => r.row.userId === currentUserId);
   const userOnFilteredList = userIndex !== -1;
@@ -194,7 +224,10 @@ export function LeaderboardTable({
 
   // ─── Footer caption ─────────────────────────────────────────
   const footerCaption = useMemo(() => {
-    const n = sorted.length;
+    if (provisional) {
+      return `Ranking opens at ${MIN_COHORT_SIZE} scored students.`;
+    }
+    const n = scoredCount;
     const studentWord = n === 1 ? "student" : "students";
     if (activeTask && yearStr !== "all") {
       return `${n} ${studentWord} in the Class of ${yearStr} with submissions on ${activeTask.title}.`;
@@ -206,7 +239,7 @@ export function LeaderboardTable({
       return `${n} ${studentWord} in the Class of ${yearStr}.`;
     }
     return `${n} ${studentWord} in the RuneShips cohort. Updated as students submit work.`;
-  }, [sorted.length, activeTask, yearStr]);
+  }, [provisional, scoredCount, activeTask, yearStr]);
 
   // ─── Active-filter caption above the table ──────────────────
   const filterCaption = useMemo(() => {
@@ -309,11 +342,11 @@ export function LeaderboardTable({
       {/* Table — top 3 + ellipsis + caller */}
       <ul className="mt-6 divide-y divide-ink/10 border-y border-ink/10">
         {topThree.map((entry) =>
-          renderRow(entry, sortKey, activeTask, currentUserId),
+          renderRow(entry, sortKey, activeTask, currentUserId, provisional),
         )}
         {gapCount > 0 && <EllipsisRow count={gapCount} />}
         {userEntry &&
-          renderRow(userEntry, sortKey, activeTask, currentUserId)}
+          renderRow(userEntry, sortKey, activeTask, currentUserId, provisional)}
       </ul>
 
       {/* Footer caption */}
@@ -338,6 +371,7 @@ function renderRow(
   sortKey: SortKey,
   activeTask: LeaderboardTaskOption | null,
   currentUserId: string,
+  provisional: boolean,
 ) {
   const { row, stat, rank, topPct } = entry;
   const isMe = row.userId === currentUserId;
@@ -416,7 +450,7 @@ function renderRow(
       </div>
 
       <div className="text-right shrink-0 w-[80px]">
-        {topPct === null ? (
+        {provisional || topPct === null ? (
           <span aria-hidden className="text-muted">·</span>
         ) : (
           <span className="text-[11px] tracking-[0.16em] uppercase text-oxblood">

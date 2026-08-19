@@ -1,4 +1,5 @@
 import {
+  MIN_COHORT_SIZE,
   type LeaderboardRow,
   type LeaderboardTaskOption,
   type RankingsResult,
@@ -85,14 +86,10 @@ export function RankingPanel({
       {/* Headline */}
       {rankings.isProvisional ? (
         <p
-          className="font-display font-light leading-[1.15] tracking-[-0.018em] text-ink"
-          style={{ fontSize: "clamp(1.5rem, 1.6vw + 1rem, 1.85rem)" }}
+          className="font-display font-light leading-[1.05] tracking-[-0.022em] text-ink"
+          style={{ fontSize: "clamp(2rem, 2.4vw + 1rem, 2.5rem)" }}
         >
-          Your strongest dimension is{" "}
-          <span className="text-oxblood">{dimensionLabel(strongest)}</span>,
-          and you&rsquo;re outperforming{" "}
-          <span className="text-oxblood">{strongestPercentile}%</span> of the
-          cohort so far.
+          Your scores so far.
         </p>
       ) : (
         <>
@@ -122,7 +119,10 @@ export function RankingPanel({
               <RadarChart
                 values={earnedValues}
                 compareValues={selfRated}
-                percentiles={rankings.userPercentiles}
+                percentiles={
+                  rankings.isProvisional ? null : rankings.userPercentiles
+                }
+                showScoreLabels={rankings.isProvisional}
                 size={320}
               />
             </div>
@@ -151,7 +151,15 @@ export function RankingPanel({
             <Longship size="hero" ariaLabel="Viking longship illustration" />
           </div>
           <div className="mt-8">
-            <PercentileTally percentile={overallPercentile} width={420} />
+            {rankings.isProvisional ? (
+              <p className="text-[14px] leading-[1.6] text-muted max-w-[46ch]">
+                Ranking opens at {MIN_COHORT_SIZE} scored students.
+                You&rsquo;re one of {rankings.cohortSize} so far — your scores
+                are shown, and your percentile unlocks as the cohort grows.
+              </p>
+            ) : (
+              <PercentileTally percentile={overallPercentile} width={420} />
+            )}
           </div>
         </div>
       </div>
@@ -169,6 +177,7 @@ export function RankingPanel({
             rows={leaderboardRows}
             tasks={leaderboardTasks}
             currentUserId={currentUserId}
+            provisional={rankings.isProvisional}
           />
         </div>
       )}
@@ -176,13 +185,19 @@ export function RankingPanel({
       <div className="mt-10 pt-6 border-t border-ink/10 space-y-2">
         <p className="text-[12px] leading-[1.55] text-muted">
           Computed from your best score per task, averaged across all
-          completed tasks. Cohort size: {rankings.cohortSize}{" "}
-          {rankings.cohortSize === 1 ? "student" : "students"}.
+          completed tasks.
+          {!rankings.isProvisional && (
+            <>
+              {" "}
+              Cohort size: {rankings.cohortSize}{" "}
+              {rankings.cohortSize === 1 ? "student" : "students"}.
+            </>
+          )}
         </p>
         {rankings.isProvisional ? (
           <p className="text-[12px] leading-[1.55] italic text-oxblood">
-            Provisional rankings. RuneShips is early; these refine as more
-            students join. <FeedbackTrigger />
+            Provisional — percentiles and cohort ranking unlock at{" "}
+            {MIN_COHORT_SIZE} scored students. <FeedbackTrigger />
           </p>
         ) : (
           <p className="text-[12px] leading-[1.55] italic text-muted">
