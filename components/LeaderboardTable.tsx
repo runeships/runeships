@@ -177,24 +177,36 @@ export function LeaderboardTable({
   // denominator is the scored students in scope (those with a non-null
   // stat) — never the unscored users listed at the bottom.
   const sorted = useMemo(() => {
+    // Cohort membership is "has >= 1 scored submission" — independent of
+    // the active sort. Keying off the sort stat instead would count
+    // everyone under "Most active" (submissionCount is 0, never null),
+    // re-inflating the cohort. With a task filter active, `filtered`
+    // already restricts to that task's submitters, so all are members.
+    const isMember = (r: LeaderboardRow): boolean =>
+      activeTask ? activeTask.id in r.taskScores : r.avgPerTask !== null;
     const withStat = filtered.map((r) => ({
       row: r,
       stat: statFor(r, sortKey, activeTask?.id ?? null),
+      member: isMember(r),
     }));
     withStat.sort((a, b) => {
+      // Members always rank above non-members, whatever the sort stat.
+      if (a.member !== b.member) return a.member ? -1 : 1;
       if (a.stat === null && b.stat === null) return 0;
       if (a.stat === null) return 1;
       if (b.stat === null) return -1;
       return b.stat - a.stat;
     });
-    const scoredStats = withStat
-      .map((e) => e.stat)
-      .filter((s): s is number => s !== null);
-    const denom = scoredStats.length;
+    // Denominator = cohort members with a stat on this metric (members
+    // always have one). Non-members never get a top-%.
+    const memberStats = withStat
+      .filter((e) => e.member && e.stat !== null)
+      .map((e) => e.stat as number);
+    const denom = memberStats.length;
     return withStat.map((entry, i) => {
       let topPct: number | null = null;
-      if (entry.stat !== null && denom > 0) {
-        const atOrBelow = scoredStats.filter((s) => s <= entry.stat!).length;
+      if (entry.member && entry.stat !== null && denom > 0) {
+        const atOrBelow = memberStats.filter((s) => s <= entry.stat!).length;
         const percentile = Math.round((atOrBelow / denom) * 100);
         topPct = Math.max(1, 100 - percentile);
       }
@@ -205,7 +217,7 @@ export function LeaderboardTable({
   // Scored students in the current scope — the cohort count the footer
   // reports (never the unscored users pinned to the bottom).
   const scoredCount = useMemo(
-    () => sorted.filter((e) => e.stat !== null).length,
+    () => sorted.filter((e) => e.member).length,
     [sorted],
   );
 
@@ -362,6 +374,7 @@ export function LeaderboardTable({
 type RankedEntry = {
   row: LeaderboardRow;
   stat: number | null;
+  member: boolean;
   rank: number;
   topPct: number | null;
 };
@@ -375,12 +388,45 @@ function renderRow(
 ) {
   const { row, stat, rank, topPct } = entry;
   const isMe = row.userId === currentUserId;
+  const showTop = !provisional && topPct !== null;
+
+  const subtitle = (
+    <>
+      {row.school ?? "(no school listed)"}
+      {row.graduationYear && (
+        <>
+          <span aria-hidden className="mx-1.5 text-muted/50">·</span>
+          Class of {row.graduationYear}
+        </>
+      )}
+    </>
+  );
+  const youBadge = isMe && (
+    <span className="ml-2 text-[10px] tracking-[0.16em] uppercase text-oxblood">
+      You
+    </span>
+  );
+  const avatar = (
+    <span
+      aria-hidden
+      className={`
+        rounded-full inline-flex items-center justify-center shrink-0
+        border font-display text-[12px] tracking-[0.04em]
+        ${isMe
+          ? "border-oxblood bg-oxblood text-cream"
+          : "border-oxblood bg-parchment text-oxblood"
+        }
+      `}
+    >
+      {initialsFor(row.fullName)}
+    </span>
+  );
+
   return (
     <li
       key={row.userId}
       className={`
-        grid grid-cols-[40px_44px_1fr_auto_auto] gap-x-5 items-center
-        py-5
+        py-4 sm:py-5
         transition-colors duration-200 ease-out
         ${isMe
           ? "bg-oxblood/[0.08] border-l-[3px] border-oxblood pl-3 -ml-3 hover:bg-oxblood/[0.12]"
@@ -388,75 +434,99 @@ function renderRow(
         }
       `}
     >
-      <span
-        className={`text-right text-[13px] tabular-nums ${isMe ? "text-oxblood font-medium" : "text-muted"}`}
-      >
-        {rank}
-      </span>
-
-      <span
-        aria-hidden
-        className={`
-          w-9 h-9 rounded-full
-          inline-flex items-center justify-center
-          border font-display text-[12px] tracking-[0.04em]
-          ${isMe
-            ? "border-oxblood bg-oxblood text-cream"
-            : "border-oxblood bg-parchment text-oxblood"
-          }
-        `}
-      >
-        {initialsFor(row.fullName)}
-      </span>
-
-      <div className="min-w-0">
-        <p
-          className={`text-[15px] tracking-[-0.005em] font-medium truncate ${isMe ? "text-oxblood" : "text-ink"}`}
-        >
-          {row.fullName}
-          {isMe && (
-            <span className="ml-2 text-[11px] tracking-[0.16em] uppercase text-oxblood">
-              You
+      {/* Mobile (< sm): stacked — rank + avatar + full name on line one,
+          score + top-% on line two beneath. Names never truncate. */}
+      <div className="sm:hidden">
+        <div className="grid grid-cols-[26px_34px_1fr] items-center gap-3">
+          <span
+            className={`text-right text-[13px] tabular-nums ${isMe ? "text-oxblood font-medium" : "text-muted"}`}
+          >
+            {rank}
+          </span>
+          <span className="[&>span]:w-[34px] [&>span]:h-[34px]">{avatar}</span>
+          <div className="min-w-0">
+            <p
+              className={`text-[15px] tracking-[-0.005em] font-medium leading-[1.2] ${isMe ? "text-oxblood" : "text-ink"}`}
+            >
+              {row.fullName}
+              {youBadge}
+            </p>
+            <p className="mt-0.5 text-[12px] text-muted leading-[1.3]">
+              {subtitle}
+            </p>
+          </div>
+        </div>
+        <div className="mt-2 flex items-baseline justify-between gap-3 pl-[38px]">
+          <div className="flex items-baseline gap-2 min-w-0">
+            {stat === null ? (
+              <span className="text-[12px] text-muted">
+                No submissions yet
+              </span>
+            ) : (
+              <>
+                <span
+                  className="font-display text-[19px] leading-none text-oxblood tabular-nums"
+                  style={{ fontVariationSettings: '"opsz" 96' }}
+                >
+                  {formatStat(stat, sortKey)}
+                </span>
+                <span className="text-[11px] text-muted">
+                  {statLabel(stat, sortKey, activeTask)}
+                </span>
+              </>
+            )}
+          </div>
+          {showTop && (
+            <span className="shrink-0 text-[11px] tracking-[0.16em] uppercase text-oxblood">
+              Top {topPct}%
             </span>
           )}
-        </p>
-        <p className="mt-0.5 text-[13px] text-muted truncate">
-          {row.school ?? "(no school listed)"}
-          {row.graduationYear && (
-            <>
-              <span aria-hidden className="mx-2 text-muted/50">·</span>
-              Class of {row.graduationYear}
-            </>
-          )}
-        </p>
+        </div>
       </div>
 
-      <div className="text-right shrink-0">
-        {stat === null ? (
-          <span className="text-[12px] text-muted">No submissions yet</span>
-        ) : (
+      {/* Desktop (>= sm): the original single-line five-column grid. */}
+      <div className="hidden sm:grid grid-cols-[40px_44px_1fr_auto_auto] gap-x-5 items-center">
+        <span
+          className={`text-right text-[13px] tabular-nums ${isMe ? "text-oxblood font-medium" : "text-muted"}`}
+        >
+          {rank}
+        </span>
+        <span className="[&>span]:w-9 [&>span]:h-9">{avatar}</span>
+        <div className="min-w-0">
           <p
-            className="font-display text-[18px] leading-[1] text-oxblood tabular-nums"
-            style={{ fontVariationSettings: '"opsz" 96' }}
+            className={`text-[15px] tracking-[-0.005em] font-medium truncate ${isMe ? "text-oxblood" : "text-ink"}`}
           >
-            {formatStat(stat, sortKey)}
+            {row.fullName}
+            {youBadge}
           </p>
-        )}
-        {stat !== null && (
-          <p className="mt-1 text-[10px] tracking-[0.04em] text-muted">
-            {statLabel(stat, sortKey, activeTask)}
-          </p>
-        )}
-      </div>
-
-      <div className="text-right shrink-0 w-[80px]">
-        {provisional || topPct === null ? (
-          <span aria-hidden className="text-muted">·</span>
-        ) : (
-          <span className="text-[11px] tracking-[0.16em] uppercase text-oxblood">
-            Top {topPct}%
-          </span>
-        )}
+          <p className="mt-0.5 text-[13px] text-muted truncate">{subtitle}</p>
+        </div>
+        <div className="text-right shrink-0">
+          {stat === null ? (
+            <span className="text-[12px] text-muted">No submissions yet</span>
+          ) : (
+            <p
+              className="font-display text-[18px] leading-[1] text-oxblood tabular-nums"
+              style={{ fontVariationSettings: '"opsz" 96' }}
+            >
+              {formatStat(stat, sortKey)}
+            </p>
+          )}
+          {stat !== null && (
+            <p className="mt-1 text-[10px] tracking-[0.04em] text-muted">
+              {statLabel(stat, sortKey, activeTask)}
+            </p>
+          )}
+        </div>
+        <div className="text-right shrink-0 w-[80px]">
+          {showTop ? (
+            <span className="text-[11px] tracking-[0.16em] uppercase text-oxblood">
+              Top {topPct}%
+            </span>
+          ) : (
+            <span aria-hidden className="text-muted">·</span>
+          )}
+        </div>
       </div>
     </li>
   );
