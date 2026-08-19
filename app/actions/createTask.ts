@@ -134,13 +134,20 @@ export async function createTask(
     }
   }
 
-  // Attachments (pre-uploaded by the client).
-  const attachments: Attachment[] = [];
+  // Attachments (pre-uploaded by the client). The client JSON is a
+  // CLAIM to verify, not trusted input: each storage_path must live
+  // under this company's own prefix, and the byte size + public URL are
+  // read back from storage rather than taken from the client. Without
+  // this, a crafted storage_path pointing at another company's object
+  // would flow into the service-role storage.remove() cleanup below
+  // (cross-tenant file deletion), and a spoofed size would defeat the
+  // quota.
+  const rawAttachments: Attachment[] = [];
   const attachmentsJson = String(formData.get("attachments_json") ?? "[]");
   try {
     const parsed = JSON.parse(attachmentsJson);
     if (Array.isArray(parsed)) {
-      attachments.push(
+      rawAttachments.push(
         ...parsed
           .filter(
             (a): a is Attachment =>
@@ -161,12 +168,64 @@ export async function createTask(
 
   const admin = createAdminClient();
 
+  // ─── Validate paths + derive real sizes from storage ─────────────
+  // Reject (never silently drop) a path outside this company's prefix.
+  const companyPrefix = `${profile.company_id}/`;
+  const attachments: Attachment[] = [];
+  for (const a of rawAttachments) {
+    if (!a.storage_path.startsWith(companyPrefix)) {
+      console.error("[createTask attachment path rejected]", {
+        company_id: profile.company_id,
+        storage_path: a.storage_path,
+      });
+      return {
+        status: "error",
+        message:
+          "One of the uploaded files has an invalid path. Refresh the page and re-upload.",
+      };
+    }
+    const slash = a.storage_path.lastIndexOf("/");
+    const dir = a.storage_path.slice(0, slash);
+    const name = a.storage_path.slice(slash + 1);
+    const { data: listing, error: listErr } = await admin.storage
+      .from("task-attachments")
+      .list(dir, { search: name, limit: 100 });
+    const obj = (listing ?? []).find((o) => o.name === name);
+    const realSize =
+      typeof obj?.metadata?.size === "number"
+        ? (obj.metadata.size as number)
+        : null;
+    if (listErr || realSize === null) {
+      console.error("[createTask attachment not found in storage]", {
+        storage_path: a.storage_path,
+        listErr,
+      });
+      return {
+        status: "error",
+        message:
+          "One of the uploaded files couldn't be verified in storage. Refresh the page and re-upload.",
+      };
+    }
+    const { data: pub } = admin.storage
+      .from("task-attachments")
+      .getPublicUrl(a.storage_path);
+    attachments.push({
+      filename: a.filename,
+      content_type: a.content_type,
+      storage_path: a.storage_path,
+      size: realSize,
+      url: pub.publicUrl,
+    });
+  }
+
   // ─── Storage quota check ─────────────────────────────────────────
   // Files are already in Supabase Storage at this point (the client
   // uploads direct to the bucket before posting the form). If this
   // task would push the company over MAX_COMPANY_STORAGE_BYTES, we
-  // delete the freshly-uploaded files and reject. Otherwise we
-  // increment the counter after the task insert succeeds.
+  // delete the freshly-uploaded files and reject. Every path here is
+  // guaranteed to be under this company's prefix, so remove() can only
+  // ever touch the company's own objects. Otherwise we increment the
+  // counter after the task insert succeeds.
   const MAX_COMPANY_STORAGE_BYTES = 500 * 1024 * 1024; // 500 MB
   const incomingBytes = attachments.reduce((s, a) => s + a.size, 0);
   if (incomingBytes > 0) {
