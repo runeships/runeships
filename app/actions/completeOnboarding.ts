@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase-server";
+import { createAdminClient } from "@/lib/supabase-admin";
 
 export type OnboardingState =
   | { status: "idle" }
@@ -65,7 +66,14 @@ export async function completeOnboarding(
     );
   }
 
-  const { error: updateError } = await supabase
+  // Written via the service role: this update sets onboarding_completed
+  // and terms_accepted_at, which are locked out of the authenticated
+  // column-update grant (migration 038) so a user can't forge terms
+  // acceptance by PATCHing their own row directly. The getUser() check
+  // above plus the .eq("id", user.id) scope keep this to the caller's
+  // own profile.
+  const admin = createAdminClient();
+  const { error: updateError } = await admin
     .from("profiles")
     .update({
       full_name: fullName,
