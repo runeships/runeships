@@ -58,6 +58,7 @@ export function CreateTaskForm({ companyId }: { companyId: string }) {
   const [showWeights, setShowWeights] = useState(false);
   const [showReviewer, setShowReviewer] = useState(false);
   const [evaluationMode, setEvaluationMode] = useState<"ai" | "human">("ai");
+  const [unpaidAck, setUnpaidAck] = useState(false);
   const [weights, setWeights] = useState({
     strategy: 20,
     execution: 20,
@@ -217,6 +218,7 @@ export function CreateTaskForm({ companyId }: { companyId: string }) {
     fd.set("submission_mode", submissionMode);
     fd.set("category", category);
     fd.set("evaluation_mode", evaluationMode);
+    fd.set("unpaid_ack", unpaidAck ? "true" : "");
 
     // Hand off to the server action. From here, the `pending` flag
     // from useActionState drives the button text ("Posting…"). Drop
@@ -490,6 +492,34 @@ export function CreateTaskForm({ companyId }: { companyId: string }) {
         )}
       </div>
 
+      {/* UNPAID FRAMING + REQUIRED ACK */}
+      <div className="border-l-2 border-oxblood/40 pl-5">
+        <p className="text-[13px] leading-[1.6] text-ink/85 max-w-[62ch]">
+          <span className="text-ink font-medium">
+            Tasks on RuneShips are unpaid.
+          </span>{" "}
+          Students complete them to build skill and show how they think; you
+          use the results to find candidates worth talking to. Post practice
+          briefs and realistic exercises &mdash; not production work you&rsquo;d
+          otherwise pay someone to produce.
+        </p>
+        <label className="mt-4 flex items-start gap-3 cursor-pointer select-none">
+          <input
+            type="checkbox"
+            name="unpaid_ack"
+            checked={unpaidAck}
+            onChange={(e) => setUnpaidAck(e.target.checked)}
+            disabled={disabled}
+            className="mt-0.5 accent-oxblood shrink-0"
+          />
+          <span className="text-[13px] leading-[1.55] text-ink">
+            I confirm this is an unpaid practice task for skill assessment and
+            candidate screening &mdash; not production work I would otherwise
+            pay someone to produce.
+          </span>
+        </label>
+      </div>
+
       {state.status === "error" && (
         <p role="alert" className="text-[14px] text-oxblood">
           {state.message}
@@ -499,7 +529,7 @@ export function CreateTaskForm({ companyId }: { companyId: string }) {
       <div className="flex flex-wrap items-center gap-x-7 gap-y-3 pt-4 border-t border-ink/10">
         <button
           type="submit"
-          disabled={disabled}
+          disabled={disabled || !unpaidAck}
           aria-busy={disabled}
           className={`
             inline-flex items-center

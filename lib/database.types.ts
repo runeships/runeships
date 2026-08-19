@@ -281,6 +281,7 @@ export interface Database {
           cv_summary: string | null;
           bias_review_needed: boolean;
           bias_review_note: string | null;
+          unpaid_ack_at: string | null;
           created_at: string;
         };
         Insert: {
@@ -312,6 +313,7 @@ export interface Database {
           cv_summary?: string | null;
           bias_review_needed?: boolean;
           bias_review_note?: string | null;
+          unpaid_ack_at?: string | null;
           created_at?: string;
         };
         Relationships: [];
@@ -344,6 +346,7 @@ export interface Database {
           cv_summary?: string | null;
           bias_review_needed?: boolean;
           bias_review_note?: string | null;
+          unpaid_ack_at?: string | null;
           created_at?: string;
         };
       };

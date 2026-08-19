@@ -136,6 +136,11 @@ export default async function TaskDetailPage({
               </>
             )}
           </p>
+          <p className="mt-6 text-[13px] leading-[1.6] text-muted max-w-[64ch]">
+            This is an unpaid practice brief. The company that posted it may
+            review your submission to find candidates, but completing it
+            doesn&rsquo;t guarantee an interview or an offer.
+          </p>
         </header>
 
         {/* Starter dataset — shown above the brief when the task has

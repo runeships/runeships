@@ -69,6 +69,20 @@ export async function createTask(
     };
   }
 
+  // Required acknowledgment that this is an unpaid practice/screening
+  // task, not production work. Validated server-side — never trust the
+  // client's disabled-button state alone.
+  const unpaidAck =
+    formData.get("unpaid_ack") === "on" ||
+    formData.get("unpaid_ack") === "true";
+  if (!unpaidAck) {
+    return {
+      status: "error",
+      message:
+        "Please confirm this is an unpaid practice task, not production work you'd otherwise pay for.",
+    };
+  }
+
   const title = String(formData.get("title") ?? "").trim();
   if (!title) {
     return { status: "error", message: "Please add a task title." };
@@ -220,6 +234,7 @@ export async function createTask(
       attachments: attachments,
       bias_review_needed: biasCheck.flagged,
       bias_review_note: biasCheck.note,
+      unpaid_ack_at: new Date().toISOString(),
     })
     .select("id")
     .single();

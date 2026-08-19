@@ -58,10 +58,10 @@ export function SampleTaskCard() {
             </div>
           </div>
 
-          {/* Reward inset — big serif numeral */}
+          {/* Strategy XP inset — big serif numeral */}
           <div className="border-l border-rule pl-7 md:pl-10 md:min-w-[180px]">
             <p className="text-[10px] tracking-[0.2em] uppercase text-muted">
-              Reward
+              Strategy XP
             </p>
             <p
               className="mt-1 font-display font-light leading-[0.95] text-oxblood tracking-[-0.022em]"
@@ -71,9 +71,6 @@ export function SampleTaskCard() {
               }}
             >
               +120
-            </p>
-            <p className="mt-1.5 text-[11px] tracking-[0.18em] uppercase text-muted">
-              Strategy XP
             </p>
           </div>
         </div>
