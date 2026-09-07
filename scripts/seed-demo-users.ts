@@ -64,8 +64,8 @@ const TIER_TASK_RANGE: Record<Tier, [number, number]> = {
 const SEED_USERS: SeedUser[] = [
   // ─── 6 high-tier performers ────────────────────────────────────
   {
-    name: "Maya Chen",
-    school: "Stanford",
+    name: "Sofia Garcia",
+    school: "UCM",
     gradYear: 2027,
     careerTracks: ["Strategy", "Communication"],
     specificSkills: ["Financial modeling", "Editorial writing", "Python"],
@@ -84,7 +84,7 @@ const SEED_USERS: SeedUser[] = [
     strength: "technical",
   },
   {
-    name: "Aisha Patel",
+    name: "Sritej Bommaraju",
     school: "UC Berkeley",
     gradYear: 2028,
     careerTracks: ["Strategy", "Execution"],
