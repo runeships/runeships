@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase-server";
+import { createAdminClient } from "@/lib/supabase-admin";
 
 /**
  * Records the user's chosen account type and routes them to the
@@ -23,7 +24,12 @@ export async function setAccountType(formData: FormData) {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login?next=/onboarding/select-type");
 
-  const { error } = await supabase
+  // account_type is locked out of the authenticated column-update grant
+  // (migration 038), so write it via the service role. The getUser()
+  // check above plus .eq("id", user.id) scope this to the caller's own
+  // row — a user still can't set anyone else's account type.
+  const admin = createAdminClient();
+  const { error } = await admin
     .from("profiles")
     .update({ account_type: raw })
     .eq("id", user.id);
