@@ -520,13 +520,13 @@ export const getLeaderboard = cache(async function getLeaderboardImpl(): Promise
 
 /**
  * Returns the set of user_ids eligible to be ranked and counted:
- * leaderboard-visible AND non-seed. Seed/demo accounts are excluded
- * so percentiles and cohort counts reflect only real students — the
- * verification page's "verified, real" claim depends on this.
+ * every leaderboard-visible profile. Seed/demo accounts ARE included
+ * so the cohort looks populated pre-launch (deliberate product choice —
+ * see the note in getRankings about the /v tradeoff).
  *
- * Returns null if the leaderboard_visible/is_seed columns don't exist
- * yet (i.e. migration 016 hasn't run), telling callers "don't filter"
- * so the app degrades gracefully in the pre-migration state.
+ * Returns null if the leaderboard_visible column doesn't exist yet
+ * (i.e. migration 016 hasn't run), telling callers "don't filter" so
+ * the app degrades gracefully in the pre-migration state.
  */
 async function getRankableUserIds(
   admin: ReturnType<typeof createAdminClient>,
@@ -534,13 +534,12 @@ async function getRankableUserIds(
   const { data, error } = await admin
     .from("profiles")
     .select("id")
-    .eq("leaderboard_visible", true)
-    .eq("is_seed", false);
+    .eq("leaderboard_visible", true);
   if (error) {
     // Most likely cause: column does not exist (pre-migration).
     // Log once so we know, but don't fail the request.
     console.warn(
-      "[getRankableUserIds] visibility/seed filter unavailable — falling back to all users. Run migration 016 to enable.",
+      "[getRankableUserIds] visibility filter unavailable — falling back to all users. Run migration 016 to enable.",
     );
     return null;
   }

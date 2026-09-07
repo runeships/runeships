@@ -63,6 +63,23 @@ export function RankingPanel({
         <div className="mt-10">
           <PercentileTally percentile={null} width={420} />
         </div>
+
+        {/* Show the cohort ranked so a brand-new student can see where
+            they're headed. They appear in it as unranked ("No
+            submissions yet") until their first scored task. */}
+        {leaderboardRows.length > 0 && (
+          <div className="mt-12 pt-8 border-t border-ink/10">
+            <p className="text-[11px] tracking-[0.18em] uppercase text-muted">
+              Cohort leaderboard
+            </p>
+            <LeaderboardTable
+              rows={leaderboardRows}
+              tasks={leaderboardTasks}
+              currentUserId={currentUserId}
+              provisional={rankings.isProvisional}
+            />
+          </div>
+        )}
       </div>
     );
   }
